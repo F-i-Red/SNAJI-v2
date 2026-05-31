@@ -1,0 +1,36 @@
+
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: snaji-postgres
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: snaji-postgres
+
+  template:
+    metadata:
+      labels:
+        app: snaji-postgres
+
+    spec:
+      containers:
+        - name: postgres
+          image: pgvector/pgvector:pg16
+
+          env:
+            - name: POSTGRES_DB
+              value: snaji
+
+            - name: POSTGRES_USER
+              value: snaji
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: snaji-secrets
+                  key: postgres-password
