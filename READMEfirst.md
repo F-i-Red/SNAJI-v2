@@ -158,13 +158,13 @@ POST /api/v1/gerar-documento     → Gerar petição/contestação/recurso
 
 ### Processos (Fase 1+2)
 ```
-GET  /api/v1/processos           → Listar processos
-POST /api/v1/processos           → Criar processo
-GET  /api/v1/processos/{id}      → Detalhe + histórico
+GET  /api/v1/processos                        → Listar processos
+POST /api/v1/processos                        → Criar processo
+GET  /api/v1/processos/{id}                   → Detalhe + histórico
 POST /api/v1/processos/{id}/avancar-workflow  → Avançar fase + prazos automáticos
-GET  /api/v1/processos/{id}/prazos           → Prazos com análise de urgência
-GET  /api/v1/notificacoes        → Alertas de prazos críticos
-GET  /api/v1/workflow/dashboard  → Visão agregada de prazos em risco
+GET  /api/v1/processos/{id}/prazos            → Prazos com análise de urgência
+GET  /api/v1/notificacoes                     → Alertas de prazos críticos
+GET  /api/v1/workflow/dashboard               → Visão agregada de prazos em risco
 ```
 
 ### Audiências (Fase 3)
