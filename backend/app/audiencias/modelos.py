@@ -1,5 +1,5 @@
 """
-Modelos de dados das Audiências do SNAJI — Fase 3.
+Modelos de dados das Audiências do SNAJI — Fase 3 (V2).
 
 Uma audiência é um debate estruturado entre agentes especializados
 sobre um caso jurídico real, com base em normas verificadas.
@@ -8,6 +8,10 @@ Estrutura:
   Audiência → Rondas → Intervenções (por agente)
                     ↓
              Decisão final fundamentada (pelo Juiz)
+
+V2 (Especificação V8, §7): novos intervenientes processuais —
+arguido, testemunha, demandante/demandado civil (princípio da adesão),
+escrivão (ata com cadeia de integridade), intérprete e defensor oficioso.
 """
 
 from __future__ import annotations
@@ -20,39 +24,51 @@ import uuid
 
 
 class TipoAudiencia(str, Enum):
-    JULGAMENTO          = "julgamento"           # Processo penal/civil completo
-    AUDIENCIA_PRELIMINAR = "audiencia_preliminar" # Antes do julgamento
-    CONTRADITORIO       = "contraditorio"         # Debate de posições
-    PREPARACAO          = "preparacao"            # Treino — advogado prepara-se
-    SIMULACAO           = "simulacao"             # Demo/formação
+    JULGAMENTO           = "julgamento"            # Processo penal/civil completo
+    AUDIENCIA_PRELIMINAR = "audiencia_preliminar"  # Antes do julgamento
+    CONTRADITORIO        = "contraditorio"         # Debate de posições
+    PREPARACAO           = "preparacao"            # Treino — advogado prepara-se
+    SIMULACAO            = "simulacao"             # Demo/formação
 
 
 class PapelAgente(str, Enum):
+    # Papéis originais (V1)
     JUIZ       = "juiz"        # Modera, decide, aplica a lei
     ACUSACAO   = "acusacao"    # Ministério Público ou autor
-    DEFESA     = "defesa"      # Advogado de defesa ou réu
+    DEFESA     = "defesa"      # Advogado de defesa (mandatário ou defensor oficioso)
     PERITO     = "perito"      # Especialista em factos técnicos
-    ASSISTENTE = "assistente"  # Assistente do ofendido (processo penal)
+    ASSISTENTE = "assistente"  # Ofendido constituído assistente (arts. 68.º-69.º CPP)
+    # Papéis V2 (Especificação V8, §7.1)
+    ARGUIDO           = "arguido"            # A pessoa acusada — declarações e últimas declarações (art. 361.º CPP)
+    TESTEMUNHA        = "testemunha"         # Depõe na fase de prova, sob juramento
+    DEMANDANTE_CIVIL  = "demandante_civil"   # Pedido de indemnização enxertado (art. 71.º CPP)
+    DEMANDADO_CIVIL   = "demandado_civil"    # Responde ao pedido civil enxertado
+    ESCRIVAO          = "escrivao"           # Lavra a ata — registo auditável de cada ato
+    INTERPRETE        = "interprete"         # Interveniente transversal (art. 92.º CPP)
 
 
 class EstadoAudiencia(str, Enum):
-    PENDENTE    = "pendente"    # Criada, não iniciada
-    EM_CURSO    = "em_curso"    # A decorrer
-    PAUSADA     = "pausada"     # Pausada
-    CONCLUIDA   = "concluida"   # Terminada com decisão
-    CANCELADA   = "cancelada"
+    PENDENTE  = "pendente"   # Criada, não iniciada
+    EM_CURSO  = "em_curso"   # A decorrer
+    PAUSADA   = "pausada"    # Pausada
+    CONCLUIDA = "concluida"  # Terminada com decisão
+    CANCELADA = "cancelada"
 
 
 class TipoIntervencao(str, Enum):
-    ABERTURA        = "abertura"
-    ALEGACAO        = "alegacao"
-    CONTRA_ALEGACAO = "contra_alegacao"
-    PERGUNTA        = "pergunta"
-    RESPOSTA        = "resposta"
-    PROVA           = "prova"
-    OBJECAO         = "objecao"
-    DECISAO_FINAL   = "decisao_final"
-    ENCERRAMENTO    = "encerramento"
+    ABERTURA             = "abertura"
+    ALEGACAO             = "alegacao"
+    CONTRA_ALEGACAO      = "contra_alegacao"
+    PERGUNTA             = "pergunta"
+    RESPOSTA             = "resposta"
+    PROVA                = "prova"
+    OBJECAO              = "objecao"
+    DECISAO_FINAL        = "decisao_final"
+    ENCERRAMENTO         = "encerramento"
+    # V2
+    ATA                  = "ata"                   # Lavrada pelo escrivão a cada ato
+    DEPOIMENTO           = "depoimento"            # Testemunha ou declarações de parte
+    ULTIMAS_DECLARACOES  = "ultimas_declaracoes"   # Do arguido (art. 361.º CPP)
 
 
 @dataclass
@@ -117,6 +133,10 @@ class DecisaoFinal:
     dispositivo: str        # a decisão em si (condenatório/absolutório/etc.)
     recursos_possiveis: list[str]
     timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    # V2 — princípio da adesão (art. 71.º CPP): decisão do pedido civil enxertado
+    dispositivo_civil: str = ""            # decisão sobre a indemnização (se houver adesão)
+    factos_provados: list[str] = field(default_factory=list)      # matéria de facto
+    factos_nao_provados: list[str] = field(default_factory=list)
 
 
 @dataclass
