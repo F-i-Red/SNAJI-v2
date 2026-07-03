@@ -56,7 +56,7 @@ Documentação interactiva: `http://localhost:8000/docs`
 
 No CMD, dentro da pasta backend:
 ```bash
-1. py -m venv .venv
+1. py -3.12 -m venv .venv
 2. .venv\Scripts\activate.bat — deve aparecer (.venv) no início da linha
 3. pip install -r requirements.txt — atenção: isto descarrega ~2 GB (inclui os modelos de embeddings), demora vários minutos;
 4. copy .env.example .env
