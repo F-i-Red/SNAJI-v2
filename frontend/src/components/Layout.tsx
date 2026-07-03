@@ -6,6 +6,7 @@ const NAV_POR_ROLE = {
   cidadao: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
     { path: '/consulta', icon: 'ti-message-question', label: 'Consulta jurídica' },
+    { path: '/instrutor', icon: 'ti-list-search', label: 'Instrução do caso' },
     { path: '/processos', icon: 'ti-folder', label: 'Os meus processos' },
     { path: '/audiencias', icon: 'ti-gavel', label: 'Audiências' },
     { path: '/documentos', icon: 'ti-file-text', label: 'Documentos' },
@@ -13,6 +14,7 @@ const NAV_POR_ROLE = {
   advogado: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
     { path: '/consulta', icon: 'ti-message-question', label: 'Análise de casos' },
+    { path: '/instrutor', icon: 'ti-list-search', label: 'Instrução do caso' },
     { path: '/processos', icon: 'ti-briefcase', label: 'Carteira de processos' },
     { path: '/audiencias', icon: 'ti-gavel', label: 'Audiências' },
     { path: '/documentos', icon: 'ti-file-invoice', label: 'Geração de peças' },
@@ -34,6 +36,7 @@ const NAV_POR_ROLE = {
   admin: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
     { path: '/consulta', icon: 'ti-message-question', label: 'Consulta' },
+    { path: '/instrutor', icon: 'ti-list-search', label: 'Instrução do caso' },
     { path: '/processos', icon: 'ti-folder', label: 'Processos' },
     { path: '/auditoria', icon: 'ti-shield', label: 'Auditoria' },
   ],
