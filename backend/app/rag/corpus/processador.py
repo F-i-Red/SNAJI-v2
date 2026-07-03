@@ -81,12 +81,20 @@ PADRAO_ESTRUTURA = re.compile(
 # Linhas de ruído das fontes (avisos de alterações, navegação, etc.)
 PADRAO_RUIDO = re.compile(
     r"^[ \t]*(Contém as seguintes alterações|Ver as alterações|Versão à data|"
+    r"(Alterado|Aditado|Retificado|Rectificado|Reintroduzido)\s+pelo/a|"
     r"\[?\s*voltar ao início|Página \d+|_{5,}|-{5,}|={5,})",
     re.IGNORECASE,
 )
 
 PADRAO_REVOGADO = re.compile(r"^\(?\s*revogad[oa]", re.IGNORECASE)
 
+
+
+# Marcador do início do articulado do código (corta o decreto preambular)
+PADRAO_INICIO_CODIGO = re.compile(
+    r"^[ \t]*(C[ÓO]DIGO\s+[A-ZÁÂÃÉÊÍÓÔÕÚÇ ]{3,60}|CONSTITUI[ÇC][ÃA]O\s+DA\s+REP[ÚU]BLICA[A-ZÁÉÍÓÚÇ ]*)[ \t]*$",
+    re.MULTILINE,
+)
 
 @dataclass
 class Artigo:
@@ -163,6 +171,15 @@ def _extrair_epigrafe(corpo: str) -> tuple[str, str]:
 
 def extrair(texto: str, codigo: str, fonte: str, nome: str) -> list[Artigo]:
     texto = _limpar(texto)
+
+    # Se o texto trouxer um decreto preambular antes do código (formato DRE),
+    # começa no marcador "CÓDIGO …" para evitar artigos duplicados.
+    m_ini = PADRAO_INICIO_CODIGO.search(texto)
+    if m_ini and m_ini.start() > 0:
+        preamb = len(list(PADRAO_ARTIGO.finditer(texto[: m_ini.start()])))
+        if preamb:
+            print(f"     [INFO] {codigo}: {preamb} artigos do diploma preambular ignorados (antes de '{m_ini.group().strip()}')")
+        texto = texto[m_ini.start():]
 
     # Índice de contexto estrutural por posição
     estruturas = [(m.start(), f"{m.group(1).upper()} {m.group(2).upper()}")
