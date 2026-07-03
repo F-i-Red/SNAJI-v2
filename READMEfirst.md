@@ -52,6 +52,19 @@ uvicorn app.main:app --reload --port 8000
 O servidor arranca em `http://localhost:8000`
 Documentação interactiva: `http://localhost:8000/docs`
 
+###Ou
+No CMD, dentro da pasta backend:
+```bash
+1. py -m venv .venv
+2. .venv\Scripts\activate.bat — deve aparecer (.venv) no início da linha
+3. pip install -r requirements.txt — atenção: isto descarrega ~2 GB (inclui os modelos de embeddings), demora vários minutos;
+4. copy .env.example .env
+5. depois notepad .env — preenche ANTHROPIC_API_KEY= (a tua chave), JWT_SECRET= (uma frase longa qualquer inventada por ti) e DATABASE_URL=sqlite:///./snaji.db
+6. python -m uvicorn app.main:app --reload — dentro do venv, o python já funciona
+
+Se arrancar bem, verás os logs do SNAJI e podes abrir no browser http://localhost:8000/health (deve responder "status: ok" com os componentes) e http://localhost:8000/docs (a documentação interativa da API, onde as rotas do Instrutor aparecem).
+```
+
 ### 2. Frontend
 
 ```bash
