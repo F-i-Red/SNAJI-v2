@@ -222,7 +222,36 @@ def extrair(texto: str, codigo: str, fonte: str, nome: str) -> list[Artigo]:
             epigrase=epigrase, texto=corpo, fonte=fonte,
             revogado=revogado, contexto=contexto_em(m.start()),
         ))
-    return artigos
+    return _remover_duplicados_corrompidos(artigos)
+
+
+def _remover_duplicados_corrompidos(artigos: list[Artigo]) -> list[Artigo]:
+    """
+    Remove artigos cujo texto+epígrafe é idêntico ao de outro artigo e cujo
+    número contém (ou está contido n)o número desse outro — assinatura de
+    blocos repetidos com número corrompido nas cópias do DRE
+    (ex.: "Artigo 11120.º" duplicado do "Artigo 1120.º").
+    """
+    def _assinatura(a: Artigo) -> tuple[str, str]:
+        corpo = re.sub(r"\s+", " ", a.texto).strip()[:300]
+        return (re.sub(r"\s+", " ", a.epigrase).strip().lower(), corpo)
+
+    limpos: list[Artigo] = []
+    vistos: dict[tuple[str, str], str] = {}   # assinatura -> numero
+    removidos = 0
+    for a in artigos:
+        chave = _assinatura(a)
+        if len(a.texto) > 120 and chave in vistos:
+            outro = vistos[chave]
+            n1, n2 = a.numero.replace("-", ""), outro.replace("-", "")
+            if n1 != n2 and (n1 in n2 or n2 in n1):
+                removidos += 1
+                continue
+        vistos.setdefault(chave, a.numero)
+        limpos.append(a)
+    if removidos:
+        print(f"     [INFO] {artigos[0].codigo}: {removidos} bloco(s) duplicado(s) com número corrompido removido(s)")
+    return limpos
 
 
 def _relatorio(codigo: str, artigos: list[Artigo], ficheiro: str) -> None:
@@ -235,7 +264,11 @@ def _relatorio(codigo: str, artigos: list[Artigo], ficheiro: str) -> None:
             numeros.append(int(base))
     aviso = ""
     if numeros:
-        esperado = max(numeros)
+        ordenados = sorted(numeros)
+        esperado = ordenados[max(0, int(len(ordenados) * 0.95) - 1)]
+        anomalos = [n for n in set(numeros) if n > esperado * 3]
+        if anomalos:
+            print(f"     [SUSPEITO] {codigo}: números de artigo anómalos {sorted(anomalos)[:5]} — verificar no ficheiro raw")
         base_unicos = len(set(numeros))
         if base_unicos < esperado * 0.9:
             aviso = f"  [VERIFICAR: numeração vai até {esperado} mas só há {base_unicos} números-base — possíveis artigos não extraídos]"
