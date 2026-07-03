@@ -52,7 +52,8 @@ uvicorn app.main:app --reload --port 8000
 O servidor arranca em `http://localhost:8000`
 Documentação interactiva: `http://localhost:8000/docs`
 
-###Ou
+### Ou
+
 No CMD, dentro da pasta backend:
 ```bash
 1. py -m venv .venv
