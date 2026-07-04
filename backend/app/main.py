@@ -11,6 +11,7 @@ from app.api.workflow_routes import router as workflow_router
 from app.api.audiencias_routes import router as audiencias_router
 from app.api.integracoes_routes import router as integracoes_router
 from app.api.instrutor_routes import router as instrutor_router
+from app.api.cenarios_routes import router as cenarios_router
 
 structlog.configure(processors=[
     structlog.processors.TimeStamper(fmt="iso"),
@@ -28,8 +29,8 @@ async def lifespan(app: FastAPI):
     logger.info("snaji.start",
         artigos_corpus=rag.total_artigos,
         acordaos=motor_jurisprudencia.total_acordaos,
-        versao="5.0.0",
-        fases="1+2+3+4+instrutor",
+        versao="5.1.0",
+        fases="1+2+3+4+instrutor+cenarios",
     )
     yield
     logger.info("snaji.shutdown")
@@ -37,7 +38,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="SNAJI — Sistema Nacional de Assistência Jurídica Inteligente",
-    version="5.0.0",
+    version="5.1.0",
     description=(
         "Motor jurídico português completo. "
         "RAG (246 artigos reais), autenticação RBAC + CMD, "
@@ -64,6 +65,7 @@ app.include_router(workflow_router,     prefix="/api/v1")
 app.include_router(audiencias_router,   prefix="/api/v1")
 app.include_router(integracoes_router,  prefix="/api/v1")
 app.include_router(instrutor_router,    prefix="/api/v1")
+app.include_router(cenarios_router,     prefix="/api/v1")
 
 
 @app.exception_handler(ValueError)
@@ -80,13 +82,14 @@ async def health():
     return {
         "status": "ok",
         "sistema": "SNAJI",
-        "versao": "5.0.0",
-        "fases": "1+2+3+4+instrutor",
+        "versao": "5.1.0",
+        "fases": "1+2+3+4+instrutor+cenarios",
         "componentes": {
             "rag": "activo",
             "workflow": "activo",
             "audiencias": "activo",
             "integracoes": "activo",
             "instrutor": "activo",
+            "cenarios": "activo",
         }
     }
