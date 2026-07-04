@@ -54,6 +54,8 @@ class CenariosRequest(BaseModel):
     texto: str = Field(..., min_length=20, max_length=20000,
                        description="Texto do caso ou texto_para_analise do Instrutor")
     top_k_normas: int = Field(default=8, ge=3, le=15)
+    explicar: bool = Field(default=False,
+                           description="Se True, inclui o percurso de explicabilidade (etapas da análise)")
 
 
 class CenarioOut(BaseModel):
@@ -79,6 +81,7 @@ class CenariosResponse(BaseModel):
     normas_rejeitadas_total: list[str]
     ressalva: str = RESSALVA_CENARIOS
     via_llm: bool
+    percurso: list[dict] | None = None   # explicabilidade (só quando pedida)
 
 
 @router.post("/cenarios", response_model=CenariosResponse, tags=["Cenários"])
@@ -126,4 +129,5 @@ async def gerar_cenarios(
         sintese_cidada=d["sintese_cidada"],
         normas_rejeitadas_total=d["normas_rejeitadas_total"],
         via_llm=d["via_llm"],
+        percurso=d["percurso"] if request.explicar else None,
     )
