@@ -21,6 +21,7 @@ from pydantic import BaseModel, Field
 from app.db.utilizadores import Utilizador
 from app.security.dependencias import requer_permissao
 from app.security.rbac import Permissao
+from app.analytics.registo import registar
 from app.reasoning.motor_cenarios import MotorCenarios, RESSALVA_CENARIOS
 
 router = APIRouter()
@@ -96,6 +97,14 @@ async def gerar_cenarios(
         "cenarios.api", user_id=utilizador.id,
         n=len(resultado.cenarios), convergencia=resultado.convergencia,
     )
+    # Registo analítico anonimizado (Especificação V8, §8)
+    registar("cenarios_gerados", {
+        "convergencia": resultado.convergencia,
+        "n_cenarios": len(resultado.cenarios),
+        "solidez": [c.solidez for c in resultado.cenarios],
+        "normas_rejeitadas": len(resultado.normas_rejeitadas_total),
+        "via_llm": resultado.via_llm,
+    })
     d = resultado.para_dict()
     return CenariosResponse(
         cenarios=[CenarioOut(

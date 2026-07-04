@@ -31,6 +31,7 @@ from pydantic import BaseModel, Field
 from app.db.utilizadores import Utilizador
 from app.security.dependencias import requer_permissao
 from app.security.rbac import Permissao
+from app.analytics.registo import registar
 from app.reasoning.agente_instrutor import (
     AgenteInstrutor,
     EstadoInstrucao,
@@ -288,6 +289,15 @@ async def concluir_instrucao(
         perguntas=len(estado.perguntas_feitas),
         alertas=len(alertas),
     )
+    # Registo analítico anonimizado (Especificação V8, §8): sem dados pessoais
+    registar("instrucao_concluida", {
+        "areas": [a.value for a in estado.classificacao.todas_as_areas]
+        if estado.classificacao else [],
+        "n_perguntas": len(estado.perguntas_feitas),
+        "via_llm": estado.via_llm,
+        "alertas": [{"tipo": a.tipo.value, "gravidade": a.gravidade.value}
+                    for a in estado.alertas],
+    })
     return FichaOut(
         caso_id=caso_id,
         ficha=ficha.para_dict(),
