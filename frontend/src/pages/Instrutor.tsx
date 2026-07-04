@@ -11,6 +11,7 @@
  */
 
 import { useState, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { api, juridicalService, tratarErroAPI } from '../services/api'
 import { useAuthStore } from '../auth/session'
 import type { AnalysisResponse } from '../types'
@@ -87,6 +88,7 @@ export default function PaginaInstrutor() {
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const topoRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
 
   const mensagem = (a: AlertaAPI) => (ehProfissional ? a.mensagem_tecnica : a.mensagem_cidada)
 
@@ -478,6 +480,12 @@ export default function PaginaInstrutor() {
                   {carregando ? 'A analisar…' : 'Enviar para análise jurídica'}
                 </button>
               )}
+              <button
+                onClick={() => navigate('/cenarios', { state: { texto: ficha.texto_para_analise } })}
+                style={{ ...botaoPrimario, background: '#1a4a7a' }}
+              >
+                Ver cenários de resolução
+              </button>
               <button
                 onClick={recomecar}
                 style={{
