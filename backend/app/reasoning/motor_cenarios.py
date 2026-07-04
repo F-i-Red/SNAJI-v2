@@ -112,6 +112,7 @@ class ResultadoCenarios:
     normas_rejeitadas_total: list[str]
     ressalva: str = RESSALVA_CENARIOS
     via_llm: bool = False
+    percurso: list[dict] = field(default_factory=list)   # explicabilidade (V8.1)
 
     def para_dict(self) -> dict:
         return {
@@ -122,6 +123,7 @@ class ResultadoCenarios:
             "normas_rejeitadas_total": self.normas_rejeitadas_total,
             "ressalva": self.ressalva,
             "via_llm": self.via_llm,
+            "percurso": self.percurso,
         }
 
 
@@ -201,11 +203,26 @@ class MotorCenarios:
         Gera os cenários de resolução para um caso (texto livre ou Ficha
         de Factos do Instrutor). Cada cenário sai validado e nos dois registos.
         """
+        percurso: list[dict] = [{
+            "etapa": 1, "nome": "entrada",
+            "descricao": "Receção do caso (texto livre ou Ficha de Factos do Instrutor).",
+            "dados": {"caracteres": len(texto_caso)},
+        }]
+
         normas = self._rag.search(texto_caso, top_k=top_k_normas)
         normas_txt = "\n".join(
             f"• Art. {c.artigo}.º {c.diploma} — {(c.epigrase + ': ') if getattr(c, 'epigrase', '') else ''}{c.texto[:180]}"
             for c in normas
         ) or "— sem normas recuperadas —"
+
+        percurso.append({
+            "etapa": 2, "nome": "recuperacao_de_normas",
+            "descricao": f"Pesquisa BM25 no corpus legislativo ({self._rag.total_artigos} artigos); top-{top_k_normas} normas por relevância.",
+            "dados": {"normas_recuperadas": [
+                {"norma": f"{c.diploma}-{c.artigo}", "relevancia": round(float(getattr(c, 'score', 0.0)), 2)}
+                for c in normas
+            ]},
+        })
 
         if self._llm is not None:
             cenarios, sintese_tec = self._gerar_llm(texto_caso, normas_txt)
@@ -213,6 +230,13 @@ class MotorCenarios:
         else:
             cenarios, sintese_tec = self._gerar_stub(texto_caso, normas)
             via_llm = False
+
+        percurso.append({
+            "etapa": 3, "nome": "geracao_das_lentes",
+            "descricao": "Análise do caso pelas três lentes interpretativas (garantista, legalista, consequencialista).",
+            "dados": {"motor": "llm" if via_llm else "deterministico",
+                       "lentes_produzidas": [c.lente.value for c in cenarios]},
+        })
 
         # 1) Validação anti-alucinação de cada cenário
         rejeitadas_total: list[str] = []
@@ -230,6 +254,15 @@ class MotorCenarios:
                     c.solidez = "media"
             if c.solidez not in SOLIDEZ_VALORES:
                 c.solidez = "media"
+
+        percurso.append({
+            "etapa": 4, "nome": "validacao_anti_alucinacao",
+            "descricao": "Cada citação de cada cenário é verificada letra a letra contra o corpus; citações inexistentes são rejeitadas e assinaladas.",
+            "dados": {
+                "validadas_por_lente": {c.lente.value: c.fundamentacao_normas for c in cenarios},
+                "rejeitadas_por_lente": {c.lente.value: c.normas_rejeitadas for c in cenarios if c.normas_rejeitadas},
+            },
+        })
 
         # 2) Regra da viabilidade: apenas cenários viáveis são apresentados
         viaveis = [c for c in cenarios if c.viavel]
@@ -252,11 +285,25 @@ class MotorCenarios:
             )
             viaveis = [base]
 
+        percurso.append({
+            "etapa": 5, "nome": "regras_de_apresentacao",
+            "descricao": "Regra da viabilidade (só cenários juridicamente sustentáveis) e regra da convergência (lentes coincidentes fundem-se numa só solução assinalada).",
+            "dados": {"sentidos_das_lentes": sorted(sentidos),
+                       "convergencia": convergencia,
+                       "cenarios_apresentados": len(viaveis)},
+        })
+
         # 4) Saída dupla: o registo cidadão deriva do técnico (§3)
         self._gerar_registo_cidadao(viaveis, sintese_tec)
         sintese_cid = viaveis[0].__dict__.get("_sintese_cidada_tmp", "")
         for c in viaveis:
             c.__dict__.pop("_sintese_cidada_tmp", None)
+
+        percurso.append({
+            "etapa": 6, "nome": "saida_dupla",
+            "descricao": "O registo em linguagem clara é derivado do registo técnico (nunca gerado de forma independente), garantindo coerência de conteúdo entre os dois.",
+            "dados": {"traducao": "llm" if via_llm else "glossario_deterministico"},
+        })
 
         resultado = ResultadoCenarios(
             cenarios=viaveis,
@@ -265,6 +312,7 @@ class MotorCenarios:
             sintese_cidada=sintese_cid,
             normas_rejeitadas_total=sorted(set(rejeitadas_total)),
             via_llm=via_llm,
+            percurso=percurso,
         )
         logger.info(
             "cenarios.gerados",
