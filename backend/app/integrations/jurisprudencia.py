@@ -23,7 +23,9 @@ sobre jurisprudência relevante para um caso.
 """
 
 from __future__ import annotations
+import json
 import re
+from pathlib import Path
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Optional
@@ -150,10 +152,37 @@ class MotorJurisprudencia:
     Em produção: sincronizar com DGSI via scraping ou API.
     """
 
+    # Ficheiro produzido pelo processador de acórdãos (app/rag/corpus/)
+    FICHEIRO_ACORDAOS = Path(__file__).parent.parent / "rag" / "corpus" / "acordaos.json"
+
     def __init__(self):
-        self._acordaos = ACORDAOS_BASE
+        self._acordaos = self._carregar_acordaos()
         self._bm25 = None
         self._construir_indice()
+
+    def _carregar_acordaos(self) -> list[dict]:
+        """
+        Carrega acórdãos reais de acordaos.json (gerado pelo
+        processador_acordaos.py a partir do dgsi.pt). Sem esse ficheiro,
+        usa os exemplos fictícios de demonstração — com aviso explícito:
+        estes NUNCA devem ser apresentados como jurisprudência real.
+        """
+        try:
+            if self.FICHEIRO_ACORDAOS.exists():
+                dados = json.loads(self.FICHEIRO_ACORDAOS.read_text(encoding="utf-8"))
+                if dados:
+                    aujs = sum(1 for a in dados if a.get("tipo") == "AUJ")
+                    logger.info("jurisprudencia.reais.carregados",
+                                acordaos=len(dados), aujs=aujs)
+                    return dados
+        except Exception as exc:
+            logger.error("jurisprudencia.carregamento.falhou", erro=str(exc))
+        logger.warning(
+            "jurisprudencia.a_usar_exemplos_ficticios",
+            aviso="ACORDAOS_BASE são exemplos de demonstração, NÃO jurisprudência real. "
+                  "Correr processador_acordaos.py com acórdãos do dgsi.pt antes de qualquer demonstração.",
+        )
+        return ACORDAOS_BASE
 
     def _construir_indice(self):
         """Constrói o índice BM25 sobre os acórdãos."""
@@ -164,7 +193,7 @@ class MotorJurisprudencia:
             def tokenizar(texto: str) -> list[str]:
                 texto = unicodedata.normalize("NFKD", texto)
                 texto = texto.encode("ascii", "ignore").decode("ascii").lower()
-                return texto.split()
+                return re.findall(r"[a-z0-9]+", texto)
 
             corpus = [
                 tokenizar(f"{a['sumario']} {' '.join(a['descritores'])}")
@@ -183,6 +212,8 @@ class MotorJurisprudencia:
         """
         if self._bm25:
             acordaos = self._pesquisa_bm25(query, top_k)
+            if not acordaos:  # BM25 degenera com corpora muito pequenos
+                acordaos = self._pesquisa_keywords(query, top_k)
         else:
             acordaos = self._pesquisa_keywords(query, top_k)
 
