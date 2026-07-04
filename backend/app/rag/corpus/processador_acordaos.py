@@ -118,7 +118,7 @@ def _extrair_normas(texto: str) -> list[str]:
     normas: set[str] = set()
     padrao = re.compile(
         r"art(?:igo)?s?\.?\s*(\d+)\.?[ºo°]?(?:\s*-\s*([A-Z]))?"
-        r"[^.;]{0,60}?"
+        r"[^;\n]{0,60}?"
         r"(?:d[oa]s?\s+)((?:C[óo]digo|Constitui[çc][ãa]o|Lei de Defesa)[^,.;)\n]{0,45}|[A-Z]{2,5})",
         re.IGNORECASE,
     )
@@ -157,9 +157,13 @@ def processar_acordao(texto: str, nome_ficheiro: str, normas_validas: set[str]) 
     campos = _extrair_campos(texto)
     tribunal = _detectar_tribunal(texto)
 
-    processo = campos.get("Processo", "").splitlines()[0].strip() if campos.get("Processo") else nome_ficheiro
-    relator = campos.get("Relator", "").splitlines()[0].strip().title()
-    data_raw = (campos.get("Data do Acordão", "") or "").splitlines()[0].strip()
+    def _primeira_linha(campo: str) -> str:
+        linhas = campos.get(campo, "").splitlines()
+        return linhas[0].strip() if linhas else ""
+
+    processo = _primeira_linha("Processo") or nome_ficheiro
+    relator = _primeira_linha("Relator").title()
+    data_raw = _primeira_linha("Data do Acordão")
     m = re.search(r"(\d{1,2})[-/](\d{1,2})[-/](\d{4})", data_raw)
     data = f"{m.group(3)}-{int(m.group(2)):02d}-{int(m.group(1)):02d}" if m else data_raw
 
