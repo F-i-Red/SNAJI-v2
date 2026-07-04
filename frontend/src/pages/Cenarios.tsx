@@ -33,6 +33,13 @@ interface CenarioAPI {
   normas_rejeitadas: string[]
 }
 
+interface EtapaPercurso {
+  etapa: number
+  nome: string
+  descricao: string
+  dados: Record<string, unknown>
+}
+
 interface CenariosAPI {
   cenarios: CenarioAPI[]
   convergencia: boolean
@@ -41,6 +48,7 @@ interface CenariosAPI {
   normas_rejeitadas_total: string[]
   ressalva: string
   via_llm: boolean
+  percurso: EtapaPercurso[] | null
 }
 
 const NOME_LENTE: Record<CenarioAPI['lente'], string> = {
@@ -63,6 +71,16 @@ const NOME_SOLIDEZ: Record<CenarioAPI['solidez'], string> = {
   baixa: 'Solidez baixa',
 }
 
+
+const NOME_ETAPA: Record<string, string> = {
+  entrada: 'Receção do caso',
+  recuperacao_de_normas: 'Pesquisa das normas no corpus',
+  geracao_das_lentes: 'Análise pelas três lentes',
+  validacao_anti_alucinacao: 'Validação de todas as citações',
+  regras_de_apresentacao: 'Regras de viabilidade e convergência',
+  saida_dupla: 'Derivação da linguagem clara',
+}
+
 // ── Página ───────────────────────────────────────────────────────────────────
 
 export default function PaginaCenarios() {
@@ -74,6 +92,7 @@ export default function PaginaCenarios() {
   const [resultado, setResultado] = useState<CenariosAPI | null>(null)
   const [registoTecnico, setRegistoTecnico] = useState(ehProfissional)
   const [carregando, setCarregando] = useState(false)
+  const [mostrarPercurso, setMostrarPercurso] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
   const gerar = async (t?: string) => {
@@ -81,7 +100,7 @@ export default function PaginaCenarios() {
     if (corpo.length < 20 || carregando) return
     setCarregando(true); setErro(null); setResultado(null)
     try {
-      const res = await api.post<CenariosAPI>('/cenarios', { texto: corpo })
+      const res = await api.post<CenariosAPI>('/cenarios', { texto: corpo, explicar: true })
       setResultado(res.data)
     } catch (e) { setErro(tratarErroAPI(e)) }
     finally { setCarregando(false) }
@@ -293,6 +312,63 @@ export default function PaginaCenarios() {
               <div style={{ marginTop: 6, color: 'var(--color-text-primary)' }}>
                 {registoTecnico ? resultado.sintese_tecnica : resultado.sintese_cidada}
               </div>
+            </div>
+          )}
+
+          {/* Explicabilidade: porquê esta análise? */}
+          {resultado.percurso && (
+            <div style={cartao}>
+              <button
+                onClick={() => setMostrarPercurso(v => !v)}
+                style={{
+                  background: 'transparent', border: 'none', cursor: 'pointer',
+                  fontFamily: 'inherit', fontSize: 12.5, fontWeight: 600,
+                  color: '#0a2342', padding: 0,
+                }}
+              >
+                {mostrarPercurso ? '▾' : '▸'} Porquê esta análise? (percurso do sistema, {resultado.percurso.length} etapas)
+              </button>
+              {mostrarPercurso && (
+                <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 0 }}>
+                  {resultado.percurso.map((p, i) => (
+                    <div key={p.etapa} style={{ display: 'flex', gap: 12 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <div style={{
+                          width: 22, height: 22, borderRadius: '50%', background: '#0a2342',
+                          color: '#fff', fontSize: 11, display: 'flex',
+                          alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                        }}>{p.etapa}</div>
+                        {i < resultado.percurso!.length - 1 && (
+                          <div style={{ width: 1, flex: 1, background: 'var(--color-border-secondary)', minHeight: 14 }} />
+                        )}
+                      </div>
+                      <div style={{ paddingBottom: 14 }}>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-primary)' }}>
+                          {NOME_ETAPA[p.nome] ?? p.nome}
+                        </div>
+                        <div style={{ fontSize: 12, lineHeight: 1.55, color: 'var(--color-text-secondary)' }}>
+                          {p.descricao}
+                        </div>
+                        {p.nome === 'recuperacao_de_normas' && Array.isArray((p.dados as any).normas_recuperadas) && (
+                          <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 5 }}>
+                            {((p.dados as any).normas_recuperadas as any[]).slice(0, 8).map(n => (
+                              <span key={n.norma} style={etiqueta} title={`relevância ${n.relevancia}`}>
+                                {String(n.norma).replace('-', ' art. ')}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {p.nome === 'validacao_anti_alucinacao' &&
+                          Object.keys((p.dados as any).rejeitadas_por_lente ?? {}).length > 0 && (
+                          <div style={{ fontSize: 11.5, color: 'var(--color-text-danger)', marginTop: 4 }}>
+                            Citações rejeitadas: {Object.values((p.dados as any).rejeitadas_por_lente).flat().join(', ')}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
