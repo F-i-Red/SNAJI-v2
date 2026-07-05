@@ -25,7 +25,7 @@ Motor jurídico português completo com RAG (246 artigos reais), autenticação 
 
 O SNAJI nasceu da convicção de que o acesso à justiça não pode depender da capacidade financeira do cidadão. Em Portugal, a distância entre os direitos consagrados e o seu exercício efectivo é ainda demasiado grande.
 
-Este projeto foi desenvolvido individualmente, com recurso ao assistente de IA **Claude Pro (Anthropic)** — cuja subscrição mensal foi o único custo direto do projeto. É, em si mesmo, uma demonstração do que um cidadão pode construir quando tem acesso às ferramentas certas.
+Este projeto foi desenvolvido individualmente, com recurso ao assistente de IA **Claude Pro (Anthropic)** — cuja subscrição mensal e energia foram os únicos custos diretos do projeto. É, em si mesmo, uma demonstração do que um cidadão pode construir quando tem acesso às ferramentas certas.
 
 ---
 
