@@ -133,6 +133,7 @@ class Alerta:
     mensagem_tecnica: str                   # registo técnico (advogado/juiz)
     mensagem_cidada: str                    # linguagem clara (cidadão)
     norma_base: str = ""                    # ex.: "CT-387"
+    subtipo: str = ""                       # prazos: "expirado" | "em_risco"
 
 
 @dataclass
@@ -686,6 +687,7 @@ class AgenteInstrutor:
                     tipo=TipoAlerta.PRAZO,
                     gravidade=GravidadeAlerta.URGENTE,
                     norma_base=regra.norma,
+                    subtipo="expirado",
                     mensagem_tecnica=(
                         f"{regra.descricao_tecnica} Face à data indicada "
                         f"({data_ref}), o prazo PODE ter-se esgotado em "
@@ -704,6 +706,7 @@ class AgenteInstrutor:
                     tipo=TipoAlerta.PRAZO,
                     gravidade=GravidadeAlerta.URGENTE,
                     norma_base=regra.norma,
+                    subtipo="em_risco",
                     mensagem_tecnica=(
                         f"{regra.descricao_tecnica} Prazo em curso: termo "
                         f"indicativo em {limite.isoformat()} "
