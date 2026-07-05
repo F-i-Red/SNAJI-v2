@@ -300,6 +300,7 @@ npm run dev
 A aplicação fica disponível em `http://localhost:5173`  
 A API em `http://localhost:8000`  
 Documentação interativa em `http://localhost:8000/docs`
+Status do sistema em 'http://localhost:8000/health'
 
 ---
 
