@@ -363,7 +363,7 @@ python -m pytest tests/test_rag.py  # apenas RAG
 
 <div align="center">
 
-Desenvolvido por **Frederico Guilherme Sarmento Ferreira de Magalhães**
+Desenvolvido por **Frederico Guilherme Sarmento Ferreira de Magalhães** e **Claude 4.6/Fable 5**
 
 *"A justiça não pode ser um privilégio."*
 
