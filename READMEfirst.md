@@ -1,11 +1,72 @@
-# SNAJI — Sistema Nacional de Assistência Jurídica Inteligente
-**República Portuguesa · Versão 4.0.0**
+<div align="center">
+
+# ⚖️ SNAJI
+### Sistema Nacional de Assistência Jurídica Inteligente
+
+**IA jurídica soberana para Portugal — construída por um cidadão, para todos os cidadãos.**
+
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?style=flat&logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-18+-61DAFB?style=flat&logo=react&logoColor=black)](https://reactjs.org)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat&logo=docker&logoColor=white)](https://docker.com)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat)](LICENSE)
+[![Tests](https://img.shields.io/badge/Testes-181%20passing-brightgreen?style=flat)]()
+
+</div>
+
+---
 
 Motor jurídico português completo com RAG (246 artigos reais), autenticação RBAC + CMD, workflow processual com prazos legais, audiências multi-agente e integração com fontes governamentais.
 
 ---
 
-## O que está construído
+## Contexto
+
+O SNAJI nasceu da convicção de que o acesso à justiça não pode depender da capacidade financeira do cidadão. Em Portugal, a distância entre os direitos consagrados e o seu exercício efectivo é ainda demasiado grande.
+
+Este projeto foi desenvolvido individualmente, com recurso ao assistente de IA **Claude Pro (Anthropic)** — cuja subscrição mensal foi o único custo direto do projeto. É, em si mesmo, uma demonstração do que um cidadão pode construir quando tem acesso às ferramentas certas.
+
+---
+
+## O que é e não é o SNAJI?
+
+O SNAJI não é um chatbot com leis coladas. É um **sistema processual inteligente** que acompanha o cidadão, o advogado e o magistrado em cada fase do processo judicial português — com fundamentação real, integridade garantida e soberania de dados.
+
+Desenvolvido integralmente em Portugal, com legislação portuguesa real como base de conhecimento.
+
+---
+
+## Funcionalidades
+
+### 🧠 Assistência Jurídica com RAG
+Respostas fundamentadas em legislação portuguesa vigente — Código Civil, Código Penal, CPC, CRP e outros — com citação de fontes e mecanismos anti-alucinação.
+
+### ⚙️ Gestão de Processos
+Workflow processual completo: criação, tramitação, atribuição de papéis, controlo de prazos e estados. Cada intervenção é registada com hash criptográfico para garantir imutabilidade.
+
+### 🎭 Simulação de Audiências
+Simulação de audiências judiciais com múltiplos agentes: juiz, acusação, defesa e testemunhas. Útil para preparação, formação e análise processual.
+
+### 👤 Controlo de Acesso por Perfil (RBAC)
+Quatro perfis diferenciados com permissões específicas:
+
+| Perfil | Acesso |
+|---|---|
+| Cidadão | Consulta jurídica, acompanhamento do próprio processo |
+| Advogado | Gestão de clientes, processos, documentos |
+| Magistrado | Supervisão, decisão, audiências |
+| Administrador | Gestão total do sistema |
+
+### 📚 Jurisprudência e Legislação
+Integração com normas do Diário da República Eletrónico. Pesquisa híbrida (BM25 + semântica) sobre corpus jurídico português.
+
+### 🔒 Segurança e Soberania
+- Hashes criptográficos em todas as intervenções
+- Suporte nativo a modelos de IA locais (sem dependência obrigatória de APIs externas)
+- Dados permanecem em território nacional
+
+---
 
 ### Fases completadas
 | Fase | Descrição | Testes |
@@ -17,7 +78,7 @@ Motor jurídico português completo com RAG (246 artigos reais), autenticação 
 
 ### Corpus jurídico real
 - **246 artigos** de 6 diplomas: CRP, Código do Trabalho, Código Civil, RGPD, Código Penal, CPC+CPP
-- **7 acórdãos** representativos (STJ, TRL, TC) com BM25 pesquisável
+- **13 acórdãos** representativos (STJ, TRL, TC) com BM25 pesquisável
 - Anti-alucinação determinístico — citações validadas contra corpus
 
 ---
@@ -119,11 +180,14 @@ CMD_AMBIENTE=sandbox
 snaji/
 ├── backend/
 │   ├── app/
+│   │   ├── agents/           # Agentes de IA especializados
 │   │   ├── api/              # Rotas FastAPI (auth, análise, workflow, audiências, integrações)
+│   │   ├── core/             # Configuração e utilitários centrais
 │   │   ├── rag/              # Motor BM25 + corpus 246 artigos reais
 │   │   │   └── corpus/       # CRP, CT, CC, RGPD, CP, CPC+CPP em texto
 │   │   ├── reasoning/        # Pipeline de raciocínio jurídico
 │   │   ├── workflow/         # Prazos legais automáticos (CPC/CPP/CT)
+│   │   ├── orchestrator/     # Orquestração de workflows
 │   │   ├── audiencias/       # Motor de audiências multi-agente
 │   │   ├── agents/           # Juiz, Acusação, Defesa, Perito
 │   │   ├── processes/        # Repositório de processos jurídicos
@@ -148,8 +212,11 @@ snaji/
         ├── components/       # Layout, sidebar adaptativa por perfil
         ├── auth/             # Store Zustand + gestão de sessão
         ├── services/         # Cliente Axios com interceptores JWT
+        ├── styles/           # Estilos globais
         └── types/            # Tipos TypeScript partilhados
 ```
+
+**Stack:**  FastAPI · PostgreSQL · Redis · React 18 · Vite · Docker
 
 ---
 
@@ -202,6 +269,49 @@ GET  /api/v1/integracoes/estado               → Estado de todas as integraçõ
 
 ---
 
+## Início rápido
+
+### Pré-requisitos
+- Docker e Docker Compose
+- Node.js 18+
+- Python 3.11+
+
+### Instalação
+
+```bash
+# 1. Clonar o repositório
+git clone https://github.com/F-i-Red/SNAJI-Sistema-Nacional-de-Assistencia-Juridica-Inteligente.git
+cd SNAJI-Sistema-Nacional-de-Assistencia-Juridica-Inteligente
+
+# 2. Configurar variáveis de ambiente
+cp backend/.env.example backend/.env
+# Editar backend/.env com as suas chaves
+
+# 3. Lançar com Docker
+cd backend
+docker-compose up --build
+
+# 4. Frontend (terminal separado)
+cd frontend
+npm install
+npm run dev
+```
+
+A aplicação fica disponível em `http://localhost:5173`  
+A API em `http://localhost:8000`  
+Documentação interativa em `http://localhost:8000/docs`
+
+---
+
+## Testes
+
+```bash
+cd backend
+pytest                    # todos os testes
+pytest tests/ -v          # com output detalhado
+pytest --cov=app tests/   # com cobertura
+```
+
 ## Correr os testes
 
 ```bash
@@ -211,7 +321,7 @@ python -m pytest tests/ -q          # sumário rápido
 python -m pytest tests/test_rag.py  # apenas RAG
 ```
 
-**Resultado esperado: 138 passed, 0 failed**
+
 
 ---
 
@@ -228,12 +338,35 @@ python -m pytest tests/test_rag.py  # apenas RAG
 
 ## Roadmap
 
+- [ ] Vector store híbrido (BM25 + embeddings `bge-m3`)
+- [ ] Geração de PDF processual com cabeçalho de tribunal
+- [ ] Modo colaboração (advogado + cliente em simultâneo)
+- [ ] Análise comparativa de acórdãos semelhantes
+- [ ] Exportação de dossiê completo (processo + documentos + decisão)
+- [ ] Integração com CITIUS / SISAAE
+- [ ] Dark mode
 - [ ] Embeddings semânticos com pgvector (complementar ao BM25)
 - [ ] Sincronização automática DRE (scraping ou API AMA)
 - [ ] Integração Citius (sistema de gestão processual dos tribunais)
 - [ ] Modo offline/soberano com modelo local
 - [ ] App mobile (React Native)
 - [ ] Certificação RGPD pela CNPD
+
+---
+
+## Licença
+
+[MIT](LICENSE) — livre para usar, estudar, modificar e distribuir.
+
+---
+
+<div align="center">
+
+Desenvolvido por **Frederico Guilherme Sarmento Ferreira de Magalhães**
+
+*"A justiça não pode ser um privilégio."*
+
+</div>
 
 ---
 
