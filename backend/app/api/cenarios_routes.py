@@ -102,6 +102,8 @@ async def gerar_cenarios(
     )
     # Registo analítico anonimizado (Especificação V8, §8)
     registar("cenarios_gerados", {
+        "normas_validadas": sorted({n for c in resultado.cenarios
+                                    for n in c.fundamentacao_normas}),
         "convergencia": resultado.convergencia,
         "n_cenarios": len(resultado.cenarios),
         "solidez": [c.solidez for c in resultado.cenarios],

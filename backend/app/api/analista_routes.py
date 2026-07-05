@@ -59,3 +59,17 @@ async def qualidade(
     """Qualidade e operação: groundedness, LLM vs. determinístico, instrução."""
     logger.info("analista.qualidade", user_id=utilizador.id, dias=dias)
     return MotorAnalista(dias=dias).qualidade()
+
+
+@router.get("/analista/governacao", tags=["Analista"])
+async def governacao(
+    dias: int = Query(default=30, ge=1, le=365),
+    utilizador: Utilizador = Depends(dep_metricas),
+) -> dict:
+    """
+    Governação do sistema: funil de conclusão (abandono), equidade de acesso
+    (papel processual), território, prazos salvos vs. expirados por norma, e
+    artigos de lei mais invocados nas análises.
+    """
+    logger.info("analista.governacao", user_id=utilizador.id, dias=dias)
+    return MotorAnalista(dias=dias).governacao()

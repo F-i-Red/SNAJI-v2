@@ -127,6 +127,10 @@ class IniciarInstrucaoRequest(BaseModel):
         default=False,
         description="Se True, emite o alerta de apoio judiciário (Seg. Social)",
     )
+    distrito: str | None = Field(
+        default=None, max_length=40,
+        description="Distrito/região (opcional; apenas para estatística agregada anónima)",
+    )
 
 
 class ResponderRequest(BaseModel):
@@ -220,6 +224,16 @@ async def iniciar_instrucao(
     if request.dificuldades_economicas:
         agente.emitir_alerta_apoio_judiciario(estado)
 
+    if request.distrito:
+        estado.ficha.respostas_normalizadas["distrito"] = request.distrito.strip().lower()
+
+    # Funil: regista o INÍCIO (permite medir abandono — sem viés de sobrevivência)
+    registar("instrucao_iniciada", {
+        "areas": [a.value for a in estado.classificacao.todas_as_areas]
+        if estado.classificacao else [],
+        "distrito": request.distrito.strip().lower() if request.distrito else None,
+    })
+
     _sessoes[estado.caso_id] = _Sessao(estado, user_id=str(utilizador.id))
     pergunta = agente.proxima_pergunta(estado)
 
@@ -295,7 +309,10 @@ async def concluir_instrucao(
         if estado.classificacao else [],
         "n_perguntas": len(estado.perguntas_feitas),
         "via_llm": estado.via_llm,
-        "alertas": [{"tipo": a.tipo.value, "gravidade": a.gravidade.value}
+        "papel": estado.ficha.respostas_normalizadas.get("papel_no_caso", "desconhecido"),
+        "distrito": estado.ficha.respostas_normalizadas.get("distrito"),
+        "alertas": [{"tipo": a.tipo.value, "gravidade": a.gravidade.value,
+                     "norma": a.norma_base, "subtipo": a.subtipo}
                     for a in estado.alertas],
     })
     return FichaOut(
