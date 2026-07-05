@@ -11,7 +11,7 @@
 [![React](https://img.shields.io/badge/React-18+-61DAFB?style=flat&logo=react&logoColor=black)](https://reactjs.org)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat&logo=docker&logoColor=white)](https://docker.com)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat)](LICENSE)
-[![Tests](https://img.shields.io/badge/Testes-181%20passing-brightgreen?style=flat)]()
+[![Tests](https://img.shields.io/badge/Testes-172%20passing-brightgreen?style=flat)]()
 
 </div>
 
