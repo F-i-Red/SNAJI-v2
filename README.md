@@ -322,7 +322,13 @@ python -m pytest tests/ -q          # sumário rápido
 python -m pytest tests/test_rag.py  # apenas RAG
 ```
 
+## Limpeza do frontend (reset):
 
+```bash
+cd C:\SNAJI\frontend
+rmdir /s /q node_modules
+del package-lock.json
+```
 
 ---
 
