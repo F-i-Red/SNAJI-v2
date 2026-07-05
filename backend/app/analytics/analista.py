@@ -97,6 +97,77 @@ class MotorAnalista:
             "nota_privacidade": f"Indicadores com menos de {self.k} ocorrências são mascarados (k-anonimato).",
         }
 
+    # ── Governação do sistema ───────────────────────────────────────────
+
+    def governacao(self) -> dict:
+        """
+        Indicadores para governar o sistema e informar política pública:
+        funil (abandono), equidade de acesso (papel processual), território,
+        prazos salvos vs. perdidos, e artigos de lei mais invocados.
+        """
+        iniciadas = [e for e in self.eventos if e["evento"] == "instrucao_iniciada"]
+        concluidas = [e for e in self.eventos if e["evento"] == "instrucao_concluida"]
+        cenarios = [e for e in self.eventos if e["evento"] == "cenarios_gerados"]
+
+        # Funil: quem começa vs. quem conclui (sem viés de sobrevivência)
+        taxa_conclusao = (
+            round(len(concluidas) / len(iniciadas), 2)
+            if len(iniciadas) >= self.k else None
+        )
+
+        # Equidade de acesso: quem usa o sistema — quem ataca ou quem se defende?
+        por_papel: Counter = Counter(e.get("papel", "desconhecido") for e in concluidas)
+
+        # Território (apenas quando o utilizador o indicou, voluntariamente)
+        por_distrito: Counter = Counter(
+            e["distrito"] for e in iniciadas if e.get("distrito")
+        )
+
+        # Prazos: direitos salvos (em risco, ainda a tempo) vs. chegados tarde
+        expirados: Counter = Counter()
+        em_risco: Counter = Counter()
+        for e in concluidas:
+            for a in e.get("alertas", []):
+                if a.get("tipo") != "prazo":
+                    continue
+                norma = a.get("norma", "?")
+                if a.get("subtipo") == "expirado":
+                    expirados[norma] += 1
+                elif a.get("subtipo") == "em_risco":
+                    em_risco[norma] += 1
+
+        # Artigos de lei mais invocados nas análises (mapa de atenção legislativa)
+        normas: Counter = Counter()
+        for e in cenarios:
+            for n in e.get("normas_validadas", []):
+                normas[n] += 1
+
+        return {
+            "periodo_dias": self.dias,
+            "funil": {
+                "instrucoes_iniciadas": _k(len(iniciadas), self.k),
+                "instrucoes_concluidas": _k(len(concluidas), self.k),
+                "taxa_de_conclusao": taxa_conclusao,
+            },
+            "equidade_de_acesso": {
+                "por_papel_processual": _k_dict(dict(por_papel), self.k),
+                "leitura": "Um sistema justo serve quem reclama E quem se defende; "
+                           "esta distribuição mede-o em contínuo.",
+            },
+            "territorio": {
+                "instrucoes_por_distrito": _k_dict(dict(por_distrito), self.k),
+                "nota": "Recolha voluntária, categórica e agregada; sem moradas.",
+            },
+            "prazos": {
+                "direitos_em_risco_sinalizados_a_tempo": _k_dict(dict(em_risco), self.k),
+                "chegaram_com_prazo_expirado": _k_dict(dict(expirados), self.k),
+                "leitura": "A razão expirados/sinalizados, por norma, é evidência "
+                           "objetiva para avaliar se as janelas legais (ex.: 60 dias "
+                           "do art. 387.º CT) são adequadas.",
+            },
+            "normas_mais_invocadas": dict(list(_k_dict(dict(normas), self.k).items())[:10]),
+        }
+
     # ── Zonas cinzentas da lei ──────────────────────────────────────────
 
     def zonas_cinzentas(self) -> dict:
@@ -110,7 +181,16 @@ class MotorAnalista:
                 solidez[s] += 1
 
         indice = round(divergentes / total, 2) if total else None
+
+        # Aproximação da incerteza por diploma (via normas invocadas nas análises divergentes)
+        divergencia_por_diploma: Counter = Counter()
+        for e in cenarios:
+            if not e.get("convergencia"):
+                for n in e.get("normas_validadas", []):
+                    divergencia_por_diploma[n.split("-")[0]] += 1
+
         return {
+            "divergencia_por_diploma": _k_dict(dict(divergencia_por_diploma), self.k),
             "periodo_dias": self.dias,
             "total_analises_de_cenarios": _k(total, self.k),
             "casos_convergentes": _k(convergentes, self.k),
