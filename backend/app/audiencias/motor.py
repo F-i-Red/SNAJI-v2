@@ -251,10 +251,15 @@ class AudienciaCompleta:
     def tem_papel(self, papel: PapelAgente) -> bool:
         return papel in self.papeis_activos()
 
+    # Papéis que nunca APRESENTAM provas: o juiz ordena diligências (não é parte),
+    # o escrivão documenta e o intérprete traduz — igualdade de armas é entre as partes.
+    PAPEIS_SEM_PROVA = (PapelAgente.JUIZ, PapelAgente.ESCRIVAO, PapelAgente.INTERPRETE)
+
     def pode_apresentar_prova(self, papel: PapelAgente) -> bool:
         return (
             self.fase_actual in (FaseAudiencia.PROVA, FaseAudiencia.PERGUNTAS_JUIZ)
             and papel in self.papeis_activos()
+            and papel not in self.PAPEIS_SEM_PROVA
         )
 
     def provas_de(self, papel: PapelAgente) -> list[Prova]:
