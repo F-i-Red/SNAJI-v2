@@ -56,6 +56,13 @@ interface FichaAPI {
 }
 
 const OPCAO_OUTRO = 'Outro / prefiro explicar'
+
+const DISTRITOS = [
+  'Aveiro', 'Beja', 'Braga', 'Bragança', 'Castelo Branco', 'Coimbra', 'Évora',
+  'Faro', 'Guarda', 'Leiria', 'Lisboa', 'Portalegre', 'Porto', 'Santarém',
+  'Setúbal', 'Viana do Castelo', 'Vila Real', 'Viseu',
+  'Região Autónoma dos Açores', 'Região Autónoma da Madeira',
+]
 const MAX_PERGUNTAS = 7
 
 const NOMES_AREAS: Record<string, string> = {
@@ -79,6 +86,7 @@ export default function PaginaInstrutor() {
   const [fase, setFase] = useState<'intro' | 'perguntas' | 'ficha'>('intro')
   const [relato, setRelato] = useState('')
   const [dificuldades, setDificuldades] = useState(false)
+  const [distrito, setDistrito] = useState('')
   const [estado, setEstado] = useState<EstadoAPI | null>(null)
   const [ficha, setFicha] = useState<FichaAPI | null>(null)
   const [analise, setAnalise] = useState<AnalysisResponse | null>(null)
@@ -100,6 +108,7 @@ export default function PaginaInstrutor() {
     try {
       const res = await api.post<EstadoAPI>('/instrutor/iniciar', {
         relato, dificuldades_economicas: dificuldades,
+        distrito: distrito || null,
       })
       setEstado(res.data)
       setFase('perguntas')
@@ -361,6 +370,25 @@ export default function PaginaInstrutor() {
               onChange={e => setDificuldades(e.target.checked)}
             />
             Tenho dificuldades económicas em pagar advogado ou custas
+          </label>
+          <label style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            fontSize: 13, color: 'var(--color-text-secondary)',
+          }}>
+            Distrito (opcional, só para estatística anónima):
+            <select
+              value={distrito}
+              onChange={e => setDistrito(e.target.value)}
+              style={{
+                border: '0.5px solid var(--color-border-secondary)',
+                borderRadius: 'var(--border-radius-md)', padding: '6px 10px',
+                fontSize: 13, fontFamily: 'inherit',
+                color: 'var(--color-text-primary)', background: 'var(--color-background-primary)',
+              }}
+            >
+              <option value="">Prefiro não indicar</option>
+              {DISTRITOS.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
           </label>
           <div>
             <button
