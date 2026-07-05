@@ -1,17 +1,19 @@
-fastapi==0.115.0
-uvicorn[standard]==0.30.6
-pydantic==2.9.2
+# SNAJI — dependências do backend
+# Compatível com Python 3.12, 3.13 e 3.14+ (versões com wheels pré-compilados
+# para todas; testado o arranque completo da aplicação com estas versões).
+
+fastapi==0.139.0
+uvicorn[standard]==0.50.0
+pydantic==2.13.4
 pydantic-settings==2.5.2
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+argon2-cffi==23.1.0
 httpx==0.27.2
 rank-bm25==0.2.2
-sentence-transformers==3.1.1
 anthropic==0.34.2
-#psycopg2-binary==2.9.10 # descomentar quando migrar para PostgreSQ (versão institucional)
 sqlalchemy==2.0.35
 alembic==1.13.3
-pgvector==0.3.5
 redis==5.1.0
 celery==5.4.0
 prometheus-client==0.21.0
@@ -19,5 +21,10 @@ structlog==24.4.0
 python-multipart==0.0.12
 pytest==8.3.3
 pytest-asyncio==0.24.0
-httpx==0.27.2
-argon2-cffi==23.1.0
+
+# ── Ativar apenas quando necessário ─────────────────────────────────────────
+#psycopg2-binary==2.9.10        # descomentar quando migrar para PostgreSQL (PoC usa SQLite)
+#pgvector==0.3.5                # descomentar com o PostgreSQL (fase vetorial pós-PoC)
+#sentence-transformers==3.1.1   # embeddings (pesquisa híbrida pós-PoC); pesado e desnecessário
+                                # para o BM25 atual — é também o único pacote cuja cadeia (PyTorch)
+                                # pode atrasar o suporte às versões mais recentes do Python
