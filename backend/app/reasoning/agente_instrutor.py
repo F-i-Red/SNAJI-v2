@@ -114,6 +114,7 @@ class Resposta:
 
 
 class TipoAlerta(str, Enum):
+    PROTECAO_URGENTE = "protecao_urgente"
     PRAZO            = "prazo"
     VIA_NAO_JUDICIAL = "via_nao_judicial"
     APOIO_JUDICIARIO = "apoio_judiciario"
@@ -196,6 +197,7 @@ class RegraPrazo:
     norma: str
     descricao_tecnica: str
     descricao_cidada: str
+    lado: str = "ativo"        # "ativo" (quem inicia) | "passivo" (quem se defende)
 
 
 REGRAS_PRAZO: list[RegraPrazo] = [
@@ -232,6 +234,46 @@ REGRAS_PRAZO: list[RegraPrazo] = [
     ),
 ]
 
+REGRAS_PRAZO += [
+    RegraPrazo(
+        area=AreaJuridica.CIVIL,
+        campo_data="data_citacao",
+        dias=30,
+        norma="CPC-569",
+        descricao_tecnica="Prazo de contestação: 30 dias a contar da citação "
+                          "(art. 569.º CPC). A falta de contestação pode conduzir "
+                          "à confissão dos factos articulados (revelia).",
+        descricao_cidada="Depois de receber a citação do tribunal, tem em regra "
+                         "30 dias para contestar. Se não responder, o tribunal pode "
+                         "dar como verdadeiros os factos alegados contra si — "
+                         "perde-se pelo silêncio.",
+        lado="passivo",
+    ),
+    RegraPrazo(
+        area=AreaJuridica.LABORAL,
+        campo_data="data_citacao",
+        dias=30,
+        norma="CPC-569",
+        descricao_tecnica="Prazo de contestação após citação (regime subsidiário "
+                          "do art. 569.º CPC), sob pena de revelia.",
+        descricao_cidada="Depois de receber a citação, há um prazo para contestar "
+                         "— não responder pode significar perder o processo pelo silêncio.",
+        lado="passivo",
+    ),
+    RegraPrazo(
+        area=AreaJuridica.PENAL,
+        campo_data="data_notificacao_acusacao",
+        dias=20,
+        norma="CPP-287",
+        descricao_tecnica="Prazo de 20 dias, a contar da notificação da acusação, "
+                          "para requerer a abertura de instrução (art. 287.º, n.º 1, CPP).",
+        descricao_cidada="Depois de ser notificado da acusação, tem 20 dias para "
+                         "pedir a abertura de instrução — a fase em que pode "
+                         "contestar a acusação antes do julgamento.",
+        lado="passivo",
+    ),
+]
+
 # Vias não judiciais por área (o destino do caso pode não ser o tribunal)
 VIAS_NAO_JUDICIAIS: dict[AreaJuridica, tuple[str, str]] = {
     AreaJuridica.PENAL: (
@@ -256,6 +298,19 @@ VIAS_NAO_JUDICIAIS: dict[AreaJuridica, tuple[str, str]] = {
         "(a autoridade de proteção de dados).",
     ),
 }
+
+
+_SINAIS_RISCO = (
+    "bate-me", "bateu-me", "agride", "agrediu", "espanca", "violência doméstica",
+    "violencia domestica", "ameaçou matar", "ameacou matar", "tenho medo dele",
+    "tenho medo dela", "medo que me faça mal", "não me deixa sair", "nao me deixa sair",
+    "persegue-me", "stalking", "abusa de mim", "abusou de mim",
+)
+
+
+def _detetar_risco_pessoal(texto: str) -> bool:
+    t = texto.lower()
+    return any(s in t for s in _SINAIS_RISCO)
 
 
 # ── Prompts LLM ─────────────────────────────────────────────────────────────
@@ -288,7 +343,7 @@ CLASSIFICAÇÃO PRELIMINAR:
 FACTOS JÁ APURADOS (não voltar a perguntar):
 {apurados}
 
-LACUNAS TÍPICAS A CONSIDERAR: datas relevantes (prazos/prescrição); existência e forma de contrato; valor do dano ou do pedido; identidade/qualidade das partes; provas disponíveis (documentos, testemunhas); local dos factos.
+LACUNAS TÍPICAS A CONSIDERAR: papel processual (a pessoa inicia o caso ou defende-se dele? se se defende, a data da citação/notificação é a pergunta mais urgente — perde-se pelo silêncio); datas relevantes (prazos/prescrição); existência e forma de contrato; valor do dano ou do pedido; identidade/qualidade das partes; provas disponíveis (documentos, testemunhas); local dos factos.
 
 Se a informação já apurada for suficiente para uma análise jurídica sólida, devolve {{"suficiente": true, "resumo": "síntese do caso em 2-3 frases"}}.
 
@@ -348,6 +403,24 @@ class AgenteInstrutor:
             via_llm=(self._llm is not None),
         )
         estado.classificacao = self._classificador.classificar(relato)
+        if _detetar_risco_pessoal(relato):
+            estado.alertas.append(Alerta(
+                tipo=TipoAlerta.PROTECAO_URGENTE,
+                gravidade=GravidadeAlerta.URGENTE,
+                mensagem_tecnica=(
+                    "Indícios de risco para a integridade pessoal. Prioridade à "
+                    "proteção: 112 em perigo imediato; APAV 116 006 (gratuito); "
+                    "estatuto de vítima (Lei n.º 130/2015) e, em crimes violentos, "
+                    "indemnização pelo Estado (Lei n.º 104/2009, CPVC)."
+                ),
+                mensagem_cidada=(
+                    "Antes de tudo: se estiver em perigo, ligue 112. Para apoio "
+                    "gratuito e confidencial a vítimas, ligue 116 006 (APAV). "
+                    "Tem direitos especiais como vítima e, em crimes violentos, "
+                    "pode ter direito a uma indemnização paga pelo Estado. "
+                    "A informação jurídica pode esperar; a sua segurança não."
+                ),
+            ))
         self._emitir_alertas_de_via(estado)
         logger.info(
             "instrutor.iniciado",
@@ -477,6 +550,23 @@ class AgenteInstrutor:
         ja = estado.ficha.respostas_normalizadas
         sequencia: list[Pergunta] = [
             Pergunta(
+                id="", texto="Qual é a sua posição neste caso?",
+                tipo=TipoPergunta.ESCOLHA,
+                opcoes=["Quero apresentar uma queixa ou reclamação",
+                        "Fui processado, acusado ou recebi carta do tribunal"],
+                objetivo="Determinar o papel processual (os prazos e o caminho dependem disto)",
+                campo_ficha="papel_no_caso",
+            ),
+        ]
+        if ja.get("papel_no_caso") == "demandado":
+            sequencia.append(Pergunta(
+                id="", texto="Quando recebeu a citação ou a notificação do tribunal?",
+                tipo=TipoPergunta.DATA,
+                objetivo="Apurar o prazo de resposta (contestação/instrução) — perde-se pelo silêncio",
+                campo_ficha="data_citacao",
+            ))
+        sequencia += [
+            Pergunta(
                 id="", texto="Quando ocorreram os factos principais?",
                 tipo=TipoPergunta.DATA,
                 objetivo="Apurar datas para verificação de prazos e prescrição",
@@ -561,13 +651,20 @@ class AgenteInstrutor:
         areas = set(estado.classificacao.todas_as_areas)
         hoje = date.today()
 
+        papel = estado.ficha.respostas_normalizadas.get("papel_no_caso", "")
         for regra in REGRAS_PRAZO:
             if regra.area not in areas:
                 continue
+            # O lado processual determina que prazos importam a esta pessoa
+            if regra.lado == "passivo" and papel != "demandado":
+                continue
+            if regra.lado == "ativo" and papel == "demandado":
+                continue
             valor = estado.ficha.respostas_normalizadas.get(regra.campo_data)
             data_ref = self._parse_data(valor) if valor else None
-            if not data_ref:
-                # procura na cronologia
+            if not data_ref and regra.lado == "ativo":
+                # procura na cronologia (apenas para o lado ativo — o passivo
+                # exige a data exata da citação/notificação)
                 for ev in estado.ficha.cronologia:
                     data_ref = ev.get("data")
                     if data_ref:
@@ -713,6 +810,13 @@ class AgenteInstrutor:
 
     @staticmethod
     def _normalizar(pergunta: Pergunta, valor: str) -> str:
+        if pergunta.campo_ficha == "papel_no_caso":
+            v = valor.lower()
+            if any(p in v for p in ("processado", "acusado", "carta", "citação", "citacao", "notifica")):
+                return "demandado"
+            if any(p in v for p in ("apresentar", "queixa", "reclama")):
+                return "demandante"
+            return "nao_sei"
         if pergunta.tipo == TipoPergunta.ESCOLHA:
             v = valor.strip().lower()
             if v in ("sim", "não", "nao"):

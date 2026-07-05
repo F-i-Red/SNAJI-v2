@@ -64,8 +64,10 @@ DESCRICAO_LENTES: dict[Lente, tuple[str, str]] = {
     # (descrição técnica, descrição em linguagem clara)
     Lente.GARANTISTA: (
         "Máxima proteção dos direitos fundamentais e das garantias processuais; "
-        "na dúvida, prevalece a posição da parte mais vulnerável.",
-        "Uma leitura que protege ao máximo os direitos das pessoas, sobretudo da parte mais fraca.",
+        "na dúvida, prevalece a posição da parte mais vulnerável — e, no processo "
+        "penal, as garantias de defesa do arguido (in dubio pro reo; art. 32.º CRP).",
+        "Uma leitura que protege ao máximo os direitos das pessoas — a parte mais "
+        "fraca nos conflitos entre particulares e, num processo-crime, quem é acusado.",
     ),
     Lente.LEGALISTA: (
         "Aplicação estrita da letra da lei, sem extensão interpretativa.",
