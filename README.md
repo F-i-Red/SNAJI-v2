@@ -86,7 +86,7 @@ Integração com normas do Diário da República Eletrónico. Pesquisa híbrida 
 ## Arranque rápido
 
 ### Pré-requisitos
-- Python 3.12+
+- Python 3.12
 - Node.js 18+
 - (Opcional para funcionalidades completas) Chave API Anthropic
 
