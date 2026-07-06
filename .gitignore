@@ -1,0 +1,16 @@
+# SNAJI — .gitignore
+# (No GitHub, este ficheiro deve chamar-se exatamente ".gitignore", na raiz do repositório)
+ 
+# Dependências e builds — NUNCA versionar (instalam-se com npm install / pip install)
+node_modules/
+dist/
+.venv/
+__pycache__/
+*.pyc
+ 
+# Dados operacionais — nascem do uso do sistema, não são código
+backend/app/db/casos.json
+backend/app/analytics/eventos.jsonl
+ 
+# Segredos — a chave da API nunca pode ir para o GitHub
+.env
