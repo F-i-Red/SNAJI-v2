@@ -293,6 +293,32 @@ class RepositorioProcessos:
         logger.info("processo.avancou", id=pid, de=estado_anterior.value, para=proximo.value)
         return p
 
+    def retificar(self, processo_id: str, utilizador_id: str) -> "Processo":
+        """Anula o último avanço de estado (retificação de engano do utilizador).
+
+        O processo real não anda para trás — mas o registo do utilizador pode
+        estar errado, e corrigir registos é um direito. A retificação recua UM
+        estado e fica gravada como evento auditável (nada se apaga)."""
+        p = self.por_id(processo_id)
+        if p is None:
+            raise ValueError("Processo não encontrado")
+        idx = p.fase_index()
+        if idx <= 0:
+            raise ValueError("O processo já está no estado inicial — nada a retificar")
+        anterior = p.estado
+        p.estado = ORDEM_FASES[idx - 1]
+        p.atualizado_em = datetime.now(timezone.utc)
+        p.eventos.append(EventoProcesso(
+            timestamp=p.atualizado_em,
+            tipo="retificacao",
+            descricao=f"Retificação: o avanço para '{anterior.value}' foi anulado pelo utilizador",
+            estado_anterior=anterior.value,
+            estado_novo=p.estado.value,
+        ))
+        logger.info("processo.retificado", id=p.id, de=anterior.value, para=p.estado.value)
+        return p
+
+
     def adicionar_nota(self, pid: str, nota: str, utilizador_id: str) -> Processo:
         p = self._processos.get(pid)
         if not p:
