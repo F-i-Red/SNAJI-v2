@@ -7,6 +7,7 @@ import PaginaConsulta from './pages/Consulta'
 import PaginaInstrutor from './pages/Instrutor'
 import PaginaCenarios from './pages/Cenarios'
 import PaginaAnalista from './pages/Analista'
+import PaginaMeusCasos from './pages/MeusCasos'
 import PaginaProcessos from './pages/Processos'
 import PaginaDocumentos from './pages/Documentos'
 import PaginaAuditoria from './pages/Auditoria'
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="instrutor"  element={<PaginaInstrutor />} />
           <Route path="cenarios"   element={<PaginaCenarios />} />
           <Route path="observatorio" element={<PaginaAnalista />} />
+          <Route path="casos" element={<PaginaMeusCasos />} />
           <Route path="processos"  element={<PaginaProcessos />} />
           <Route path="documentos" element={<PaginaDocumentos />} />
           <Route path="audiencias" element={<PaginaAudiencias />} />
