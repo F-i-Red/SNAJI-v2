@@ -59,6 +59,30 @@ class JuridicalOrchestrator:
         self._validator = ValidadorCitacoes()
         self._client = anthropic.Anthropic(api_key=self._settings.anthropic_api_key)
 
+    def _dados_stub(self, texto: str, chunks) -> dict:
+        """Análise determinística de contingência: classificação heurística +
+        normas reais do corpus. Sem LLM, mas nunca sem resposta fundamentada."""
+        from app.reasoning.classificador_juridico import _classificar_heuristico
+        clf = _classificar_heuristico(texto)
+        areas = ", ".join(a.area.value for a in clf.areas)
+        refs = ", ".join(f"art. {c.artigo}.º {c.diploma}" for c in chunks[:4]) or "—"
+        return {
+            "factos": [texto[:300]],
+            "qualificacao_juridica": f"[modo de contingência] Caso com dimensão: {areas}.",
+            "analise": (
+                f"Análise determinística (motor pleno indisponível). Áreas detetadas: {areas}. "
+                f"Normas potencialmente aplicáveis, recuperadas do corpus oficial: {refs}. "
+                "Recomenda-se repetir a análise com o motor pleno para fundamentação desenvolvida."
+            ),
+            "vias_processuais": [i for a in clf.areas for i in a.instancias][:4],
+            "conclusao": (
+                "O caso apresenta enquadramento jurídico nas normas acima identificadas. "
+                "Esta é a análise de contingência; a solidez das conclusões deve ser "
+                "confirmada com o motor pleno e, sempre, com um profissional."
+            ),
+            "contraditorio": None,
+        }
+
     async def process(self, request: AnalysisRequest) -> AnalysisResponse:
         caso_id = str(uuid.uuid4())
         log = logger.bind(caso_id=caso_id)
@@ -80,32 +104,37 @@ class JuridicalOrchestrator:
             caso=request.texto,
         )
 
-        log.info("llm.call.start", model=self._settings.anthropic_model)
-        message = self._client.messages.create(
-            model=self._settings.anthropic_model,
-            max_tokens=2000,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        resposta_raw = message.content[0].text
-        log.info(
-            "llm.call.done",
-            tokens_in=message.usage.input_tokens,
-            tokens_out=message.usage.output_tokens,
-        )
-
-        # Etapa 3: Parse estruturado
+        # Etapas 2-3: LLM + parse — com degradação graciosa: uma falha do LLM
+        # (chave inválida/ausente, rede, saldo) NUNCA nega a análise ao utilizador
+        dados = None
+        tokens_in = tokens_out = 0
+        modelo_usado = self._settings.anthropic_model
         try:
-            dados = json.loads(resposta_raw)
-        except json.JSONDecodeError:
-            # Fallback: tenta extrair JSON do texto
-            import re
-            match = re.search(r"\{.*\}", resposta_raw, re.DOTALL)
-            if match:
-                dados = json.loads(match.group())
-            else:
-                log.error("llm.parse.failed", raw=resposta_raw[:200])
-                raise ValueError("LLM não devolveu JSON válido")
+            log.info("llm.call.start", model=self._settings.anthropic_model)
+            message = self._client.messages.create(
+                model=self._settings.anthropic_model,
+                max_tokens=2000,
+                system=SYSTEM_PROMPT,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            resposta_raw = message.content[0].text
+            tokens_in = message.usage.input_tokens
+            tokens_out = message.usage.output_tokens
+            log.info("llm.call.done", tokens_in=tokens_in, tokens_out=tokens_out)
+            try:
+                dados = json.loads(resposta_raw)
+            except json.JSONDecodeError:
+                import re
+                match = re.search(r"\{.*\}", resposta_raw, re.DOTALL)
+                if match:
+                    dados = json.loads(match.group())
+                else:
+                    log.error("llm.parse.failed", raw=resposta_raw[:200])
+                    raise ValueError("LLM não devolveu JSON válido")
+        except Exception as exc:
+            log.warning("llm.falhou_a_degradar_para_stub", erro=str(exc)[:200])
+            dados = self._dados_stub(request.texto, chunks)
+            modelo_usado = "deterministico-local (modo de contingência)"
 
         # Etapa 4: Validação anti-alucinação
         texto_completo = dados.get("analise", "") + " " + dados.get("conclusao", "")
@@ -129,9 +158,9 @@ class JuridicalOrchestrator:
             timestamp=datetime.now(timezone.utc),
             normas_citadas=len(citacoes_validas),
             fontes_utilizadas=request.fontes,
-            modelo=self._settings.anthropic_model,
-            tokens_input=message.usage.input_tokens,
-            tokens_output=message.usage.output_tokens,
+            modelo=modelo_usado,
+            tokens_input=tokens_in,
+            tokens_output=tokens_out,
             grounded=len(citacoes_suspeitas) == 0,
         )
 
