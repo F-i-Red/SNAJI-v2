@@ -118,6 +118,8 @@ class CriarProcessoRequest(BaseModel):
     tribunal: str = "Tribunal Judicial"
     comarca: str = "Lisboa"
     caso_id_analise: Optional[str] = None
+    # caso misto: ex.: ["penal", "civil"] — o tipo principal comanda fases/prazos
+    areas: Optional[list[str]] = None
 
 
 @router.get("/processos", tags=["Processos"])
@@ -129,6 +131,7 @@ async def listar_processos(utilizador: Utilizador = Depends(requer_login)):
                 "id": p.id,
                 "numero": p.numero,
                 "tipo": p.tipo.value,
+                "areas": getattr(p, "areas", []) or [p.tipo.value],
                 "descricao": p.descricao,
                 "estado": p.estado.value,
                 "partes": [{"nome": pt.nome, "papel": pt.papel} for pt in p.partes],
@@ -153,6 +156,7 @@ async def criar_processo(
         tipo=dados.tipo, descricao=dados.descricao, partes=partes,
         criado_por=utilizador.id, caso_id_analise=dados.caso_id_analise,
         valor_causa=dados.valor_causa, tribunal=dados.tribunal, comarca=dados.comarca,
+        areas=dados.areas,
     )
     return {"id": p.id, "numero": p.numero, "estado": p.estado.value}
 
@@ -169,6 +173,7 @@ async def ver_processo(pid: str, utilizador: Utilizador = Depends(requer_login))
         "proximo_estado": p.proximo_estado().value if p.proximo_estado() else None,
         "partes": [{"nome": pt.nome, "papel": pt.papel} for pt in p.partes],
         "tribunal": p.tribunal, "comarca": p.comarca, "valor_causa": p.valor_causa,
+        "areas": getattr(p, "areas", []) or [p.tipo.value],
         "criado_em": p.criado_em.isoformat(), "atualizado_em": p.atualizado_em.isoformat(),
         "prazos": [{"descricao": pr.descricao, "data_limite": pr.data_limite.isoformat(),
                     "urgente": pr.urgente, "cumprido": pr.cumprido} for pr in p.prazos],
