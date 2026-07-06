@@ -5,6 +5,7 @@ import { useAuthStore, useRole } from '../auth/session'
 const NAV_POR_ROLE = {
   cidadao: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
+    { path: '/casos', icon: 'ti-folder', label: 'Os meus casos' },
     { path: '/consulta', icon: 'ti-message-question', label: 'Consulta jurídica' },
     { path: '/instrutor', icon: 'ti-list-search', label: 'Instrução do caso' },
     { path: '/cenarios', icon: 'ti-scale', label: 'Cenários de resolução' },
@@ -14,6 +15,7 @@ const NAV_POR_ROLE = {
   ],
   advogado: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
+    { path: '/casos', icon: 'ti-folder', label: 'Os meus casos' },
     { path: '/consulta', icon: 'ti-message-question', label: 'Análise de casos' },
     { path: '/instrutor', icon: 'ti-list-search', label: 'Instrução do caso' },
     { path: '/cenarios', icon: 'ti-scale', label: 'Cenários de resolução' },
@@ -39,6 +41,7 @@ const NAV_POR_ROLE = {
   ],
   admin: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
+    { path: '/casos', icon: 'ti-folder', label: 'Os meus casos' },
     { path: '/observatorio', icon: 'ti-chart-dots', label: 'Observatório' },
     { path: '/consulta', icon: 'ti-message-question', label: 'Consulta' },
     { path: '/instrutor', icon: 'ti-list-search', label: 'Instrução do caso' },
