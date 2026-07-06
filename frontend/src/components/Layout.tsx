@@ -15,6 +15,7 @@ const NAV_POR_ROLE = {
   ],
   advogado: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
+    { path: '/jurisprudencia', icon: 'ti-gavel', label: 'Jurisprudência' },
     { path: '/casos', icon: 'ti-folder', label: 'Os meus casos' },
     { path: '/consulta', icon: 'ti-message-question', label: 'Análise de casos' },
     { path: '/instrutor', icon: 'ti-list-search', label: 'Instrução do caso' },
@@ -26,6 +27,7 @@ const NAV_POR_ROLE = {
   ],
   magistrado: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
+    { path: '/jurisprudencia', icon: 'ti-gavel', label: 'Jurisprudência' },
     { path: '/observatorio', icon: 'ti-chart-dots', label: 'Observatório' },
     { path: '/processos', icon: 'ti-scale', label: 'Processos em carteira' },
     { path: '/audiencias', icon: 'ti-gavel', label: 'Audiências' },
@@ -41,6 +43,7 @@ const NAV_POR_ROLE = {
   ],
   admin: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
+    { path: '/jurisprudencia', icon: 'ti-gavel', label: 'Jurisprudência' },
     { path: '/casos', icon: 'ti-folder', label: 'Os meus casos' },
     { path: '/observatorio', icon: 'ti-chart-dots', label: 'Observatório' },
     { path: '/consulta', icon: 'ti-message-question', label: 'Consulta' },
