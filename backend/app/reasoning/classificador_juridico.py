@@ -105,7 +105,7 @@ _KEYWORDS: dict[AreaJuridica, list[str]] = {
     ],
     AreaJuridica.PENAL: [
         "suborno", "corrupção", "crime", "furto", "roubo", "homicídio",
-        "ofensa", "ameaça", "burla", "coação", "arguido", "pena",
+        "ofensa", "ameaç", "burla", "coação", "arguido", "pena",
         "prisão", "detenção", "queixa-crime", "denúncia criminal",
     ],
     AreaJuridica.DADOS_PESSOAIS: [
