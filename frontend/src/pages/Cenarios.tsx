@@ -12,7 +12,7 @@
  */
 
 import { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { api, tratarErroAPI } from '../services/api'
 import { useAuthStore } from '../auth/session'
 
@@ -87,6 +87,7 @@ export default function PaginaCenarios() {
   const { utilizador } = useAuthStore()
   const ehProfissional = utilizador?.role === 'advogado' || utilizador?.role === 'magistrado'
   const location = useLocation() as { state?: { texto?: string; caso_id?: string } }
+  const navigate = useNavigate()
 
   const [texto, setTexto] = useState(location.state?.texto ?? '')
   const [resultado, setResultado] = useState<CenariosAPI | null>(null)
@@ -217,6 +218,17 @@ export default function PaginaCenarios() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 860 }}>
 
+      {location.state?.caso_id && (
+        <button
+          onClick={() => navigate('/instrutor', { state: { retomar_caso_id: location.state!.caso_id } })}
+          style={{
+            alignSelf: 'flex-start', background: 'transparent', border: 'none', cursor: 'pointer',
+            fontFamily: 'inherit', fontSize: 12.5, color: 'var(--color-text-secondary)', padding: 0,
+          }}
+        >
+          ← Voltar ao caso instruído
+        </button>
+      )}
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
         <h1 style={{
           fontFamily: "'Cormorant Garamond', serif",

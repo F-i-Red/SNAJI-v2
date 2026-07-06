@@ -10,8 +10,8 @@
  * Autossuficiente: usa o cliente `api` existente; não altera services/api.ts.
  */
 
-import { useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useRef, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { api, juridicalService, tratarErroAPI } from '../services/api'
 import { useAuthStore } from '../auth/session'
 import type { AnalysisResponse } from '../types'
@@ -95,8 +95,33 @@ export default function PaginaInstrutor() {
   const [modoOutro, setModoOutro] = useState(false)
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
+
+  // Retoma de um caso guardado (regresso dos Cenários ou de "Os meus casos"):
+  // restaura o ecrã de conclusão a partir do servidor — nada se perde ao navegar.
+  useEffect(() => {
+    const rid = (location.state as any)?.retomar_caso_id
+    if (!rid || ficha) return
+    setCarregando(true)
+    api.get(`/casos/${rid}`)
+      .then(r => {
+        const c = r.data
+        setFicha({
+          ...(c.ficha ?? {}),
+          caso_id: c.caso_id,
+          caso_guardado_id: c.caso_id,
+          resumo: (c.ficha as any)?.resumo ?? c.titulo,
+          areas: c.areas ?? [],
+          alertas: c.alertas ?? [],
+          texto_para_analise: c.texto_para_analise,
+        } as any)
+        setFase('ficha')
+      })
+      .catch(e => setErro(tratarErroAPI(e)))
+      .finally(() => setCarregando(false))
+  }, [])  // eslint-disable-line react-hooks/exhaustive-deps
   const topoRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
+  const location = useLocation()
 
   const mensagem = (a: AlertaAPI) => (ehProfissional ? a.mensagem_tecnica : a.mensagem_cidada)
 
