@@ -139,8 +139,11 @@ async def acordaos_por_norma(
             {
                 "id": a.id,
                 "tribunal": a.tribunal,
+                "numero_processo": a.numero_processo,
                 "data": a.data,
-                "sumario": a.sumario[:300],
+                "sumario": a.sumario,
+                "descritores": a.descritores,
+                "normas_citadas": a.normas_citadas,
                 "url": a.url,
             }
             for a in acordaos
