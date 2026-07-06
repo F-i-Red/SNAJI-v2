@@ -64,6 +64,7 @@ def guardar_caso(user_id: str, dados: dict) -> str:
             "alertas": dados.get("alertas", []),
             "texto_para_analise": dados.get("texto_para_analise", ""),
             "analises_cenarios": [],
+            "analises_juridicas": [],
         }
         _gravar(todos)
     logger.info("caso.guardado", caso_id=caso_id)
@@ -93,17 +94,40 @@ def obter_caso(user_id: str, caso_id: str) -> Optional[dict]:
     return _carregar().get(str(user_id), {}).get(caso_id)
 
 
-def anexar_cenarios(user_id: str, caso_id: str, resultado: dict) -> bool:
-    """Anexa uma análise de cenários ao histórico do caso."""
+def _essencia(d: dict) -> str:
+    """Representação estável de uma análise, ignorando campos voláteis —
+    serve para detetar repetições exatas (idempotência)."""
+    limpo = {k: v for k, v in d.items()
+             if k not in ("analisado_em", "percurso", "caso_id", "timestamp", "audit")}
+    return json.dumps(limpo, ensure_ascii=False, sort_keys=True)
+
+
+def _anexar(user_id: str, caso_id: str, campo: str, resultado: dict, evento: str) -> bool:
+    """Anexa uma análise ao histórico do caso. Idempotente: se for exatamente
+    igual à última guardada, não acumula duplicados (repetir não é criar)."""
     with _lock:
         todos = _carregar()
         caso = todos.get(str(user_id), {}).get(caso_id)
         if not caso:
             return False
+        lista = caso.setdefault(campo, [])
         resultado = dict(resultado)
-        resultado["analisado_em"] = datetime.now(timezone.utc).isoformat()
         resultado.pop("percurso", None)  # o percurso pede-se de novo quando se quer
-        caso["analises_cenarios"].append(resultado)
+        if lista and _essencia(lista[-1]) == _essencia(resultado):
+            logger.info(f"caso.{evento}_repetida_ignorada", caso_id=caso_id)
+            return True
+        resultado["analisado_em"] = datetime.now(timezone.utc).isoformat()
+        lista.append(resultado)
         _gravar(todos)
-    logger.info("caso.cenarios_anexados", caso_id=caso_id)
+    logger.info(f"caso.{evento}_anexada", caso_id=caso_id)
     return True
+
+
+def anexar_cenarios(user_id: str, caso_id: str, resultado: dict) -> bool:
+    """Anexa uma análise de cenários ao histórico do caso (idempotente)."""
+    return _anexar(user_id, caso_id, "analises_cenarios", resultado, "cenarios")
+
+
+def anexar_analise_juridica(user_id: str, caso_id: str, resultado: dict) -> bool:
+    """Anexa uma análise jurídica (pipeline) ao histórico do caso (idempotente)."""
+    return _anexar(user_id, caso_id, "analises_juridicas", resultado, "analise_juridica")
