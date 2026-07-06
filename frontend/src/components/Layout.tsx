@@ -37,8 +37,7 @@ const NAV_POR_ROLE = {
   analista: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
     { path: '/observatorio', icon: 'ti-chart-dots', label: 'Observatório' },
-    { path: '/consulta', icon: 'ti-search', label: 'Pesquisa' },
-    { path: '/processos', icon: 'ti-folder', label: 'Processos' },
+    { path: '/jurisprudencia', icon: 'ti-gavel', label: 'Jurisprudência' },
     { path: '/auditoria', icon: 'ti-chart-bar', label: 'Métricas' },
   ],
   admin: [
@@ -115,7 +114,7 @@ export default function Layout() {
             <div style={{ textTransform: 'uppercase', letterSpacing: '0.06em' }}>{role}</div>
           </div>
           <button
-            onClick={() => { logout(); navigate('/login') }}
+            onClick={() => { if (window.confirm('Terminar a sessão?')) { logout(); navigate('/login') } }}
             style={{
               background: 'rgba(255,255,255,0.1)',
               border: '0.5px solid rgba(255,255,255,0.2)',
