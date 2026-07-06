@@ -5,7 +5,7 @@
 
 **IA jurídica soberana para Portugal — construída por um cidadão, para todos os cidadãos.**
 
-[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
+[![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?style=flat&logo=typescript&logoColor=white)](https://typescriptlang.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-18+-61DAFB?style=flat&logo=react&logoColor=black)](https://reactjs.org)
@@ -86,7 +86,7 @@ Integração com normas do Diário da República Eletrónico. Pesquisa híbrida 
 ## Arranque rápido
 
 ### Pré-requisitos
-- Python 3.12
+- Python 3.12+
 - Node.js 18+
 - (Opcional para funcionalidades completas) Chave API Anthropic
 
@@ -117,14 +117,14 @@ Documentação interactiva: `http://localhost:8000/docs`
 
 No CMD, dentro da pasta backend:
 ```bash
-1. py -3.12 -m venv .venv — força a versão python 3.12.10 que é usada no SNAJI
+1. py -3.12 -m venv .venv — força a versão python 3.12.10 que também é usada no SNAJI
 2. .venv\Scripts\activate.bat — deve aparecer (.venv) no início da linha
 3. pip install -r requirements.txt — atenção: isto descarrega ~2 GB (inclui os modelos de embeddings), demora vários minutos;
 4. copy .env.example .env
 5. depois notepad .env — preenche ANTHROPIC_API_KEY= (a tua chave), JWT_SECRET= (uma frase longa qualquer inventada por ti) e DATABASE_URL=sqlite:///./snaji.db
 6. python -m uvicorn app.main:app --reload — dentro do venv, o python já funciona
 
-Se arrancar bem, verás os logs do SNAJI e podes abrir no browser http://localhost:8000/health (deve responder "status: ok" com os componentes) e http://localhost:8000/docs (a documentação interativa da API, onde as rotas do Instrutor aparecem).
+Ao arrancar, verás os logs do SNAJI e podes abrir no browser http://localhost:8000/health (deve responder "status: ok" com os componentes) e http://localhost:8000/docs (a documentação interativa da API, onde as rotas do Instrutor aparecem).
 ```
 
 ### 2. Frontend
