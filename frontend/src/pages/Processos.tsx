@@ -30,7 +30,8 @@ export default function PaginaProcessos() {
   const [erro, setErro] = useState<string | null>(null)
   const [filtroTipo, setFiltroTipo] = useState<string>('todos')
   const [mostrarFormNovo, setMostrarFormNovo] = useState(false)
-  const [formNovo, setFormNovo] = useState({ tipo: 'laboral', descricao: '', nome_autor: '', nome_reu: '', comarca: 'Lisboa' })
+  const [formNovo, setFormNovo] = useState({ descricao: '', nome_autor: '', nome_reu: '', comarca: 'Lisboa' })
+  const [areasSel, setAreasSel] = useState<string[]>(['civil'])
   const [criando, setCriando] = useState(false)
 
   const carregar = () => {
@@ -64,7 +65,11 @@ export default function PaginaProcessos() {
     if (!formNovo.descricao || !formNovo.nome_autor || !formNovo.nome_reu) return
     setCriando(true)
     try {
-      await api.post('/processos', formNovo)
+      await api.post('/processos', {
+        ...formNovo,
+        areas: areasSel,
+        tipo: areasSel.includes('penal') ? 'penal' : (areasSel[0] ?? 'civil'),
+      })
       setMostrarFormNovo(false)
       setFormNovo({ tipo: 'laboral', descricao: '', nome_autor: '', nome_reu: '', comarca: 'Lisboa' })
       carregar()
@@ -133,7 +138,7 @@ export default function PaginaProcessos() {
                     <td style={{ padding: '9px 10px', fontFamily: 'monospace', fontSize: 11 }}>{p.numero}</td>
                     <td style={{ padding: '9px 10px' }}>
                       <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 500, background: `${CORES[p.tipo]}15`, color: CORES[p.tipo] ?? 'var(--color-text-secondary)' }}>
-                        {p.tipo}
+                        {(p as any).areas?.join(' + ') ?? p.tipo}
                       </span>
                     </td>
                     <td style={{ padding: '9px 10px', color: 'var(--color-text-primary)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.descricao}</td>
@@ -259,15 +264,33 @@ export default function PaginaProcessos() {
 
       {/* Modal novo processo */}
       {mostrarFormNovo && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-          <div style={{ background: 'var(--color-background-primary)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 480, overflow: 'hidden' }}>
+        <div>
+          <div style={{ background: 'var(--color-background-primary)', border: '0.5px solid var(--color-border-secondary)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 520, overflow: 'hidden', boxShadow: '0 2px 12px rgba(10,35,66,0.08)' }}>
             <div style={{ padding: '12px 16px', background: '#0a2342', borderBottom: '2px solid #c4960a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ color: '#fff', fontSize: 14, fontWeight: 500 }}>Novo processo jurídico</span>
               <button onClick={() => setMostrarFormNovo(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', fontSize: 18 }}>×</button>
             </div>
             <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-text-secondary)', marginBottom: 6 }}>
+                  Áreas do processo (pode combinar — ex.: penal + civil)
+                </label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 14px' }}>
+                  {['laboral','penal','civil','administrativo','familia','dados_pessoais','consumo'].map(ar => (
+                    <label key={ar} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, cursor: 'pointer' }}>
+                      <input type="checkbox" checked={areasSel.includes(ar)}
+                        onChange={() => setAreasSel(prev => prev.includes(ar) ? prev.filter(x => x !== ar) : [...prev, ar])} />
+                      {ar.replace('_', ' ')}
+                    </label>
+                  ))}
+                </div>
+                {areasSel.includes('penal') && areasSel.includes('civil') && (
+                  <div style={{ fontSize: 11.5, color: 'var(--color-text-info)', marginTop: 5 }}>
+                    ⚖ Regime de adesão (art. 71.º CPP): o pedido cível segue dentro do processo penal.
+                  </div>
+                )}
+              </div>
               {[
-                { label: 'Tipo de processo', field: 'tipo', type: 'select', opts: ['laboral','penal','civil','administrativo','familia','dados_pessoais'] },
                 { label: 'Descrição', field: 'descricao', type: 'text', ph: 'Breve descrição do caso...' },
                 { label: 'Nome do autor', field: 'nome_autor', type: 'text', ph: 'Nome completo ou entidade' },
                 { label: 'Nome do réu / arguido', field: 'nome_reu', type: 'text', ph: 'Nome completo ou entidade' },
