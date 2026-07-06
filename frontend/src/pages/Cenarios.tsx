@@ -86,7 +86,7 @@ const NOME_ETAPA: Record<string, string> = {
 export default function PaginaCenarios() {
   const { utilizador } = useAuthStore()
   const ehProfissional = utilizador?.role === 'advogado' || utilizador?.role === 'magistrado'
-  const location = useLocation() as { state?: { texto?: string; caso_id?: string } }
+  const location = useLocation() as { state?: { texto?: string; caso_id?: string; contraditorio?: boolean } }
   const navigate = useNavigate()
 
   const [texto, setTexto] = useState(location.state?.texto ?? '')
@@ -101,7 +101,7 @@ export default function PaginaCenarios() {
     if (corpo.length < 20 || carregando) return
     setCarregando(true); setErro(null); setResultado(null)
     try {
-      const res = await api.post<CenariosAPI>('/cenarios', { texto: corpo, explicar: true, caso_id: location.state?.caso_id ?? null })
+      const res = await api.post<CenariosAPI>('/cenarios', { texto: corpo, explicar: true, caso_id: location.state?.caso_id ?? null, contraditorio: location.state?.contraditorio ?? false })
       setResultado(res.data)
     } catch (e) { setErro(tratarErroAPI(e)) }
     finally { setCarregando(false) }
@@ -218,6 +218,15 @@ export default function PaginaCenarios() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 860 }}>
 
+      {location.state?.contraditorio && (
+        <div style={{
+          padding: '8px 14px', borderRadius: 'var(--border-radius-md)',
+          background: '#f7ead9', color: '#7a3b0a', fontSize: 12.5, fontWeight: 500,
+        }}>
+          ⇄ Análise do contraditório — estes cenários adotam a perspetiva da parte contrária,
+          para preparar os argumentos que virão contra si.
+        </div>
+      )}
       {location.state?.caso_id && (
         <button
           onClick={() => navigate('/instrutor', { state: { retomar_caso_id: location.state!.caso_id } })}

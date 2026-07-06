@@ -303,6 +303,18 @@ export default function PaginaInstrutor() {
                   onClick={() => responder(respostaTexto)}>
             Confirmar valor
           </button>
+          <button
+            onClick={() => responder('0')}
+            disabled={carregando}
+            style={{
+              padding: '8px 12px', background: 'transparent', fontFamily: 'inherit',
+              border: '0.5px solid var(--color-border-secondary)',
+              borderRadius: 'var(--border-radius-md)', fontSize: 12.5,
+              color: 'var(--color-text-secondary)', cursor: 'pointer',
+            }}
+          >
+            Não se aplica / sem valor
+          </button>
         </div>
       )
     }

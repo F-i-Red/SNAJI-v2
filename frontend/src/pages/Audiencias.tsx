@@ -71,6 +71,7 @@ export default function PaginaAudiencias() {
     try {
       const r = await api.get(`/audiencias/${id}`)
       setAudienciaActual(r.data)
+      if ((r.data as any).papel_sugerido) setPapelSeleccionado((r.data as any).papel_sugerido)
       setVista('audiencia')
     } catch (e) { setErro(tratarErroAPI(e)) }
     finally { setCarregando(false) }
@@ -105,6 +106,7 @@ export default function PaginaAudiencias() {
       }
       const r = await api.get(`/audiencias/${audienciaActual.id}`)
       setAudienciaActual(r.data)
+      if ((r.data as any).papel_sugerido) setPapelSeleccionado((r.data as any).papel_sugerido)
       setTimeout(() => intervencaoRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
     } catch (e) { setErro(tratarErroAPI(e)) }
     finally { setCarregando(false) }
@@ -117,6 +119,7 @@ export default function PaginaAudiencias() {
       await api.post(`/audiencias/${audienciaActual.id}/decidir`)
       const r = await api.get(`/audiencias/${audienciaActual.id}`)
       setAudienciaActual(r.data)
+      if ((r.data as any).papel_sugerido) setPapelSeleccionado((r.data as any).papel_sugerido)
     } catch (e) { setErro(tratarErroAPI(e)) }
     finally { setCarregando(false) }
   }

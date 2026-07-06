@@ -24,6 +24,7 @@ interface CasoResumo {
 
 interface AnaliseGuardada {
   analisado_em: string
+  perspetiva?: string
   convergencia: boolean
   sintese_cidada: string
   cenarios: { titulo: string; solidez: string; fundamentacao_normas: string[] }[]
@@ -162,6 +163,17 @@ export default function PaginaMeusCasos() {
           >
             Nova análise deste caso ↗
           </button>
+          <button
+            onClick={() => navigate('/cenarios', { state: { texto: caso.texto_para_analise, caso_id: caso.caso_id, contraditorio: true } })}
+            title="Gera os cenários adotando a perspetiva da parte contrária — para preparar a contestação que virá"
+            style={{
+              padding: '7px 14px', background: 'transparent', color: '#7a3b0a',
+              border: '0.5px solid #7a3b0a', borderRadius: 'var(--border-radius-md)',
+              fontSize: 12.5, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            ⇄ Analisar pelo lado contrário
+          </button>
         </div>
 
         {caso.analises_cenarios.length === 0 && (
@@ -179,6 +191,9 @@ export default function PaginaMeusCasos() {
               }}>
                 {an.convergencia ? 'Abordagens convergentes' : 'Leituras em confronto'}
               </span>
+              {an.perspetiva === 'contraparte' && (
+                <span style={{ ...etiqueta, background: '#f7ead9', color: '#7a3b0a' }}>⇄ Contraditório</span>
+              )}
               <span style={{ fontSize: 11.5, color: 'var(--color-text-tertiary)', marginLeft: 'auto' }}>{dataPt(an.analisado_em)}</span>
             </div>
             <div style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--color-text-primary)', marginBottom: 8 }}>{an.sintese_cidada}</div>

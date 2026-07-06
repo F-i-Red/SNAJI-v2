@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { api, tratarErroAPI } from '../services/api'
 import { useAuthStore } from '../auth/session'
 
@@ -23,6 +24,7 @@ interface Processo {
 }
 
 export default function PaginaProcessos() {
+  const navigate = useNavigate()
   const { utilizador } = useAuthStore()
   const [lista, setLista] = useState<Processo[]>([])
   const [seleccionado, setSeleccionado] = useState<Processo | null>(null)
@@ -168,6 +170,32 @@ export default function PaginaProcessos() {
                 {seleccionado.numero}
               </span>
               {seleccionado.proximo_estado && (
+                <>
+                <button
+                  onClick={async () => {
+                    try { await api.post(`/processos/${seleccionado.id}/retificar`); await carregar(); }
+                    catch (e) { setErro(tratarErroAPI(e)) }
+                  }}
+                  title="Anula o último avanço de estado (fica registado como retificação)"
+                  style={{
+                    padding: '7px 12px', background: 'transparent',
+                    border: '0.5px solid var(--color-border-secondary)',
+                    borderRadius: 'var(--border-radius-md)', fontSize: 12,
+                    color: 'var(--color-text-secondary)', cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  ↩ Anular último avanço
+                </button>
+                <button
+                  onClick={() => navigate('/cenarios', { state: { texto: seleccionado.descricao } })}
+                  style={{
+                    padding: '7px 12px', background: 'transparent',
+                    border: '0.5px solid #0a2342', borderRadius: 'var(--border-radius-md)',
+                    fontSize: 12, color: '#0a2342', cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  ⚖ Analisar cenários deste caso
+                </button>
                 <button onClick={() => avancar(seleccionado.id)} style={{
                   padding: '4px 10px', background: '#0a2342', color: '#fff',
                   border: 'none', borderRadius: 'var(--border-radius-md)',
@@ -175,6 +203,7 @@ export default function PaginaProcessos() {
                 }}>
                   Avançar → {seleccionado.proximo_estado}
                 </button>
+                </>
               )}
               <button onClick={() => setSeleccionado(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-tertiary)', fontSize: 16 }}>×</button>
             </div>
