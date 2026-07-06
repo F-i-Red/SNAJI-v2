@@ -35,6 +35,15 @@ interface ZonasCinzentas {
   leitura: string
 }
 
+interface Governacao {
+  funil: { instrucoes_iniciadas: Num; instrucoes_concluidas: Num; taxa_de_conclusao: number | null }
+  equidade_de_acesso: { por_papel_processual: Record<string, Num>; leitura: string }
+  territorio: { instrucoes_por_distrito: Record<string, Num>; nota: string }
+  prazos: { direitos_em_risco_sinalizados_a_tempo: Record<string, Num>
+            chegaram_com_prazo_expirado: Record<string, Num>; leitura: string }
+  normas_mais_invocadas: Record<string, Num>
+}
+
 interface Qualidade {
   taxa_utilizacao_llm: number | null
   groundedness: {
@@ -54,23 +63,29 @@ const NOME_ALERTA: Record<string, string> = {
   prazo: 'Prazos', via_nao_judicial: 'Via não judicial', apoio_judiciario: 'Apoio judiciário',
 }
 
+const NOME_PAPEL: Record<string, string> = {
+  demandante: 'A reclamar', demandado: 'A defender-se', desconhecido: 'Não indicado', nao_sei: 'Não sabia',
+}
+
 export default function PaginaAnalista() {
   const [dias, setDias] = useState(30)
   const [obs, setObs] = useState<Observatorio | null>(null)
   const [zc, setZc] = useState<ZonasCinzentas | null>(null)
   const [q, setQ] = useState<Qualidade | null>(null)
+  const [g, setG] = useState<Governacao | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(false)
 
   const carregar = async (d: number) => {
     setCarregando(true); setErro(null)
     try {
-      const [r1, r2, r3] = await Promise.all([
+      const [r1, r2, r3, r4] = await Promise.all([
         api.get<Observatorio>(`/analista/observatorio?dias=${d}`),
         api.get<ZonasCinzentas>(`/analista/zonas-cinzentas?dias=${d}`),
         api.get<Qualidade>(`/analista/qualidade?dias=${d}`),
+        api.get<Governacao>(`/analista/governacao?dias=${d}`),
       ])
-      setObs(r1.data); setZc(r2.data); setQ(r3.data)
+      setObs(r1.data); setZc(r2.data); setQ(r3.data); setG(r4.data)
     } catch (e) { setErro(tratarErroAPI(e)) }
     finally { setCarregando(false) }
   }
@@ -248,6 +263,51 @@ export default function PaginaAnalista() {
               </div>
             </div>
           </div>
+
+          {/* Governação do sistema */}
+          {g && (
+            <>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <Kpi rotulo="Instruções iniciadas" valor={numerico(g.funil.instrucoes_iniciadas)} />
+                <Kpi rotulo="Concluídas" valor={numerico(g.funil.instrucoes_concluidas)} />
+                <Kpi rotulo="Taxa de conclusão"
+                     valor={g.funil.taxa_de_conclusao === null ? '—' : `${Math.round(g.funil.taxa_de_conclusao * 100)}%`} />
+              </div>
+              <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+                <div style={cartao}>
+                  <div style={titulo}>Equidade de acesso (papel processual)</div>
+                  <Barras dados={g.equidade_de_acesso.por_papel_processual} nomes={NOME_PAPEL} />
+                  <div style={{ fontSize: 11.5, lineHeight: 1.55, color: 'var(--color-text-tertiary)', marginTop: 10 }}>
+                    {g.equidade_de_acesso.leitura}
+                  </div>
+                </div>
+                <div style={cartao}>
+                  <div style={titulo}>Conflitualidade por distrito</div>
+                  <Barras dados={g.territorio.instrucoes_por_distrito} />
+                  <div style={{ fontSize: 11.5, color: 'var(--color-text-tertiary)', marginTop: 10 }}>
+                    {g.territorio.nota}
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+                <div style={cartao}>
+                  <div style={titulo}>Prazos — sinalizados a tempo (direitos salvos)</div>
+                  <Barras dados={g.prazos.direitos_em_risco_sinalizados_a_tempo} />
+                  <div style={{ ...titulo, marginTop: 14, color: '#8a1d1d' }}>Chegaram com o prazo expirado</div>
+                  <Barras dados={g.prazos.chegaram_com_prazo_expirado} />
+                  <div style={{ fontSize: 11.5, lineHeight: 1.55, color: 'var(--color-text-tertiary)', marginTop: 10 }}>
+                    {g.prazos.leitura}
+                  </div>
+                </div>
+                <div style={cartao}>
+                  <div style={titulo}>Artigos de lei mais invocados</div>
+                  <Barras dados={Object.fromEntries(Object.entries(g.normas_mais_invocadas).map(
+                    ([k, v]) => [k.replace('-', ' art. '), v]
+                  ))} />
+                </div>
+              </div>
+            </>
+          )}
 
           <div style={{
             fontSize: 11.5, lineHeight: 1.55, color: 'var(--color-text-tertiary)',
