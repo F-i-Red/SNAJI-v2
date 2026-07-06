@@ -11,7 +11,7 @@ interface EntradaLog {
 }
 
 export default function PaginaAuditoria() {
-  const { utilizador } = useAuthStore()
+  const { utilizador, horaLogin } = useAuthStore()
   const [totalProcessos, setTotalProcessos] = useState<number | null>(null)
   const [totalArtigos] = useState(246)
   const role = utilizador?.role
@@ -45,7 +45,7 @@ export default function PaginaAuditoria() {
     { icon: 'ti-shield-check', cor: 'var(--color-text-success)', mensagem: 'Anti-alucinação activo — 0 citações suspeitas nas últimas 24h', timestamp: 'hoje' },
     { icon: 'ti-database', cor: 'var(--color-text-info)', mensagem: `Corpus jurídico: ${totalArtigos} artigos verificados`, detalhe: 'CRP · CT · CC · RGPD · CP · CPC', timestamp: 'hoje' },
     { icon: 'ti-lock', cor: 'var(--color-text-success)', mensagem: 'Hash chain — integridade verificada', detalhe: 'SHA-256 · sem alterações detectadas', timestamp: 'hoje' },
-    { icon: 'ti-user-check', cor: 'var(--color-text-info)', mensagem: `Login: ${utilizador?.nome}`, detalhe: role ?? '', timestamp: agora.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' }) },
+    { icon: 'ti-user-check', cor: 'var(--color-text-info)', mensagem: `Login: ${utilizador?.nome}`, detalhe: role ?? '', timestamp: horaLogin ?? '—' },
     { icon: 'ti-clipboard-list', cor: 'var(--color-text-info)', mensagem: `${totalProcessos ?? '—'} processos em base de dados`, timestamp: 'hoje' },
     { icon: 'ti-certificate', cor: 'var(--color-text-success)', mensagem: 'RGPD — conformidade verificada', detalhe: 'Sem violações registadas', timestamp: 'hoje' },
     ...(role === 'magistrado' ? [

@@ -51,7 +51,8 @@ export default function PaginaAudiencias() {
   const [erro, setErro] = useState<string | null>(null)
   const [textoIntervencao, setTextoIntervencao] = useState('')
   const [papelSeleccionado, setPapelSeleccionado] = useState<Papel>('juiz')
-  const [formNovo, setFormNovo] = useState({ descricao_caso: '', tipo_processo: 'laboral', tipo_audiencia: 'julgamento', papel_criador: 'acusacao', com_perito: false, max_loops: 3 })
+  const [formNovo, setFormNovo] = useState({ descricao_caso: '', tipo_audiencia: 'julgamento', papel_criador: 'acusacao', com_perito: false, max_loops: 3 })
+  const [areasSel, setAreasSel] = useState<string[]>(['laboral'])
   const intervencaoRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -78,7 +79,13 @@ export default function PaginaAudiencias() {
   const criarAudiencia = async () => {
     setCarregando(true); setErro(null)
     try {
-      const r = await api.post('/audiencias', formNovo)
+      const payload = {
+        ...formNovo,
+        areas: areasSel,
+        // penal comanda a ordem das fases; senão, a primeira área escolhida
+        tipo_processo: areasSel.includes('penal') ? 'penal' : (areasSel[0] ?? 'civil'),
+      }
+      const r = await api.post('/audiencias', payload)
       await abrirAudiencia(r.data.id)
     } catch (e) { setErro(tratarErroAPI(e)); setCarregando(false) }
   }
@@ -142,7 +149,7 @@ export default function PaginaAudiencias() {
               <i className="ti ti-gavel" aria-hidden="true" style={{ fontSize: 18, color: '#0a2342', flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.descricao_caso}</div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginTop: 2 }}>{a.tipo_processo} · {FASE_LABELS[a.fase_actual]} · {a.intervencoes?.length ?? 0} intervenções · {a.provas?.length ?? 0} provas</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginTop: 2 }}>{(a as any).areas?.join(' + ') ?? a.tipo_processo} · {FASE_LABELS[a.fase_actual]} · {a.intervencoes?.length ?? 0} intervenções · {a.provas?.length ?? 0} provas</div>
               </div>
               <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: a.estado === 'concluida' ? 'var(--color-background-success)' : 'var(--color-background-info)', color: a.estado === 'concluida' ? 'var(--color-text-success)' : 'var(--color-text-info)', fontWeight: 500, flexShrink: 0 }}>{a.estado}</span>
             </div>
@@ -161,8 +168,29 @@ export default function PaginaAudiencias() {
       </div>
       {erro && <div style={{ padding: '8px 12px', background: 'var(--color-background-danger)', border: '0.5px solid var(--color-border-danger)', borderRadius: 'var(--border-radius-md)', fontSize: 13, color: 'var(--color-text-danger)' }}>{erro}</div>}
       <div style={{ background: 'var(--color-background-primary)', border: '0.5px solid var(--color-border-tertiary)', borderRadius: 'var(--border-radius-lg)', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div>
+          <label style={{ display: 'block', fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-text-secondary)', marginBottom: 6 }}>
+            Áreas do caso (pode combinar — ex.: penal + civil)
+          </label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 14px' }}>
+            {['laboral','penal','civil','administrativo','familia','dados_pessoais','consumo'].map(ar => (
+              <label key={ar} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: 'var(--color-text-primary)', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={areasSel.includes(ar)}
+                  onChange={() => setAreasSel(p => p.includes(ar) ? p.filter(x => x !== ar) : [...p, ar])}
+                />
+                {ar.replace('_', ' ')}
+              </label>
+            ))}
+          </div>
+          {areasSel.includes('penal') && areasSel.includes('civil') && (
+            <div style={{ fontSize: 11.5, color: 'var(--color-text-info)', marginTop: 5 }}>
+              ⚖ Caso misto: o pedido de indemnização civil segue dentro do processo penal — regime de adesão (art. 71.º CPP). O tribunal constitui automaticamente demandante e demandado civis.
+            </div>
+          )}
+        </div>
         {[
-          { label: 'Tipo de processo', field: 'tipo_processo', type: 'select', opts: ['laboral','penal','civil','administrativo','familia','dados_pessoais'] },
           { label: 'Tipo de audiência', field: 'tipo_audiencia', type: 'select', opts: ['julgamento','audiencia_preliminar','contraditorio','simulacao'] },
           { label: 'O seu papel processual', field: 'papel_criador', type: 'select', opts: ['acusacao','defesa','juiz','perito','assistente'], help: 'Quem é você nesta audiência? Vítima/Autor → Acusação; Arguido/Réu → Defesa' },
           { label: 'Loops máximos de contraditório', field: 'max_loops', type: 'select', opts: ['1','2','3','5'], help: 'Quantas rondas de troca de argumentos o juiz pode pedir' },
@@ -183,7 +211,7 @@ export default function PaginaAudiencias() {
           <input type="checkbox" id="com_perito" checked={formNovo.com_perito} onChange={e => setFormNovo(p => ({ ...p, com_perito: e.target.checked }))} />
           <label htmlFor="com_perito" style={{ fontSize: 13, color: 'var(--color-text-secondary)', cursor: 'pointer' }}>Incluir perito judicial</label>
         </div>
-        <button onClick={criarAudiencia} disabled={carregando || !formNovo.descricao_caso.trim()} style={{ padding: '10px', background: '#0a2342', color: '#fff', border: 'none', borderRadius: 'var(--border-radius-md)', fontSize: 13, fontWeight: 500, cursor: carregando || !formNovo.descricao_caso.trim() ? 'not-allowed' : 'pointer', opacity: carregando || !formNovo.descricao_caso.trim() ? 0.6 : 1, fontFamily: 'inherit' }}>
+        <button onClick={criarAudiencia} disabled={carregando || !formNovo.descricao_caso.trim() || areasSel.length === 0} style={{ padding: '10px', background: '#0a2342', color: '#fff', border: 'none', borderRadius: 'var(--border-radius-md)', fontSize: 13, fontWeight: 500, cursor: carregando || !formNovo.descricao_caso.trim() ? 'not-allowed' : 'pointer', opacity: carregando || !formNovo.descricao_caso.trim() ? 0.6 : 1, fontFamily: 'inherit' }}>
           {carregando ? 'A criar...' : 'Iniciar audiência ↗'}
         </button>
       </div>

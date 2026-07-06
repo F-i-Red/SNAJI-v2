@@ -509,7 +509,7 @@ export default function PaginaInstrutor() {
                 </button>
               )}
               <button
-                onClick={() => navigate('/cenarios', { state: { texto: ficha.texto_para_analise } })}
+                onClick={() => navigate('/cenarios', { state: { texto: ficha.texto_para_analise, caso_id: (ficha as any).caso_guardado_id } })}
                 style={{ ...botaoPrimario, background: '#1a4a7a' }}
               >
                 Ver cenários de resolução

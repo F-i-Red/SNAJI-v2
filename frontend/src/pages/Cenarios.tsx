@@ -86,7 +86,7 @@ const NOME_ETAPA: Record<string, string> = {
 export default function PaginaCenarios() {
   const { utilizador } = useAuthStore()
   const ehProfissional = utilizador?.role === 'advogado' || utilizador?.role === 'magistrado'
-  const location = useLocation() as { state?: { texto?: string } }
+  const location = useLocation() as { state?: { texto?: string; caso_id?: string } }
 
   const [texto, setTexto] = useState(location.state?.texto ?? '')
   const [resultado, setResultado] = useState<CenariosAPI | null>(null)
@@ -100,7 +100,7 @@ export default function PaginaCenarios() {
     if (corpo.length < 20 || carregando) return
     setCarregando(true); setErro(null); setResultado(null)
     try {
-      const res = await api.post<CenariosAPI>('/cenarios', { texto: corpo, explicar: true })
+      const res = await api.post<CenariosAPI>('/cenarios', { texto: corpo, explicar: true, caso_id: location.state?.caso_id ?? null })
       setResultado(res.data)
     } catch (e) { setErro(tratarErroAPI(e)) }
     finally { setCarregando(false) }
