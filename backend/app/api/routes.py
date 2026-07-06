@@ -12,6 +12,7 @@ from app.orchestrator.orchestrator import JuridicalOrchestrator
 from app.security.dependencias import requer_login, requer_permissao
 from app.security.rbac import Permissao
 from app.db.utilizadores import Utilizador
+from app.db import casos_repo
 from app.documents.processador import ProcessadorDocumentos
 from app.processes.repositorio import repositorio_processos, TipoProcesso, Parte
 from app.generation.gerador import GeradorDocumentos, TipoDocumento
@@ -43,7 +44,13 @@ async def analyse_case(
 ) -> AnalysisResponse:
     logger.info("analysis.start", user_id=utilizador.id)
     try:
-        return await orchestrator.process(request)
+        resposta = await orchestrator.process(request)
+        if request.caso_id:
+            casos_repo.anexar_analise_juridica(
+                str(utilizador.id), request.caso_id,
+                resposta.model_dump(mode="json"),
+            )
+        return resposta
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
