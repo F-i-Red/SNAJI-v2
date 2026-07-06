@@ -115,6 +115,7 @@ class ResultadoCenarios:
     ressalva: str = RESSALVA_CENARIOS
     via_llm: bool = False
     percurso: list[dict] = field(default_factory=list)   # explicabilidade (V8.1)
+    perspetiva: str = "propria"        # "propria" | "contraparte" (contraditório)
 
     def para_dict(self) -> dict:
         return {
@@ -125,6 +126,7 @@ class ResultadoCenarios:
             "normas_rejeitadas_total": self.normas_rejeitadas_total,
             "ressalva": self.ressalva,
             "via_llm": self.via_llm,
+            "perspetiva": self.perspetiva,
             "percurso": self.percurso,
         }
 
@@ -200,11 +202,20 @@ class MotorCenarios:
 
     # ── API pública ─────────────────────────────────────────────────────
 
-    def gerar(self, texto_caso: str, top_k_normas: int = 8) -> ResultadoCenarios:
+    def gerar(self, texto_caso: str, top_k_normas: int = 8,
+              contraditorio: bool = False) -> ResultadoCenarios:
         """
         Gera os cenários de resolução para um caso (texto livre ou Ficha
         de Factos do Instrutor). Cada cenário sai validado e nos dois registos.
         """
+        if contraditorio:
+            texto_caso = (
+                "[ANÁLISE DO CONTRADITÓRIO] Analisa este caso adotando a perspetiva "
+                "da PARTE CONTRÁRIA à de quem relata: os argumentos, riscos e "
+                "cenários devem ser os que serviriam quem se opõe ao relator.\n\n"
+                + texto_caso
+            )
+
         percurso: list[dict] = [{
             "etapa": 1, "nome": "entrada",
             "descricao": "Receção do caso (texto livre ou Ficha de Factos do Instrutor).",
@@ -315,6 +326,7 @@ class MotorCenarios:
             normas_rejeitadas_total=sorted(set(rejeitadas_total)),
             via_llm=via_llm,
             percurso=percurso,
+            perspetiva="contraparte" if contraditorio else "propria",
         )
         logger.info(
             "cenarios.gerados",
