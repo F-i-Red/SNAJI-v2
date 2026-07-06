@@ -297,10 +297,16 @@ class ReasoningPipeline:
         normas_prompt = _formatar_normas_para_prompt(chunks)
         classificacao_prompt = _formatar_classificacao_para_prompt(classificacao)
 
-        # Etapa 3: LLM ou stub
+        # Etapa 3: LLM ou stub — com degradação graciosa: uma falha do LLM
+        # (chave inválida, rede, saldo) NUNCA nega a resposta ao utilizador
         if self._llm is not None:
-            dados = self._chamar_llm(texto, classificacao_prompt, normas_prompt, log)
-            tokens = dados.pop("_tokens", 0)
+            try:
+                dados = self._chamar_llm(texto, classificacao_prompt, normas_prompt, log)
+                tokens = dados.pop("_tokens", 0)
+            except Exception as exc:
+                log.warning("reasoning.llm_falhou_a_degradar_para_stub", erro=str(exc)[:200])
+                dados = self._stub_sem_llm(texto, chunks, classificacao)
+                tokens = 0
         else:
             dados = self._stub_sem_llm(texto, chunks, classificacao)
             tokens = 0
