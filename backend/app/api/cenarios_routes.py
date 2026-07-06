@@ -57,6 +57,8 @@ class CenariosRequest(BaseModel):
     top_k_normas: int = Field(default=8, ge=3, le=15)
     caso_id: str | None = Field(default=None,
                                 description="Se indicado, a análise fica anexada ao caso guardado")
+    contraditorio: bool = Field(default=False,
+                                 description="Se True, analisa da perspetiva da parte contrária")
     explicar: bool = Field(default=False,
                            description="Se True, inclui o percurso de explicabilidade (etapas da análise)")
 
@@ -84,6 +86,7 @@ class CenariosResponse(BaseModel):
     normas_rejeitadas_total: list[str]
     ressalva: str = RESSALVA_CENARIOS
     via_llm: bool
+    perspetiva: str = "propria"
     percurso: list[dict] | None = None   # explicabilidade (só quando pedida)
 
 
@@ -139,5 +142,6 @@ async def gerar_cenarios(
         sintese_cidada=d["sintese_cidada"],
         normas_rejeitadas_total=d["normas_rejeitadas_total"],
         via_llm=d["via_llm"],
+        perspetiva=d.get("perspetiva", "propria"),
         percurso=d["percurso"] if request.explicar else None,
     )

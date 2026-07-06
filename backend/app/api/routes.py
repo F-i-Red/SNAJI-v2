@@ -205,6 +205,16 @@ async def avancar_processo(
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@router.post("/processos/{pid}/retificar", tags=["Processos"])
+async def retificar_processo(pid: str, utilizador: Utilizador = Depends(requer_login)):
+    """Anula o último avanço de estado (retificação, com evento auditável)."""
+    try:
+        p = repositorio_processos.retificar(pid, str(utilizador.id))
+        return {"numero": p.numero, "estado": p.estado.value, "mensagem": "Estado retificado"}
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+
 # ── Geração de documentos ─────────────────────────────────────────────────────
 
 class GerarDocumentoRequest(BaseModel):

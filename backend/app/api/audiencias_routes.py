@@ -173,6 +173,7 @@ async def submeter_intervencao(
             "hash_integridade": iv.hash_integridade,
             "timestamp": iv.timestamp.isoformat(),
             "orientacao_proximo_passo": orientacao,
+            "papel_sugerido": motor_audiencias.papel_sugerido(a),
         }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -303,6 +304,7 @@ def _serializar_audiencia(a) -> dict:
         "tipo_processo": a.tipo_processo,
         "areas": a.areas,
         "regime": a.regime,
+        "papel_sugerido": motor_audiencias.papel_sugerido(a),
         "descricao_caso": a.descricao_caso,
         "estado": a.estado.value,
         "fase_actual": a.fase_actual.value,
