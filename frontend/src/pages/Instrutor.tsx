@@ -114,6 +114,8 @@ export default function PaginaInstrutor() {
           alertas: c.alertas ?? [],
           texto_para_analise: c.texto_para_analise,
         } as any)
+        const aj = (c as any).analises_juridicas
+        if (aj?.length) setAnalise(aj[aj.length - 1])
         setFase('ficha')
       })
       .catch(e => setErro(tratarErroAPI(e)))
@@ -172,6 +174,7 @@ export default function PaginaInstrutor() {
     try {
       const res = await juridicalService.analisar({
         texto: ficha.texto_para_analise,
+        caso_id: (ficha as any).caso_guardado_id ?? null,
         fontes: ['CRP', 'CT', 'CC', 'RGPD', 'CP', 'CPC'],
       })
       setAnalise(res)

@@ -29,12 +29,20 @@ interface AnaliseGuardada {
   cenarios: { titulo: string; solidez: string; fundamentacao_normas: string[] }[]
 }
 
+interface AnaliseJuridica {
+  analisado_em: string
+  qualificacao_juridica: string
+  conclusao: string
+  audit?: { modelo?: string; grounded?: boolean }
+}
+
 interface CasoCompleto extends CasoResumo {
   relato: string
   texto_para_analise: string
   alertas: { gravidade: string; mensagem_cidada: string }[]
   ficha: Record<string, unknown>
   analises_cenarios: AnaliseGuardada[]
+  analises_juridicas?: AnaliseJuridica[]
 }
 
 const NOME_AREA: Record<string, string> = {
@@ -121,6 +129,24 @@ export default function PaginaMeusCasos() {
           </div>
           <div style={{ fontSize: 13.5, lineHeight: 1.65, color: 'var(--color-text-primary)', whiteSpace: 'pre-wrap' }}>{caso.relato}</div>
         </div>
+
+        {(caso.analises_juridicas?.length ?? 0) > 0 && (
+          <>
+            <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 17, fontWeight: 500 }}>
+              Análises jurídicas ({caso.analises_juridicas!.length})
+            </h2>
+            {[...caso.analises_juridicas!].reverse().map((aj, i) => (
+              <div key={i} style={cartao}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <span style={etiqueta}>{aj.audit?.grounded ? 'Fundamentada no corpus' : 'Análise'}</span>
+                  <span style={{ fontSize: 11.5, color: 'var(--color-text-tertiary)', marginLeft: 'auto' }}>{dataPt(aj.analisado_em)}</span>
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 4 }}>{aj.qualificacao_juridica}</div>
+                <div style={{ fontSize: 12.5, lineHeight: 1.6, color: 'var(--color-text-secondary)' }}>{aj.conclusao}</div>
+              </div>
+            ))}
+          </>
+        )}
 
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
           <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 17, fontWeight: 500 }}>
