@@ -29,6 +29,8 @@ class AnalysisRequest(BaseModel):
         if not v.strip():
             raise ValueError("O texto do caso não pode estar vazio")
         return v.strip()
+    # Se indicado, a análise fica anexada ao caso guardado (rota /casos)
+    caso_id: Optional[str] = None
 
 
 class NormaIdentificada(BaseModel):
