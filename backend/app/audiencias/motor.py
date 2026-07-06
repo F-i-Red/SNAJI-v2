@@ -471,6 +471,28 @@ class MotorAudiencias:
 
     # ── Intervenções ─────────────────────────────────────────────────────────
 
+    def papel_sugerido(self, a) -> str:
+        """Quem deve falar a seguir, segundo a marcha legal da audiência —
+        permite ao ecrã pré-selecionar o papel (o utilizador pode alterar)."""
+        f = a.fase_actual
+        F, P = FaseAudiencia, PapelAgente
+        estaticos = {
+            F.ABERTURA: P.JUIZ, F.ACUSACAO_PEDIDO: P.ACUSACAO, F.DEFESA: P.DEFESA,
+            F.REPLICA: P.ACUSACAO, F.PROVA: P.ACUSACAO, F.PERGUNTAS_JUIZ: P.JUIZ,
+            F.ULTIMAS_DECLARACOES: P.ARGUIDO, F.DECISAO: P.JUIZ,
+        }
+        if f == F.ALEGACOES_FINAIS:
+            # a lista de pendentes já respeita a ordem legal (defesa em último)
+            if a.alegacoes_pendentes:
+                return a.alegacoes_pendentes[0].value
+            return P.JUIZ.value
+        papel = estaticos.get(f, P.JUIZ)
+        # garantir que o sugerido participa nesta audiência
+        if papel not in a.papeis_activos():
+            permitidos = [p for p in PAPEIS_POR_FASE.get(f, []) if p in a.papeis_activos()]
+            return permitidos[0].value if permitidos else P.JUIZ.value
+        return papel.value
+
     def processar_intervencao(
         self,
         audiencia_id: str,
