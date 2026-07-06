@@ -13,6 +13,7 @@ import { authService, tratarErroAPI } from '../services/api'
 
 interface AuthState {
   utilizador: Utilizador | null
+  horaLogin: string | null
   token: string | null
   carregando: boolean
   erro: string | null
@@ -26,6 +27,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   utilizador: null,
+  horaLogin: sessionStorage.getItem('snaji_hora_login'),
   token: authService.tokenGuardado(),
   carregando: false,
   erro: null,
@@ -36,7 +38,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const tokenRes = await authService.login({ email, password })
       authService.guardarToken(tokenRes.access_token)
       const utilizador = await authService.meusDados()
-      set({ token: tokenRes.access_token, utilizador, carregando: false })
+      const horaLogin = new Date().toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })
+      sessionStorage.setItem('snaji_hora_login', horaLogin)
+      set({ token: tokenRes.access_token, utilizador, horaLogin, carregando: false })
       return true
     } catch (e) {
       set({ erro: tratarErroAPI(e), carregando: false, token: null, utilizador: null })
@@ -45,6 +49,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: () => {
+    sessionStorage.removeItem('snaji_hora_login')
     authService.logout()
     set({ utilizador: null, token: null, erro: null })
   },
