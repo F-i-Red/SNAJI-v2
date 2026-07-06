@@ -21,6 +21,15 @@ from typing import Optional
 
 from app.reasoning.pipeline import ResultadoReasoning, TipoProcesso
 
+_MESES_PT = ("janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
+             "agosto", "setembro", "outubro", "novembro", "dezembro")
+
+
+def _data_por_extenso_pt() -> str:
+    """Data por extenso em português, independente do locale do sistema."""
+    h = datetime.now(timezone.utc)
+    return f"{h.day} de {_MESES_PT[h.month - 1]} de {h.year}"
+
 
 class TipoDocumento(str, Enum):
     PETICAO_INICIAL  = "peticao_inicial"
@@ -256,7 +265,7 @@ class GeradorDocumentos:
             normas_aplicadas=normas_txt,
             analise=analise_txt,
             pedidos=resultado.conclusao or "[Formular os pedidos concretos]",
-            data=datetime.now(timezone.utc).strftime("%d de %B de %Y"),
+            data=_data_por_extenso_pt(),
         )
 
         return DocumentoGerado(
