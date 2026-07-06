@@ -101,6 +101,9 @@ class Processo:
     valor_causa: Optional[float] = None
     tribunal: str = "Tribunal Judicial"
     comarca: str = "Lisboa"
+    # V5.3: caso misto — ex.: ["penal", "civil"]; o tipo principal comanda
+    # as fases e prazos; as áreas registam a natureza completa do litígio
+    areas: list[str] = field(default_factory=list)
 
     def fase_index(self) -> int:
         try:
@@ -219,6 +222,7 @@ class RepositorioProcessos:
         valor_causa: Optional[float] = None,
         tribunal: str = "Tribunal Judicial",
         comarca: str = "Lisboa",
+        areas: Optional[list[str]] = None,
     ) -> Processo:
         pid = str(uuid.uuid4())
         agora = datetime.now(timezone.utc)
@@ -234,6 +238,7 @@ class RepositorioProcessos:
             atualizado_em=agora,
             caso_id_analise=caso_id_analise,
             valor_causa=valor_causa,
+            areas=areas or [tipo.value],
             tribunal=tribunal,
             comarca=comarca,
         )
