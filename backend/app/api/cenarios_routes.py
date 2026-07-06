@@ -19,6 +19,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from app.db.utilizadores import Utilizador
+from app.db import casos_repo
 from app.security.dependencias import requer_permissao
 from app.security.rbac import Permissao
 from app.analytics.registo import registar
@@ -54,6 +55,8 @@ class CenariosRequest(BaseModel):
     texto: str = Field(..., min_length=20, max_length=20000,
                        description="Texto do caso ou texto_para_analise do Instrutor")
     top_k_normas: int = Field(default=8, ge=3, le=15)
+    caso_id: str | None = Field(default=None,
+                                description="Se indicado, a análise fica anexada ao caso guardado")
     explicar: bool = Field(default=False,
                            description="Se True, inclui o percurso de explicabilidade (etapas da análise)")
 
@@ -111,6 +114,11 @@ async def gerar_cenarios(
         "via_llm": resultado.via_llm,
     })
     d = resultado.para_dict()
+
+    # Persistência: anexar a análise ao histórico do caso, se indicado
+    if request.caso_id:
+        casos_repo.anexar_cenarios(str(utilizador.id), request.caso_id, d)
+
     return CenariosResponse(
         cenarios=[CenarioOut(
             lente=c["lente"],

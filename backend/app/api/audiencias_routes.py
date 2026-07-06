@@ -45,6 +45,9 @@ class CriarAudienciaRequest(BaseModel):
     processo_id: Optional[str] = None
     com_perito: bool = False
     max_loops_contraditorio: int = 3      # quantas rondas o juiz pode pedir
+    # V2: caso misto — ex.: ["penal", "civil"] ativa o regime de adesão (art. 71.º CPP)
+    areas: Optional[list[str]] = None
+    com_interprete: bool = False
 
 
 class IntervencaoRequest(BaseModel):
@@ -80,6 +83,8 @@ async def criar_audiencia(
         descricao_caso=dados.descricao_caso,
         tipo_processo=dados.tipo_processo,
         tipo_audiencia=dados.tipo_audiencia,
+        areas=dados.areas,
+        com_interprete=dados.com_interprete,
         criado_por=utilizador.id,
         papel_criador=dados.papel_criador,
         processo_id=dados.processo_id,
@@ -296,6 +301,8 @@ def _serializar_audiencia(a) -> dict:
         "processo_id": a.processo_id,
         "tipo": a.tipo.value,
         "tipo_processo": a.tipo_processo,
+        "areas": a.areas,
+        "regime": a.regime,
         "descricao_caso": a.descricao_caso,
         "estado": a.estado.value,
         "fase_actual": a.fase_actual.value,

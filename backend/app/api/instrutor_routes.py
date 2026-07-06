@@ -32,6 +32,7 @@ from app.db.utilizadores import Utilizador
 from app.security.dependencias import requer_permissao
 from app.security.rbac import Permissao
 from app.analytics.registo import registar
+from app.db import casos_repo
 from app.reasoning.agente_instrutor import (
     AgenteInstrutor,
     EstadoInstrucao,
@@ -167,6 +168,7 @@ class EstadoOut(BaseModel):
 
 
 class FichaOut(BaseModel):
+    caso_guardado_id: str | None = None
     caso_id: str
     ficha: dict
     texto_para_analise: str
@@ -303,6 +305,18 @@ async def concluir_instrucao(
         perguntas=len(estado.perguntas_feitas),
         alertas=len(alertas),
     )
+    # Persistência: o caso fica guardado no histórico do utilizador (rota /casos)
+    caso_guardado_id = casos_repo.guardar_caso(str(utilizador.id), {
+        "caso_id": caso_id,
+        "relato": estado.relato_inicial,
+        "areas": [a.value for a in estado.classificacao.todas_as_areas]
+        if estado.classificacao else [],
+        "papel": estado.ficha.respostas_normalizadas.get("papel_no_caso", ""),
+        "ficha": ficha.para_dict(),
+        "alertas": [a.model_dump() for a in _alertas_out(estado)],
+        "texto_para_analise": ficha.para_texto_rag(),
+    })
+
     # Registo analítico anonimizado (Especificação V8, §8): sem dados pessoais
     registar("instrucao_concluida", {
         "areas": [a.value for a in estado.classificacao.todas_as_areas]
@@ -316,6 +330,7 @@ async def concluir_instrucao(
                     for a in estado.alertas],
     })
     return FichaOut(
+        caso_guardado_id=caso_guardado_id,
         caso_id=caso_id,
         ficha=ficha.para_dict(),
         texto_para_analise=ficha.para_texto_rag(),
