@@ -131,6 +131,13 @@ async def acordaos_por_norma(
     Devolve acórdãos que citam uma norma específica.
     Útil para encontrar interpretações jurisprudenciais de um artigo.
     """
+    # Tolerância ao erro humano: aceitar "art. 498.º", "498º", "498-A", " 498 "
+    artigo = (artigo or "").strip().lower()
+    for lixo in ("artigo", "art.", "art"):
+        artigo = artigo.replace(lixo, "")
+    artigo = artigo.replace(".º", "").replace("º", "").replace("°", "").strip(" .").upper()
+    diploma = (diploma or "").strip().upper()
+
     acordaos = motor_jurisprudencia.acordaos_por_norma(diploma, artigo)
     return {
         "norma": f"Art. {artigo}.º {diploma}",

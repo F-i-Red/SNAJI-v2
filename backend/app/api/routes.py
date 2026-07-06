@@ -195,7 +195,7 @@ async def ver_processo(pid: str, utilizador: Utilizador = Depends(requer_login))
 async def avancar_processo(
     pid: str,
     nota: str = Form(default=""),
-    utilizador: Utilizador = Depends(requer_login),
+    utilizador: Utilizador = Depends(requer_permissao(Permissao.SUBMETER_CASO)),
 ):
     try:
         p = repositorio_processos.avancar_estado(pid, utilizador.id, nota)
@@ -206,7 +206,7 @@ async def avancar_processo(
 
 
 @router.post("/processos/{pid}/retificar", tags=["Processos"])
-async def retificar_processo(pid: str, utilizador: Utilizador = Depends(requer_login)):
+async def retificar_processo(pid: str, utilizador: Utilizador = Depends(requer_permissao(Permissao.SUBMETER_CASO))):
     """Anula o último avanço de estado (retificação, com evento auditável)."""
     try:
         p = repositorio_processos.retificar(pid, str(utilizador.id))
