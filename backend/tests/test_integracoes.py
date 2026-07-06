@@ -35,20 +35,29 @@ class TestJurisprudencia:
         assert r.total > 0
         assert any("despedimento" in a.sumario.lower() for a in r.acordaos)
 
-    def test_pesquisa_rgpd(self):
-        r = self.motor.pesquisar("dados pessoais RGPD responsabilidade")
+    def test_pesquisa_prescricao_credito(self):
+        """Base real: o AUJ 6/2022 fixa a prescrição das prestações de crédito."""
+        r = self.motor.pesquisar("prescrição prestações crédito mútuo quotas amortização")
         assert r.total > 0
-        assert any("RGPD" in a.tribunal or "rgpd" in a.sumario.lower() for a in r.acordaos)
+        assert any("UNIFORMIZAÇÃO" in " ".join(a.descritores).upper() for a in r.acordaos)
+        assert any("prescrição" in a.sumario.lower() for a in r.acordaos)
 
-    def test_pesquisa_corrupcao(self):
-        r = self.motor.pesquisar("corrupção funcionário público")
-        assert r.total > 0
-        assert any("corrupção" in a.sumario.lower() or "CP" in str(a.normas_citadas) for a in r.acordaos)
+    def test_pesquisa_sem_resultados_nao_falha(self):
+        """Tema sem acórdãos na base devolve 0 resultados, sem erro nem invenções."""
+        r = self.motor.pesquisar("corrupção funcionário público suborno")
+        assert r.total == 0
+        assert r.acordaos == []
 
-    def test_acordaos_por_norma_crp53(self):
-        acordaos = self.motor.acordaos_por_norma("CRP", "53")
+    def test_acordaos_por_norma_ct366(self):
+        """Cruzamento norma→acórdão: o AUJ 7/2024 interpreta o art. 366.º do CT."""
+        acordaos = self.motor.acordaos_por_norma("CT", "366")
         assert len(acordaos) > 0
-        assert all("CRP-53" in a.normas_citadas for a in acordaos)
+        assert all("CT-366" in a.normas_citadas for a in acordaos)
+
+    def test_acordaos_por_norma_cc498(self):
+        """O AUJ 14/2025 (prescrição, ocupação ilícita) cita o art. 498.º do CC."""
+        acordaos = self.motor.acordaos_por_norma("CC", "498")
+        assert len(acordaos) > 0
 
     def test_acordaos_por_norma_inexistente(self):
         acordaos = self.motor.acordaos_por_norma("CRP", "999")
@@ -140,9 +149,9 @@ class TestIntegracoeAPI:
         assert r.status_code == 200
         estado = r.json()["integracoes"]
         assert "rag" in estado
-        assert estado["rag"]["artigos"] == 246
+        assert estado["rag"]["artigos"] >= 6000   # corpus integral (10 diplomas)
         assert "jurisprudencia" in estado
-        assert estado["jurisprudencia"]["acordaos"] >= 7
+        assert estado["jurisprudencia"]["acordaos"] >= 13   # AUJ reais do STJ
 
     def test_estado_integracoes_cidadao_negado(self):
         """Cidadão não tem acesso ao estado das integrações."""
@@ -150,8 +159,9 @@ class TestIntegracoeAPI:
         r = client.get("/api/v1/integracoes/estado", headers=h(token))
         assert r.status_code == 403
 
-    def test_health_versao_4(self):
+    def test_health_versao_5(self):
         r = client.get("/health")
         assert r.status_code == 200
-        assert r.json()["versao"] == "4.0.0"
-        assert r.json()["fases"] == "1+2+3+4"
+        assert r.json()["versao"].startswith("5.")
+        for componente in ("instrutor", "cenarios", "analista", "casos"):
+            assert componente in r.json()["fases"]

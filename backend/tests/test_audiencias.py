@@ -259,7 +259,13 @@ class TestAudienciasAPI:
         # 6. Ver audiência completa
         r6 = client.get(f"/api/v1/audiencias/{aid}", headers=h(token))
         assert r6.status_code == 200
-        assert len(r6.json()["intervencoes"]) == 3  # juiz + acusação + defesa
+        # V2: cada intervenção é seguida da ata do escrivão (cadeia de hash)
+        intervencoes = r6.json()["intervencoes"]
+        partes = [i for i in intervencoes if i["papel"] != "escrivao"]
+        atas = [i for i in intervencoes if i["papel"] == "escrivao"]
+        assert len(partes) == 3          # juiz + acusação + defesa
+        assert len(atas) == 3            # uma ata por intervenção
+        assert "hash da ata anterior" in atas[-1]["conteudo"]
 
     def test_intervencao_papel_errado_rejeitada_api(self):
         token = login("cidadao@snaji.gov.pt", "Cidad2024!")
