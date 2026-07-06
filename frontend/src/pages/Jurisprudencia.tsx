@@ -63,7 +63,9 @@ export default function PaginaJurisprudencia() {
 
   const porNorma = async (dip?: string, art?: string) => {
     const d = dip ?? diploma
-    const a = (art ?? artigo).trim()
+    // tolerância ao erro humano: "art. 498.º" → "498"
+    const a = (art ?? artigo).trim().toLowerCase()
+      .replace(/artigo|art\.?/g, '').replace(/\.?º|°/g, '').trim().replace(/\.$/, '').toUpperCase()
     if (!a) return
     setDiploma(d); setArtigo(a); setCarregando(true); setErro(null)
     try {
