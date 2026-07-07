@@ -142,7 +142,7 @@ export default function PaginaAudiencias() {
     } catch { setErro('Não foi possível gerar a ata.') }
   }
 
-  const descarregarAta = async (formato: 'md' | 'html') => {
+  const descarregarAta = async (formato: 'md' | 'txt') => {
     if (!audienciaActual) return
     try {
       const tok = sessionStorage.getItem('snaji_token')
@@ -153,7 +153,7 @@ export default function PaginaAudiencias() {
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `ata-audiencia.${formato === 'md' ? 'md' : 'html'}`
+      link.download = `ata-audiencia.${formato}`
       link.click()
       URL.revokeObjectURL(url)
     } catch { setErro('Não foi possível descarregar a ata.') }
@@ -278,6 +278,10 @@ export default function PaginaAudiencias() {
           <button onClick={abrirAtaHTML} title="Ata completa da sessão — imprimir ou guardar PDF"
             style={{ padding: '7px 12px', background: 'transparent', border: '0.5px solid #0a2342', borderRadius: 'var(--border-radius-md)', fontSize: 12, color: '#0a2342', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
             🖨 Ata / Imprimir
+          </button>
+          <button onClick={() => descarregarAta('txt')} title="Descarregar a ata em texto simples"
+            style={{ padding: '7px 10px', background: 'transparent', border: '0.5px solid var(--color-border-secondary)', borderRadius: 'var(--border-radius-md)', fontSize: 12, color: 'var(--color-text-secondary)', cursor: 'pointer', fontFamily: 'inherit' }}>
+            ⬇ .txt
           </button>
           <button onClick={() => descarregarAta('md')} title="Descarregar a ata em Markdown"
             style={{ padding: '7px 10px', background: 'transparent', border: '0.5px solid var(--color-border-secondary)', borderRadius: 'var(--border-radius-md)', fontSize: 12, color: 'var(--color-text-secondary)', cursor: 'pointer', fontFamily: 'inherit' }}>
