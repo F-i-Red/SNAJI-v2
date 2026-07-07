@@ -156,7 +156,7 @@ async def listar_processos(utilizador: Utilizador = Depends(requer_login)):
 @router.post("/processos", tags=["Processos"])
 async def criar_processo(
     dados: CriarProcessoRequest,
-    utilizador: Utilizador = Depends(requer_permissao(Permissao.SUBMETER_CASO)),
+    utilizador: Utilizador = Depends(requer_permissao(Permissao.GERIR_PROCESSOS)),
 ):
     partes = [Parte(dados.nome_autor, "autor"), Parte(dados.nome_reu, "réu")]
     p = repositorio_processos.criar(
@@ -195,7 +195,7 @@ async def ver_processo(pid: str, utilizador: Utilizador = Depends(requer_login))
 async def avancar_processo(
     pid: str,
     nota: str = Form(default=""),
-    utilizador: Utilizador = Depends(requer_permissao(Permissao.SUBMETER_CASO)),
+    utilizador: Utilizador = Depends(requer_permissao(Permissao.GERIR_PROCESSOS)),
 ):
     try:
         p = repositorio_processos.avancar_estado(pid, utilizador.id, nota)
@@ -206,7 +206,7 @@ async def avancar_processo(
 
 
 @router.post("/processos/{pid}/retificar", tags=["Processos"])
-async def retificar_processo(pid: str, utilizador: Utilizador = Depends(requer_permissao(Permissao.SUBMETER_CASO))):
+async def retificar_processo(pid: str, utilizador: Utilizador = Depends(requer_permissao(Permissao.GERIR_PROCESSOS))):
     """Anula o último avanço de estado (retificação, com evento auditável)."""
     try:
         p = repositorio_processos.retificar(pid, str(utilizador.id))
