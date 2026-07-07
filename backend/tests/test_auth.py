@@ -13,10 +13,17 @@ class TestRBAC:
     def setup_method(self):
         self.rbac = RBACManager()
 
-    def test_admin_tem_acesso_total(self):
-        assert self.rbac.tem_permissao(Role.ADMIN, Permissao.SUBMETER_CASO)
+    def test_admin_gere_o_sistema_mas_nao_pratica_atos_juridicos(self):
+        """O admin é o administrador técnico: acesso total à gestão do sistema,
+        mas NUNCA a atos jurídicos (à imagem do Citius, o admin de sistema não
+        toca no conteúdo processual)."""
+        # Funções técnicas: sim
         assert self.rbac.tem_permissao(Role.ADMIN, Permissao.VER_AUDITORIA_COMPLETA)
         assert self.rbac.tem_permissao(Role.ADMIN, Permissao.GERIR_UTILIZADORES)
+        # Atos jurídicos: não
+        assert not self.rbac.tem_permissao(Role.ADMIN, Permissao.SUBMETER_CASO)
+        assert not self.rbac.tem_permissao(Role.ADMIN, Permissao.GERIR_PROCESSOS)
+        assert not self.rbac.tem_permissao(Role.ADMIN, Permissao.FERRAMENTAS_PROFISSIONAIS)
 
     def test_cidadao_pode_submeter_caso(self):
         assert self.rbac.tem_permissao(Role.CIDADAO, Permissao.SUBMETER_CASO)

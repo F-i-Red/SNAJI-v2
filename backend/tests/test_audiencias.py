@@ -267,8 +267,19 @@ class TestAudienciasAPI:
         assert len(atas) == 3            # uma ata por intervenção
         assert "hash da ata anterior" in atas[-1]["conteudo"]
 
-    def test_intervencao_papel_errado_rejeitada_api(self):
+    def test_cidadao_nao_cria_audiencias(self):
+        """Audiências são ferramenta profissional — vedadas ao cidadão."""
         token = login("cidadao@snaji.gov.pt", "Cidad2024!")
+        r = client.post("/api/v1/audiencias", json={
+            "descricao_caso": "Tentativa do cidadão",
+            "tipo_processo": "civil",
+            "tipo_audiencia": "contraditorio",
+            "papel_criador": "acusacao",
+        }, headers=h(token))
+        assert r.status_code == 403
+
+    def test_intervencao_papel_errado_rejeitada_api(self):
+        token = login("advogado@snaji.gov.pt", "Advog2024!")
         # Cria audiência
         r = client.post("/api/v1/audiencias", json={
             "descricao_caso": "Teste papel errado",
