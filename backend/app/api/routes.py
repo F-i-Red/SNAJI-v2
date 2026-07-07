@@ -21,6 +21,18 @@ from app.reasoning.pipeline import ReasoningPipeline
 router = APIRouter()
 logger = structlog.get_logger(__name__)
 
+
+def _nome_utilizador(uid: str) -> str:
+    """Resolve o id do utilizador para o nome legível (auditoria)."""
+    try:
+        from app.db.utilizadores import repositorio as _ru
+        for u in _ru.listar():
+            if str(u.id) == str(uid):
+                return u.nome
+    except Exception:
+        pass
+    return (str(uid)[:8] + "…") if uid else "—"
+
 _orchestrator: JuridicalOrchestrator | None = None
 _doc_processor = ProcessadorDocumentos()
 _gerador = GeradorDocumentos()
@@ -131,7 +143,7 @@ class CriarProcessoRequest(BaseModel):
 
 @router.get("/processos", tags=["Processos"])
 async def listar_processos(utilizador: Utilizador = Depends(requer_login)):
-    processos = repositorio_processos.por_utilizador(utilizador.id)
+    processos = repositorio_processos.por_utilizador(utilizador.id, str(getattr(utilizador.role, 'value', utilizador.role)))
     return {
         "processos": [
             {
@@ -171,6 +183,9 @@ async def criar_processo(
 @router.get("/processos/{pid}", tags=["Processos"])
 async def ver_processo(pid: str, utilizador: Utilizador = Depends(requer_login)):
     p = repositorio_processos.por_id(pid)
+    _role = str(getattr(utilizador.role, "value", utilizador.role))
+    if p and _role not in ("magistrado", "advogado") and str(p.criado_por) != str(utilizador.id):
+        raise HTTPException(status_code=403, detail="Sem acesso a este processo")
     if not p:
         raise HTTPException(status_code=404, detail="Processo não encontrado")
     return {

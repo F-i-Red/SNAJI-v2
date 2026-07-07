@@ -19,7 +19,8 @@ from pydantic import BaseModel
 from typing import Optional
 import structlog
 
-from app.security.dependencias import requer_login
+from app.security.dependencias import requer_login, requer_permissao
+from app.security.rbac import Permissao
 from app.db.utilizadores import Utilizador
 from app.audiencias.motor import (
     motor_audiencias, FaseAudiencia, ORDEM_FASES_AUDIENCIA,
@@ -72,7 +73,7 @@ class ProvaTextoRequest(BaseModel):
 @router.post("")
 async def criar_audiencia(
     dados: CriarAudienciaRequest,
-    utilizador: Utilizador = Depends(requer_login),
+    utilizador: Utilizador = Depends(requer_permissao(Permissao.FERRAMENTAS_PROFISSIONAIS)),
 ):
     """
     Cria uma nova audiência.
@@ -173,7 +174,8 @@ async def submeter_intervencao(
             "hash_integridade": iv.hash_integridade,
             "timestamp": iv.timestamp.isoformat(),
             "orientacao_proximo_passo": orientacao,
-            "papel_sugerido": motor_audiencias.papel_sugerido(a),
+            "papel_sugerido": motor_audiencias.papel_sugerido(
+                motor_audiencias.obter_audiencia(aid)),
         }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
