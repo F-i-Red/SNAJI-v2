@@ -20,7 +20,8 @@ class Role(str, Enum):
 
 class Permissao(str, Enum):
     # Casos jurídicos
-    SUBMETER_CASO   = "submeter_caso"
+    SUBMETER_CASO   = "submeter_caso"       # instruir e analisar casos (trabalho cognitivo)
+    GERIR_PROCESSOS = "gerir_processos"     # criar/avançar/retificar na carteira de processos
     LER_CASO_PROPRIO = "ler_caso_proprio"
     LER_CASO_QUALQUER = "ler_caso_qualquer"
     VER_ANALISE     = "ver_analise"
@@ -41,6 +42,7 @@ _PERMISSOES: dict[Role, frozenset[Permissao]] = {
 
     Role.MAGISTRADO: frozenset([
         Permissao.SUBMETER_CASO,
+        Permissao.GERIR_PROCESSOS,
         Permissao.LER_CASO_PROPRIO,
         Permissao.LER_CASO_QUALQUER,
         Permissao.VER_ANALISE,
@@ -51,6 +53,7 @@ _PERMISSOES: dict[Role, frozenset[Permissao]] = {
 
     Role.ADVOGADO: frozenset([
         Permissao.SUBMETER_CASO,
+        Permissao.GERIR_PROCESSOS,
         Permissao.LER_CASO_PROPRIO,
         Permissao.VER_ANALISE,
         Permissao.VER_AUDITORIA_BASICA,
