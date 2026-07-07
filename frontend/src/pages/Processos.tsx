@@ -17,7 +17,7 @@ interface Processo {
   tribunal: string; comarca: string; valor_causa: number | null
   criado_em: string; atualizado_em: string
   prazos: { descricao: string; data_limite: string; urgente: boolean; cumprido: boolean }[]
-  eventos: { timestamp: string; tipo: string; descricao: string; estado_anterior: string | null; estado_novo: string | null }[]
+  eventos: { timestamp: string; tipo: string; descricao: string; estado_anterior: string | null; estado_novo: string | null; por?: string }[]
   notas: string[]
   prazos_urgentes?: number
   num_eventos?: number
@@ -302,11 +302,14 @@ export default function PaginaProcessos() {
                 <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-text-tertiary)', fontWeight: 500, marginBottom: 6 }}>Histórico</div>
                 <div style={{ maxHeight: 150, overflowY: 'auto' }}>
                   {seleccionado.eventos.map((ev, i) => (
-                    <div key={i} style={{ display: 'flex', gap: 8, padding: '4px 0', fontSize: 12, color: 'var(--color-text-secondary)' }}>
-                      <span style={{ color: 'var(--color-text-tertiary)', fontSize: 11, flexShrink: 0 }}>
-                        {new Date(ev.timestamp).toLocaleDateString('pt-PT')}
+                    <div key={i} style={{ display: 'flex', gap: 8, padding: '5px 0', fontSize: 12, color: 'var(--color-text-secondary)', borderLeft: ev.tipo === 'retificacao' ? '2px solid #8a1d1d' : '2px solid transparent', paddingLeft: 8 }}>
+                      <span style={{ color: 'var(--color-text-tertiary)', fontSize: 11, flexShrink: 0, minWidth: 96 }}>
+                        {new Date(ev.timestamp).toLocaleDateString('pt-PT')} {new Date(ev.timestamp).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}
                       </span>
-                      <span>{ev.descricao}</span>
+                      <span style={{ flex: 1 }}>
+                        {ev.descricao}
+                        {ev.por && <span style={{ color: 'var(--color-text-tertiary)' }}> — por {ev.por}</span>}
+                      </span>
                     </div>
                   ))}
                 </div>
