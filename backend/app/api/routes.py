@@ -186,7 +186,8 @@ async def ver_processo(pid: str, utilizador: Utilizador = Depends(requer_login))
                     "urgente": pr.urgente, "cumprido": pr.cumprido} for pr in p.prazos],
         "eventos": [{"timestamp": ev.timestamp.isoformat(), "tipo": ev.tipo,
                      "descricao": ev.descricao, "estado_anterior": ev.estado_anterior,
-                     "estado_novo": ev.estado_novo} for ev in p.eventos],
+                     "estado_novo": ev.estado_novo,
+                     "por": _nome_utilizador(ev.utilizador_id)} for ev in p.eventos],
         "notas": p.notas, "caso_id_analise": p.caso_id_analise,
     }
 
