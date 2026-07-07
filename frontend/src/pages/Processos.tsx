@@ -169,41 +169,46 @@ export default function PaginaProcessos() {
               <span style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-text-secondary)', flex: 1 }}>
                 {seleccionado.numero}
               </span>
+              <button
+                onClick={async () => {
+                  if (!window.confirm('Anular o último avanço de estado deste processo?\n(Fica registado como retificação na linha do tempo.)')) return
+                  try { await api.post(`/processos/${seleccionado.id}/retificar`); await verDetalhe(seleccionado.id); await carregar(); }
+                  catch (e) { setErro(tratarErroAPI(e)) }
+                }}
+                title="Anula o último avanço de estado (fica registado como retificação)"
+                style={{
+                  padding: '7px 12px', background: 'transparent',
+                  border: '0.5px solid var(--color-border-secondary)',
+                  borderRadius: 'var(--border-radius-md)', fontSize: 12,
+                  color: 'var(--color-text-secondary)', cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                ↩ Anular último avanço
+              </button>
+              <button
+                onClick={() => navigate('/cenarios', { state: { texto: seleccionado.descricao } })}
+                style={{
+                  padding: '7px 12px', background: 'transparent',
+                  border: '0.5px solid #0a2342', borderRadius: 'var(--border-radius-md)',
+                  fontSize: 12, color: '#0a2342', cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                ⚖ Analisar cenários deste caso
+              </button>
               {seleccionado.proximo_estado && (
-                <>
                 <button
-                  onClick={async () => {
-                    try { await api.post(`/processos/${seleccionado.id}/retificar`); await carregar(); }
-                    catch (e) { setErro(tratarErroAPI(e)) }
+                  onClick={() => {
+                    if (!window.confirm(`Avançar o processo para "${seleccionado.proximo_estado}"?`)) return
+                    avancar(seleccionado.id)
                   }}
-                  title="Anula o último avanço de estado (fica registado como retificação)"
                   style={{
-                    padding: '7px 12px', background: 'transparent',
-                    border: '0.5px solid var(--color-border-secondary)',
-                    borderRadius: 'var(--border-radius-md)', fontSize: 12,
-                    color: 'var(--color-text-secondary)', cursor: 'pointer', fontFamily: 'inherit',
+                    padding: '4px 10px', background: '#0a2342', color: '#fff',
+                    border: 'none', borderRadius: 'var(--border-radius-md)',
+                    fontSize: 11, cursor: 'pointer', fontFamily: 'inherit',
                   }}
                 >
-                  ↩ Anular último avanço
-                </button>
-                <button
-                  onClick={() => navigate('/cenarios', { state: { texto: seleccionado.descricao } })}
-                  style={{
-                    padding: '7px 12px', background: 'transparent',
-                    border: '0.5px solid #0a2342', borderRadius: 'var(--border-radius-md)',
-                    fontSize: 12, color: '#0a2342', cursor: 'pointer', fontFamily: 'inherit',
-                  }}
-                >
-                  ⚖ Analisar cenários deste caso
-                </button>
-                <button onClick={() => avancar(seleccionado.id)} style={{
-                  padding: '4px 10px', background: '#0a2342', color: '#fff',
-                  border: 'none', borderRadius: 'var(--border-radius-md)',
-                  fontSize: 11, cursor: 'pointer', fontFamily: 'inherit',
-                }}>
                   Avançar → {seleccionado.proximo_estado}
                 </button>
-                </>
               )}
               <button onClick={() => setSeleccionado(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-tertiary)', fontSize: 16 }}>×</button>
             </div>
