@@ -63,6 +63,14 @@ export default function PaginaProcessos() {
     } catch (e) { setErro(tratarErroAPI(e)) }
   }
 
+  const retificar = async (pid: string) => {
+    try {
+      await api.post(`/processos/${pid}/retificar`, new FormData())
+      await verDetalhe(pid)   // recarrega o detalhe → o ecrã assume o novo estado
+      carregar()
+    } catch (e) { setErro(tratarErroAPI(e)) }
+  }
+
   const criarProcesso = async () => {
     if (!formNovo.descricao || !formNovo.nome_autor || !formNovo.nome_reu) return
     setCriando(true)
@@ -170,10 +178,9 @@ export default function PaginaProcessos() {
                 {seleccionado.numero}
               </span>
               <button
-                onClick={async () => {
+                onClick={() => {
                   if (!window.confirm('Anular o último avanço de estado deste processo?\n(Fica registado como retificação na linha do tempo.)')) return
-                  try { await api.post(`/processos/${seleccionado.id}/retificar`); await verDetalhe(seleccionado.id); await carregar(); }
-                  catch (e) { setErro(tratarErroAPI(e)) }
+                  retificar(seleccionado.id)
                 }}
                 title="Anula o último avanço de estado (fica registado como retificação)"
                 style={{
