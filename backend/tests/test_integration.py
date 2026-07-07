@@ -118,8 +118,30 @@ class TestProcessos:
         r = client.get("/api/v1/processos")
         assert r.status_code == 401
 
-    def test_criar_processo(self):
+    def test_cidadao_le_processos_mas_nao_gere(self):
+        """O cidadão consulta a carteira mas não cria nem move processos —
+        na justiça real, a parte não controla a máquina do processo."""
         token = login("cidadao@snaji.gov.pt", "Cidad2024!")
+        assert client.get("/api/v1/processos", headers=headers(token)).status_code == 200
+        r = client.post("/api/v1/processos", json={
+            "tipo": "laboral", "descricao": "X", "nome_autor": "A", "nome_reu": "B",
+        }, headers=headers(token))
+        assert r.status_code == 403
+
+    def test_cidadao_pode_instruir_e_analisar(self):
+        """Mas o trabalho cognitivo — instruir e analisar — é livre ao cidadão."""
+        token = login("cidadao@snaji.gov.pt", "Cidad2024!")
+        r1 = client.post("/api/v1/instrutor/iniciar",
+                         json={"relato": "Fui despedido sem justa causa."},
+                         headers=headers(token))
+        assert r1.status_code == 200
+        r2 = client.post("/api/v1/cenarios",
+                         json={"texto": "Despedimento sem justa causa."},
+                         headers=headers(token))
+        assert r2.status_code == 200
+
+    def test_criar_processo(self):
+        token = login("advogado@snaji.gov.pt", "Advog2024!")
         r = client.post("/api/v1/processos", json={
             "tipo": "laboral",
             "descricao": "Teste de criação de processo via API",
