@@ -26,6 +26,7 @@ interface Processo {
 export default function PaginaProcessos() {
   const navigate = useNavigate()
   const { utilizador } = useAuthStore()
+  const podeGerir = utilizador?.role === 'advogado' || utilizador?.role === 'magistrado' || utilizador?.role === 'admin'
   const [lista, setLista] = useState<Processo[]>([])
   const [seleccionado, setSeleccionado] = useState<Processo | null>(null)
   const [carregando, setCarregando] = useState(true)
@@ -94,17 +95,27 @@ export default function PaginaProcessos() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10 }}>
-        <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 500 }}>
-          {utilizador?.role === 'magistrado' ? 'Processos em carteira' : utilizador?.role === 'advogado' ? 'Carteira de processos' : 'Os meus processos'}
-        </h1>
-        <button onClick={() => setMostrarFormNovo(true)} style={{
-          padding: '6px 14px', background: '#0a2342', color: '#fff',
-          border: 'none', borderRadius: 'var(--border-radius-md)',
-          fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
-          display: 'flex', alignItems: 'center', gap: 5,
-        }}>
-          <i className="ti ti-plus" aria-hidden="true" /> Novo processo
-        </button>
+        <div>
+          <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 500 }}>
+            {utilizador?.role === 'magistrado' ? 'Processos em carteira' : utilizador?.role === 'advogado' ? 'Carteira de processos' : 'Os meus processos'}
+          </h1>
+          {!podeGerir && (
+            <p style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginTop: 2, maxWidth: 460 }}>
+              Acompanhamento informativo do seu caso — os prazos são calculados pela lei.
+              A gestão das fases cabe ao seu advogado ou ao tribunal.
+            </p>
+          )}
+        </div>
+        {podeGerir && (
+          <button onClick={() => setMostrarFormNovo(true)} style={{
+            padding: '6px 14px', background: '#0a2342', color: '#fff',
+            border: 'none', borderRadius: 'var(--border-radius-md)',
+            fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
+            display: 'flex', alignItems: 'center', gap: 5,
+          }}>
+            <i className="ti ti-plus" aria-hidden="true" /> Novo processo
+          </button>
+        )}
       </div>
 
       {/* Filtros */}
@@ -177,6 +188,7 @@ export default function PaginaProcessos() {
               <span style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-text-secondary)', flex: 1 }}>
                 {seleccionado.numero}
               </span>
+              {podeGerir && (<>
               <button
                 onClick={() => {
                   if (!window.confirm('Anular o último avanço de estado deste processo?\n(Fica registado como retificação na linha do tempo.)')) return
@@ -217,6 +229,7 @@ export default function PaginaProcessos() {
                   Avançar → {seleccionado.proximo_estado}
                 </button>
               )}
+              </>)}
               <button onClick={() => setSeleccionado(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-tertiary)', fontSize: 16 }}>×</button>
             </div>
 
