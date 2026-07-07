@@ -127,6 +127,38 @@ export default function PaginaAudiencias() {
   const faseIdx = audienciaActual ? FASES_ORDEM.indexOf(audienciaActual.fase_actual) : -1
 
   // ── Vista: Lista ───────────────────────────────────────────────────────────
+  const BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:8000/api/v1'
+
+  const abrirAtaHTML = async () => {
+    if (!audienciaActual) return
+    try {
+      const tok = sessionStorage.getItem('snaji_token')
+      const r = await fetch(`${BASE}/audiencias/${audienciaActual.id}/ata.html`, {
+        headers: { Authorization: `Bearer ${tok}` },
+      })
+      const html = await r.text()
+      const w = window.open('', '_blank')
+      if (w) { w.document.write(html); w.document.close() }
+    } catch { setErro('Não foi possível gerar a ata.') }
+  }
+
+  const descarregarAta = async (formato: 'md' | 'html') => {
+    if (!audienciaActual) return
+    try {
+      const tok = sessionStorage.getItem('snaji_token')
+      const r = await fetch(`${BASE}/audiencias/${audienciaActual.id}/ata.${formato}`, {
+        headers: { Authorization: `Bearer ${tok}` },
+      })
+      const blob = await r.blob()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `ata-audiencia.${formato === 'md' ? 'md' : 'html'}`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch { setErro('Não foi possível descarregar a ata.') }
+  }
+
   if (vista === 'lista') return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
@@ -242,6 +274,16 @@ export default function PaginaAudiencias() {
             ⚖ Proferir decisão
           </button>
         )}
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button onClick={abrirAtaHTML} title="Ata completa da sessão — imprimir ou guardar PDF"
+            style={{ padding: '7px 12px', background: 'transparent', border: '0.5px solid #0a2342', borderRadius: 'var(--border-radius-md)', fontSize: 12, color: '#0a2342', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+            🖨 Ata / Imprimir
+          </button>
+          <button onClick={() => descarregarAta('md')} title="Descarregar a ata em Markdown"
+            style={{ padding: '7px 10px', background: 'transparent', border: '0.5px solid var(--color-border-secondary)', borderRadius: 'var(--border-radius-md)', fontSize: 12, color: 'var(--color-text-secondary)', cursor: 'pointer', fontFamily: 'inherit' }}>
+            ⬇ .md
+          </button>
+        </div>
       </div>
 
       {erro && <div style={{ padding: '8px 12px', background: 'var(--color-background-danger)', border: '0.5px solid var(--color-border-danger)', borderRadius: 'var(--border-radius-md)', fontSize: 13, color: 'var(--color-text-danger)' }}>{erro}</div>}
