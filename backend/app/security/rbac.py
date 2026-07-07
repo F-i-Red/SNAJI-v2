@@ -22,6 +22,7 @@ class Permissao(str, Enum):
     # Casos jurídicos
     SUBMETER_CASO   = "submeter_caso"       # instruir e analisar casos (trabalho cognitivo)
     GERIR_PROCESSOS = "gerir_processos"     # criar/avançar/retificar na carteira de processos
+    FERRAMENTAS_PROFISSIONAIS = "ferramentas_profissionais"  # audiências, geração de peças
     LER_CASO_PROPRIO = "ler_caso_proprio"
     LER_CASO_QUALQUER = "ler_caso_qualquer"
     VER_ANALISE     = "ver_analise"
@@ -43,6 +44,7 @@ _PERMISSOES: dict[Role, frozenset[Permissao]] = {
     Role.MAGISTRADO: frozenset([
         Permissao.SUBMETER_CASO,
         Permissao.GERIR_PROCESSOS,
+        Permissao.FERRAMENTAS_PROFISSIONAIS,
         Permissao.LER_CASO_PROPRIO,
         Permissao.LER_CASO_QUALQUER,
         Permissao.VER_ANALISE,
@@ -54,6 +56,7 @@ _PERMISSOES: dict[Role, frozenset[Permissao]] = {
     Role.ADVOGADO: frozenset([
         Permissao.SUBMETER_CASO,
         Permissao.GERIR_PROCESSOS,
+        Permissao.FERRAMENTAS_PROFISSIONAIS,
         Permissao.LER_CASO_PROPRIO,
         Permissao.VER_ANALISE,
         Permissao.VER_AUDITORIA_BASICA,
@@ -93,7 +96,15 @@ class RBACManager:
         # Gerir processos é ato jurídico, reservado a advogado e magistrado —
         # nem o administrador técnico do sistema o pode fazer (à imagem do Citius,
         # onde o admin de sistema nunca toca no conteúdo processual).
-        if permissao == Permissao.GERIR_PROCESSOS:
+        # Atos jurídicos (gerir processos, ferramentas profissionais, analisar
+        # casos) NUNCA são cobertos pelo ACESSO_TOTAL do administrador técnico —
+        # à imagem do Citius, o admin de sistema gere a máquina, não a justiça.
+        ATOS_JURIDICOS = (
+            Permissao.GERIR_PROCESSOS,
+            Permissao.FERRAMENTAS_PROFISSIONAIS,
+            Permissao.SUBMETER_CASO,
+        )
+        if permissao in ATOS_JURIDICOS:
             return permissao in perms
         # Admin com ACESSO_TOTAL passa em tudo o resto (gestão técnica)
         if Permissao.ACESSO_TOTAL in perms:
