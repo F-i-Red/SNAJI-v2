@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { imprimirDocumento, descarregarTxt, DocumentoImprimivel } from '../utils/imprimir'
 import { api, tratarErroAPI } from '../services/api'
 import { useAuthStore } from '../auth/session'
 
@@ -188,6 +189,25 @@ export default function PaginaProcessos() {
               <span style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-text-secondary)', flex: 1 }}>
                 {seleccionado.numero}
               </span>
+              <button
+                onClick={() => {
+                  const doc: DocumentoImprimivel = {
+                    titulo: `Processo ${seleccionado.numero}`,
+                    subtitulo: `${seleccionado.tipo} · ${seleccionado.estado}`,
+                    meta: [seleccionado.descricao],
+                    seccoes: [
+                      { titulo: 'Prazos', itens: seleccionado.prazos.map(pr => `${pr.descricao}: ${new Date(pr.data_limite).toLocaleDateString('pt-PT')}${pr.urgente ? ' (URGENTE)' : ''}${pr.cumprido ? ' — cumprido' : ''}`) },
+                      { titulo: 'Histórico', itens: seleccionado.eventos.map(ev => `${new Date(ev.timestamp).toLocaleDateString('pt-PT')} ${new Date(ev.timestamp).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'})} — ${ev.descricao}${ev.por ? ' (por ' + ev.por + ')' : ''}`) },
+                    ],
+                    rodape: 'Acompanhamento gerado pelo SNAJI — sem valor oficial. O processo oficial reside no sistema do tribunal (Citius).',
+                  }
+                  imprimirDocumento(doc)
+                }}
+                title="Imprimir ou guardar a ficha do processo em PDF"
+                style={{ padding: '5px 10px', background: 'transparent', border: '0.5px solid #0a2342', borderRadius: 'var(--border-radius-md)', fontSize: 11, color: '#0a2342', cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                🖨 Imprimir
+              </button>
               {podeGerir && (<>
               <button
                 onClick={() => {

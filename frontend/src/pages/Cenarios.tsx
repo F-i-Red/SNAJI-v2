@@ -12,6 +12,7 @@
  */
 
 import { useEffect, useState } from 'react'
+import { BotoesImprimir, DocumentoImprimivel } from '../utils/imprimir'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { api, tratarErroAPI } from '../services/api'
 import { useAuthStore } from '../auth/session'
@@ -215,6 +216,26 @@ export default function PaginaCenarios() {
 
   // ── Render ──────────────────────────────────────────────────────────────
 
+  const docImprimivel = (): DocumentoImprimivel | null => {
+    if (!resultado) return null
+    const seccoes = [
+      { titulo: 'Síntese', paragrafos: [registoTecnico ? resultado.sintese_tecnica : resultado.sintese_cidada] },
+      ...(resultado.convergencia ? [{ titulo: 'Convergência', paragrafos: ['As três abordagens interpretativas convergem no mesmo sentido.'] }] : []),
+      ...resultado.cenarios.map(cn => ({
+        titulo: `${cn.titulo} — solidez ${NOME_SOLIDEZ[cn.solidez]}`,
+        paragrafos: [registoTecnico ? cn.descricao_tecnica : cn.descricao_cidada].filter(Boolean) as string[],
+        itens: cn.fundamentacao_normas.map(n => n.replace('-', ' art. ')),
+      })),
+    ]
+    return {
+      titulo: 'Cenários de resolução',
+      subtitulo: location.state?.contraditorio ? 'Análise do contraditório (perspetiva da parte contrária)' : undefined,
+      meta: [`Gerado pelo SNAJI em ${new Date().toLocaleDateString('pt-PT')}`],
+      seccoes,
+      rodape: 'Apoio à decisão gerado pelo SNAJI — sem valor oficial. Não substitui aconselhamento jurídico profissional.',
+    }
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 860 }}>
 
@@ -245,6 +266,7 @@ export default function PaginaCenarios() {
         }}>
           Cenários de resolução
         </h1>
+        {resultado && <div style={{ marginLeft: 'auto' }}><BotoesImprimir doc={docImprimivel()!} /></div>}
         <small style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>
           O mesmo caso analisado por três abordagens da prática judiciária
         </small>

@@ -10,6 +10,7 @@
 
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { BotoesImprimir, DocumentoImprimivel } from '../utils/imprimir'
 import { api, tratarErroAPI } from '../services/api'
 
 interface CasoResumo {
@@ -93,12 +94,35 @@ export default function PaginaMeusCasos() {
 
   // ── Detalhe de um caso ────────────────────────────────────────────────
   if (caso) {
+    const docCaso: DocumentoImprimivel = {
+      titulo: caso.titulo,
+      subtitulo: `Áreas: ${caso.areas.join(', ')}${caso.papel ? ' · ' + (NOME_PAPEL[caso.papel] ?? caso.papel) : ''}`,
+      meta: [`Instruído a ${dataPt(caso.criado_em)}`],
+      seccoes: [
+        { titulo: 'Relato', paragrafos: [caso.relato] },
+        ...(caso.alertas.length ? [{ titulo: 'Alertas', itens: caso.alertas.map(a => a.mensagem_cidada) }] : []),
+        ...(caso.analises_juridicas?.length ? [{
+          titulo: 'Análises jurídicas',
+          paragrafos: caso.analises_juridicas.map(a => `${a.qualificacao_juridica}\n${a.conclusao}`),
+        }] : []),
+        ...caso.analises_cenarios.map((an, i) => ({
+          titulo: `Análise de cenários ${i + 1} (${an.convergencia ? 'convergente' : 'em confronto'})`,
+          paragrafos: [an.sintese_cidada],
+          itens: an.cenarios.map(c => `${c.titulo} (solidez ${c.solidez}) — ${c.fundamentacao_normas.map(n => n.replace('-',' art. ')).join(', ')}`),
+        })),
+      ],
+      rodape: 'Apoio à decisão gerado pelo SNAJI — sem valor oficial. Não substitui aconselhamento jurídico profissional.',
+    }
+
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', maxWidth: 760 }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
         <button onClick={() => setCaso(null)} style={{
           alignSelf: 'flex-start', background: 'transparent', border: 'none', cursor: 'pointer',
           fontFamily: 'inherit', fontSize: 12.5, color: 'var(--color-text-secondary)', padding: 0,
         }}>← Todos os casos</button>
+        <div style={{ marginLeft: 'auto' }}><BotoesImprimir doc={docCaso} nomeFicheiro={`caso-${caso.caso_id.slice(0,8)}`} /></div>
+        </div>
 
         <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 21, fontWeight: 500, lineHeight: 1.3 }}>
           {caso.titulo}

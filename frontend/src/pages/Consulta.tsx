@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import type { AnalysisResponse, TipoProcesso } from '../types'
 import { juridicalService, tratarErroAPI } from '../services/api'
+import { BotoesImprimir, DocumentoImprimivel } from '../utils/imprimir'
 import { useAuthStore } from '../auth/session'
 
 const EXEMPLOS = {
@@ -187,6 +188,21 @@ export default function PaginaConsulta() {
       {/* Resultado */}
       {resultado && (
         <div ref={resultadoRef} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <BotoesImprimir doc={{
+              titulo: 'Análise jurídica do caso',
+              meta: [`Gerado pelo SNAJI em ${new Date().toLocaleDateString('pt-PT')}`],
+              seccoes: [
+                { titulo: 'Qualificação', paragrafos: [resultado.qualificacao_juridica] },
+                { titulo: 'Análise', paragrafos: [resultado.analise] },
+                { titulo: 'Normas aplicáveis', itens: resultado.normas.map((n: any) => typeof n === 'string' ? n : `${n.diploma ?? ''} art. ${n.artigo ?? ''} — ${n.titulo ?? ''}`) },
+                { titulo: 'Vias processuais', itens: resultado.vias_processuais },
+                { titulo: 'Conclusão', paragrafos: [resultado.conclusao] },
+                ...(resultado.contraditorio ? [{ titulo: 'Contraditório', paragrafos: [String(resultado.contraditorio)] }] : []),
+              ],
+              rodape: 'Apoio à decisão gerado pelo SNAJI — sem valor oficial. Não substitui aconselhamento jurídico profissional.',
+            } as DocumentoImprimivel} />
+          </div>
 
           {/* Normas identificadas */}
           <div style={{
