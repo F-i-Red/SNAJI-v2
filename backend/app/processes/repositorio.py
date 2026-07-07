@@ -309,9 +309,11 @@ class RepositorioProcessos:
         p.estado = ORDEM_FASES[idx - 1]
         p.atualizado_em = datetime.now(timezone.utc)
         p.eventos.append(EventoProcesso(
+            id=str(uuid.uuid4()),
             timestamp=p.atualizado_em,
             tipo="retificacao",
             descricao=f"Retificação: o avanço para '{anterior.value}' foi anulado pelo utilizador",
+            utilizador_id=utilizador_id,
             estado_anterior=anterior.value,
             estado_novo=p.estado.value,
         ))
