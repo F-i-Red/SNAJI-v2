@@ -90,7 +90,12 @@ class RBACManager:
 
         perms = _PERMISSOES.get(r, frozenset())
 
-        # Admin com ACESSO_TOTAL passa em tudo
+        # Gerir processos é ato jurídico, reservado a advogado e magistrado —
+        # nem o administrador técnico do sistema o pode fazer (à imagem do Citius,
+        # onde o admin de sistema nunca toca no conteúdo processual).
+        if permissao == Permissao.GERIR_PROCESSOS:
+            return permissao in perms
+        # Admin com ACESSO_TOTAL passa em tudo o resto (gestão técnica)
         if Permissao.ACESSO_TOTAL in perms:
             return True
 
