@@ -229,7 +229,9 @@ def gerar_argumento_stub(
     if not args_papel:
         return f"[{papel.value.upper()}] Argumento jurídico — aguarda activação do motor LLM para análise completa."
 
-    idx = min(ronda, len(args_papel) - 1)
+    # Percorre os argumentos ciclicamente conforme a ronda — evita repetir
+    # indefinidamente o último quando há mais rondas do que argumentos.
+    idx = ronda % len(args_papel)
     return args_papel[idx]
 
 
