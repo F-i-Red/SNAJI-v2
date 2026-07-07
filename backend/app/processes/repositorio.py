@@ -140,15 +140,25 @@ class RepositorioProcessos:
         self._seed_demo()
 
     def _seed_demo(self) -> None:
-        """Cria processos de demonstração realistas."""
+        """Cria processos de demonstração realistas, atribuídos às contas reais."""
         agora = datetime.now(timezone.utc)
+        # Resolver os IDs reais das contas demo (para o isolamento funcionar:
+        # a Ana vê os processos dela, o advogado os dele, etc.)
+        try:
+            from app.db.utilizadores import repositorio as _ru
+            _id = {u.email: str(u.id) for u in _ru.listar()}
+        except Exception:
+            _id = {}
+        CIDADAO = _id.get("cidadao@snaji.gov.pt", "cidadao-demo")
+        ADVOGADO = _id.get("advogado@snaji.gov.pt", "advogado-demo")
+        MAGISTRADO = _id.get("magistrado@snaji.gov.pt", "magistrado-demo")
         demos = [
             {
                 "tipo": TipoProcesso.LABORAL,
                 "descricao": "Despedimento sem justa causa — 8 anos de serviço",
                 "estado": EstadoProcesso.INSTRUCAO,
                 "partes": [Parte("Ana Costa","autor"), Parte("Empresa XYZ Lda","réu")],
-                "criado_por": "cidadao-demo",
+                "criado_por": CIDADAO,
                 "dias_atras": 45,
                 "prazos": [("Submissão de documentos adicionais", 5, True), ("Audiência preliminar", 20, False)],
             },
@@ -157,7 +167,7 @@ class RepositorioProcessos:
                 "descricao": "Incumprimento contratual — arrendamento",
                 "estado": EstadoProcesso.CITACAO,
                 "partes": [Parte("Ana Costa","autor"), Parte("João Senhorio","réu")],
-                "criado_por": "cidadao-demo",
+                "criado_por": CIDADAO,
                 "dias_atras": 120,
                 "prazos": [("Prazo de contestação do réu", 15, False)],
             },
@@ -166,7 +176,7 @@ class RepositorioProcessos:
                 "descricao": "Corrupção — funcionário público",
                 "estado": EstadoProcesso.JULGAMENTO,
                 "partes": [Parte("Ministério Público","acusação"), Parte("Arguido A","arguido")],
-                "criado_por": "magistrado-demo",
+                "criado_por": MAGISTRADO,
                 "dias_atras": 180,
                 "prazos": [("Audiência de julgamento", 2, True)],
             },
@@ -175,7 +185,7 @@ class RepositorioProcessos:
                 "descricao": "Despedimento colectivo — 23 trabalhadores",
                 "estado": EstadoProcesso.CONTESTACAO,
                 "partes": [Parte("Sindicato dos Trabalhadores","autor"), Parte("Fábrica Beta SA","réu")],
-                "criado_por": "advogado-demo",
+                "criado_por": ADVOGADO,
                 "dias_atras": 60,
                 "prazos": [("Resposta ao Ministério Público", 3, True), ("Audiência de partes", 25, False)],
             },
@@ -258,11 +268,23 @@ class RepositorioProcessos:
     def por_id(self, pid: str) -> Optional[Processo]:
         return self._processos.get(pid)
 
-    def por_utilizador(self, uid: str) -> list[Processo]:
-        ids = self._por_utilizador.get(uid, [])
-        # Todos os processos demo são visíveis a todos (para demonstração)
-        todos = list(self._processos.values())
-        return sorted(todos, key=lambda p: p.atualizado_em, reverse=True)
+    def por_utilizador(self, uid: str, role: str = "") -> list[Processo]:
+        """Processos visíveis a este utilizador.
+
+        Isolamento por desenho: cada pessoa vê apenas os seus processos.
+        O magistrado vê os que lhe estão atribuídos e o administrador do
+        sistema não vê conteúdo processual — só cidadão e advogado têm
+        carteira própria. (Em produção, a distribuição de processos ao
+        magistrado viria do sistema oficial; aqui, o magistrado vê todos
+        para efeitos de demonstração do papel de julgador.)
+        """
+        if role == "magistrado":
+            visiveis = list(self._processos.values())
+        else:
+            ids = set(self._por_utilizador.get(str(uid), []))
+            visiveis = [p for p in self._processos.values()
+                        if p.id in ids or str(p.criado_por) == str(uid)]
+        return sorted(visiveis, key=lambda p: p.atualizado_em, reverse=True)
 
     def todos(self) -> list[Processo]:
         return sorted(self._processos.values(), key=lambda p: p.atualizado_em, reverse=True)
