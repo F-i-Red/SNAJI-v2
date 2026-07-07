@@ -358,6 +358,25 @@ class MotorAudiencias:
         """
         aid = str(uuid.uuid4())
         areas = [a.lower() for a in (areas or [tipo_processo])]
+
+        # Coerência caso↔audiência: se os factos indicam claramente uma área
+        # que não está entre as escolhidas, o motor deteta-a e ajusta — evita
+        # uma audiência laboral sobre um furto (classificação por compreensão
+        # dos factos, não pelo rótulo do formulário).
+        try:
+            from app.reasoning.classificador_juridico import _classificar_heuristico
+            clf = _classificar_heuristico(descricao_caso)
+            areas_detetadas = [a.value for a in clf.todas_as_areas]
+            principal = clf.area_principal.value if hasattr(clf, "area_principal") else None
+            if principal and principal not in areas and areas == [tipo_processo]:
+                # o rótulo era o valor por omissão e os factos apontam outra área
+                logger.info("audiencia.area_ajustada_pelos_factos",
+                            rotulo=tipo_processo, detetada=principal)
+                areas = areas_detetadas or [principal]
+                tipo_processo = principal
+        except Exception as exc:
+            logger.warning("audiencia.deteccao_area_falhou", erro=str(exc)[:150])
+
         eh_penal = "penal" in areas or tipo_processo == "penal"
         regime = "adesao" if (eh_penal and any(a in areas for a in ("civil", "consumo", "laboral")) and len(set(areas)) > 1) else ""
 
