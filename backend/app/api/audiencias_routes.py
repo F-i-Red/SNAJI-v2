@@ -20,6 +20,7 @@ from typing import Optional
 import structlog
 
 from app.security.dependencias import requer_login, requer_permissao
+from fastapi.responses import HTMLResponse, PlainTextResponse, Response
 from app.security.rbac import Permissao
 from app.db.utilizadores import Utilizador
 from app.audiencias.motor import (
@@ -294,6 +295,129 @@ async def proferir_decisao(aid: str, utilizador: Utilizador = Depends(requer_log
         }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+# ── Ata da sessão (escrivão): consultar e exportar ───────────────────────────
+
+def _ata_markdown(d: dict) -> str:
+    """Compõe a ata em Markdown — legível, copiável, imprimível."""
+    L = []
+    L.append(f"# {d['titulo']}")
+    L.append("")
+    L.append(f"**{d['tribunal']}**  ")
+    L.append(f"Audiência de {d['tipo_audiencia']} — {d['data_por_extenso']}  ")
+    L.append(f"Áreas: {', '.join(d['areas'])} · Regime: {d['regime']}  ")
+    if d.get("processo_id"):
+        L.append(f"Processo: {d['processo_id']}  ")
+    L.append("")
+    L.append(f"**Objeto:** {d['caso']}")
+    L.append("")
+    L.append("## Participantes")
+    for p in d["participantes"]:
+        L.append(f"- **{p['papel']}**: {p['nome']}")
+    L.append("")
+    L.append("## Termos da audiência (todos os atos)")
+    for s in d["passos"]:
+        marca = " 🔏 *[ata]*" if s["e_ata"] else ""
+        hora = f" ({s['hora']})" if s["hora"] else ""
+        L.append(f"{s['n']}. **{s['papel']}**{hora}{marca}: {s['conteudo']}")
+    L.append("")
+    if d["provas"]:
+        L.append("## Prova produzida")
+        for pv in d["provas"]:
+            L.append(f"- [{pv['tipo']}] {pv['descricao']} — apresentada por {pv['papel']} (hash {pv['hash']})")
+        L.append("")
+    if d.get("decisao"):
+        L.append("## Decisão")
+        L.append(str(d["decisao"]))
+        L.append("")
+    L.append("---")
+    estado = "✔ íntegra" if d["integridade_verificada"] else "✘ SELO QUEBRADO"
+    L.append(f"**Integridade da cadeia de atas:** {estado} · Selo: `{d['selo']}` · "
+             f"{d['total_atos']} atos, {d['total_atas']} atas")
+    L.append("")
+    L.append(f"_{d['rodape']}_")
+    return "\n".join(L)
+
+
+def _ata_html(d: dict) -> str:
+    """Ata em HTML autossuficiente, com botão de impressão do navegador."""
+    linhas = []
+    for s in d["passos"]:
+        cor = "#f5ead1" if s["e_ata"] else "transparent"
+        marca = " <span style='color:#7a5c07'>🔏 ata</span>" if s["e_ata"] else ""
+        hora = f"<span style='color:#888'> {s['hora']}</span>" if s["hora"] else ""
+        linhas.append(
+            f"<li style='background:{cor};padding:6px 8px;margin:3px 0;border-radius:4px'>"
+            f"<strong>{s['papel']}</strong>{hora}{marca}<br>{s['conteudo']}</li>")
+    parts = "".join(f"<li><strong>{p['papel']}</strong>: {p['nome']}</li>" for p in d["participantes"])
+    provas = ""
+    if d["provas"]:
+        pv = "".join(f"<li>[{x['tipo']}] {x['descricao']} — {x['papel']} "
+                     f"<code>{x['hash']}</code></li>" for x in d["provas"])
+        provas = f"<h2>Prova produzida</h2><ul>{pv}</ul>"
+    decisao = f"<h2>Decisão</h2><p>{d['decisao']}</p>" if d.get("decisao") else ""
+    estado = "✔ íntegra" if d["integridade_verificada"] else "✘ SELO QUEBRADO"
+    cor_selo = "#1a7a3a" if d["integridade_verificada"] else "#8a1d1d"
+    return f"""<!DOCTYPE html><html lang="pt"><head><meta charset="utf-8">
+<title>{d['titulo']} — {d['data_por_extenso']}</title>
+<style>
+  body {{ font-family: Georgia, 'Times New Roman', serif; max-width: 800px;
+         margin: 32px auto; padding: 0 24px; color: #1a1a1a; line-height: 1.6; }}
+  h1 {{ font-size: 24px; border-bottom: 2px solid #0a2342; padding-bottom: 8px; }}
+  h2 {{ font-size: 17px; color: #0a2342; margin-top: 24px; }}
+  ul {{ list-style: none; padding-left: 0; }}
+  .cab {{ color: #444; font-size: 14px; }}
+  .selo {{ margin-top: 24px; padding: 12px; border: 1px solid {cor_selo};
+           border-radius: 6px; color: {cor_selo}; font-size: 13px; }}
+  .rodape {{ color: #777; font-size: 12px; margin-top: 16px; font-style: italic; }}
+  @media print {{ .noprint {{ display: none; }} body {{ margin: 0; }} }}
+</style></head><body>
+<button class="noprint" onclick="window.print()" style="float:right;padding:8px 16px;
+  background:#0a2342;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">
+  🖨 Imprimir / Guardar PDF</button>
+<h1>{d['titulo']}</h1>
+<p class="cab"><strong>{d['tribunal']}</strong><br>
+Audiência de {d['tipo_audiencia']} — {d['data_por_extenso']}<br>
+Áreas: {', '.join(d['areas'])} · Regime: {d['regime']}</p>
+<p><strong>Objeto:</strong> {d['caso']}</p>
+<h2>Participantes</h2><ul>{parts}</ul>
+<h2>Termos da audiência (todos os atos)</h2><ol>{''.join(linhas)}</ol>
+{provas}{decisao}
+<div class="selo"><strong>Integridade da cadeia de atas:</strong> {estado}<br>
+Selo: <code>{d['selo']}</code> · {d['total_atos']} atos · {d['total_atas']} atas</div>
+<p class="rodape">{d['rodape']}</p>
+</body></html>"""
+
+
+@router.get("/{aid}/ata")
+async def obter_ata(aid: str, utilizador: Utilizador = Depends(requer_login)) -> dict:
+    """Ata consolidada da sessão (dados estruturados)."""
+    try:
+        a = motor_audiencias.obter_audiencia(aid)
+        return motor_audiencias.ata_consolidada(a)
+    except (ValueError, KeyError):
+        raise HTTPException(status_code=404, detail="Audiência não encontrada")
+
+
+@router.get("/{aid}/ata.md", response_class=PlainTextResponse)
+async def ata_markdown(aid: str, utilizador: Utilizador = Depends(requer_login)):
+    """Ata em Markdown (copiar/arquivar)."""
+    try:
+        a = motor_audiencias.obter_audiencia(aid)
+        return _ata_markdown(motor_audiencias.ata_consolidada(a))
+    except (ValueError, KeyError):
+        raise HTTPException(status_code=404, detail="Audiência não encontrada")
+
+
+@router.get("/{aid}/ata.html", response_class=HTMLResponse)
+async def ata_html(aid: str, utilizador: Utilizador = Depends(requer_login)):
+    """Ata em HTML (imprimir/guardar PDF pelo navegador)."""
+    try:
+        a = motor_audiencias.obter_audiencia(aid)
+        return _ata_html(motor_audiencias.ata_consolidada(a))
+    except (ValueError, KeyError):
+        raise HTTPException(status_code=404, detail="Audiência não encontrada")
 
 
 # ── Serialização ─────────────────────────────────────────────────────────────
