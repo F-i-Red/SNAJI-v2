@@ -488,6 +488,68 @@ class MotorAudiencias:
         a.hash_ultima_ata = ata.hash_integridade
         return ata
 
+    def ata_consolidada(self, a: "AudienciaCompleta") -> dict:
+        """
+        Compõe a ATA INTEGRAL DA SESSÃO — o documento do escrivão com todos os
+        passos, por ordem cronológica, com o selo de integridade das atas.
+
+        Diferente das atas parciais (uma por ato): esta é a ata da audiência
+        toda, pronta a assinar, arquivar e exportar. É o papel do escrivão,
+        moderno: completo, verificável e imediatamente imprimível.
+        """
+        MESES = ("janeiro","fevereiro","março","abril","maio","junho","julho",
+                 "agosto","setembro","outubro","novembro","dezembro")
+        dt = a.criada_em
+        data_ext = f"{dt.day} de {MESES[dt.month-1]} de {dt.year}"
+
+        participantes = [
+            {"papel": p.papel.value, "nome": p.nome}
+            for p in a.participantes if p.activo
+        ]
+
+        # Passos: todas as intervenções por ordem, com marca de ata onde aplicável
+        passos = []
+        for i, iv in enumerate(a.intervencoes, 1):
+            passos.append({
+                "n": i,
+                "papel": iv.papel.value,
+                "tipo": iv.tipo.value,
+                "conteudo": iv.conteudo,
+                "hora": iv.timestamp.strftime("%H:%M:%S") if getattr(iv, "timestamp", None) else "",
+                "e_ata": iv.tipo == TipoIntervencao.ATA,
+                "hash": getattr(iv, "hash_integridade", "")[:16],
+            })
+
+        provas = [
+            {"papel": pr.get("papel"), "tipo": pr.get("tipo"),
+             "descricao": pr.get("descricao"), "hash": (pr.get("hash") or "")[:16]}
+            for pr in getattr(a, "provas", [])
+        ]
+
+        return {
+            "titulo": "ATA DE AUDIÊNCIA",
+            "audiencia_id": a.id,
+            "processo_id": a.processo_id,
+            "tipo_audiencia": a.tipo.value,
+            "areas": a.areas,
+            "regime": a.regime or "simples",
+            "caso": a.descricao_caso,
+            "data_por_extenso": data_ext,
+            "data_iso": dt.isoformat(),
+            "tribunal": "Tribunal Judicial",
+            "participantes": participantes,
+            "passos": passos,
+            "provas": provas,
+            "decisao": getattr(a, "decisao", None),
+            "total_atos": len(a.intervencoes),
+            "total_atas": len(a.atas()),
+            "integridade_verificada": a.verificar_cadeia_atas(),
+            "selo": a.hash_ultima_ata[:16] if a.hash_ultima_ata else "genesis",
+            "rodape": ("Documento gerado pelo SNAJI. As atas formam uma cadeia de "
+                       "integridade criptográfica (SHA-256): qualquer alteração a "
+                       "um ato quebra o selo e é detetada."),
+        }
+
     # ── Intervenções ─────────────────────────────────────────────────────────
 
     def papel_sugerido(self, a) -> str:
