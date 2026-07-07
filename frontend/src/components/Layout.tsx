@@ -4,14 +4,12 @@ import { useAuthStore, useRole } from '../auth/session'
 
 const NAV_POR_ROLE = {
   cidadao: [
-    { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
+    { path: '/dashboard', icon: 'ti-home', label: 'Início' },
+    { path: '/instrutor', icon: 'ti-list-search', label: 'Descrever o meu caso' },
+    { path: '/cenarios', icon: 'ti-scale', label: 'Ver soluções' },
     { path: '/casos', icon: 'ti-folder', label: 'Os meus casos' },
-    { path: '/consulta', icon: 'ti-message-question', label: 'Consulta jurídica' },
-    { path: '/instrutor', icon: 'ti-list-search', label: 'Instrução do caso' },
-    { path: '/cenarios', icon: 'ti-scale', label: 'Cenários de resolução' },
-    { path: '/processos', icon: 'ti-folder', label: 'Os meus processos' },
-    { path: '/audiencias', icon: 'ti-gavel', label: 'Audiências' },
-    { path: '/documentos', icon: 'ti-file-text', label: 'Documentos' },
+    { path: '/processos', icon: 'ti-eye', label: 'Acompanhar processos' },
+    { path: '/consulta', icon: 'ti-message-question', label: 'Tirar uma dúvida' },
   ],
   advogado: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
