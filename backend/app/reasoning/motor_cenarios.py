@@ -238,8 +238,14 @@ class MotorCenarios:
         })
 
         if self._llm is not None:
-            cenarios, sintese_tec = self._gerar_llm(texto_caso, normas_txt)
-            via_llm = True
+            try:
+                cenarios, sintese_tec = self._gerar_llm(texto_caso, normas_txt)
+                via_llm = True
+            except Exception as exc:
+                # Degradação graciosa: chave inválida/rede/saldo nunca nega a análise
+                logger.warning("cenarios.llm_falhou_a_degradar_para_stub", erro=str(exc)[:200])
+                cenarios, sintese_tec = self._gerar_stub(texto_caso, normas)
+                via_llm = False
         else:
             cenarios, sintese_tec = self._gerar_stub(texto_caso, normas)
             via_llm = False
