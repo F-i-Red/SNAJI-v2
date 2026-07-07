@@ -340,6 +340,71 @@ def _ata_markdown(d: dict) -> str:
     return "\n".join(L)
 
 
+def _ata_txt(d: dict) -> str:
+    """Ata em texto simples (.txt) — sem marcação, para arquivo universal."""
+    L = []
+    sep = "=" * 66
+    L.append(sep)
+    L.append(d["titulo"].center(66))
+    L.append(sep)
+    L.append(d["tribunal"])
+    L.append(f"Audiencia de {d['tipo_audiencia']} — {d['data_por_extenso']}")
+    L.append(f"Areas: {', '.join(d['areas'])} · Regime: {d['regime']}")
+    if d.get("processo_id"):
+        L.append(f"Processo: {d['processo_id']}")
+    L.append("")
+    L.append(f"OBJETO: {d['caso']}")
+    L.append("")
+    L.append("PARTICIPANTES")
+    L.append("-" * 66)
+    for p in d["participantes"]:
+        L.append(f"  {p['papel'].upper():16s} {p['nome']}")
+    L.append("")
+    L.append("TERMOS DA AUDIENCIA (todos os atos)")
+    L.append("-" * 66)
+    for s in d["passos"]:
+        marca = "  [ATA]" if s["e_ata"] else ""
+        hora = f" {s['hora']}" if s["hora"] else ""
+        L.append(f"{s['n']:>3}.{hora} {s['papel'].upper()}{marca}")
+        for linha in _wrap(s["conteudo"], 62):
+            L.append(f"     {linha}")
+    L.append("")
+    if d["provas"]:
+        L.append("PROVA PRODUZIDA")
+        L.append("-" * 66)
+        for pv in d["provas"]:
+            L.append(f"  [{pv['tipo']}] {pv['descricao']} — {pv['papel']} (hash {pv['hash']})")
+        L.append("")
+    if d.get("decisao"):
+        L.append("DECISAO")
+        L.append("-" * 66)
+        for linha in _wrap(str(d["decisao"]), 62):
+            L.append(f"  {linha}")
+        L.append("")
+    L.append(sep)
+    estado = "INTEGRA" if d["integridade_verificada"] else "*** SELO QUEBRADO ***"
+    L.append(f"Integridade da cadeia de atas: {estado}")
+    L.append(f"Selo: {d['selo']} · {d['total_atos']} atos · {d['total_atas']} atas")
+    L.append("")
+    for linha in _wrap(d["rodape"], 66):
+        L.append(linha)
+    return "\n".join(L)
+
+
+def _wrap(texto: str, larg: int) -> list[str]:
+    """Quebra texto em linhas de largura fixa, sem cortar palavras."""
+    palavras = str(texto).split()
+    linhas, atual = [], ""
+    for p in palavras:
+        if len(atual) + len(p) + 1 > larg:
+            linhas.append(atual); atual = p
+        else:
+            atual = f"{atual} {p}".strip()
+    if atual:
+        linhas.append(atual)
+    return linhas or [""]
+
+
 def _ata_html(d: dict) -> str:
     """Ata em HTML autossuficiente, com botão de impressão do navegador."""
     linhas = []
@@ -406,6 +471,16 @@ async def ata_markdown(aid: str, utilizador: Utilizador = Depends(requer_login))
     try:
         a = motor_audiencias.obter_audiencia(aid)
         return _ata_markdown(motor_audiencias.ata_consolidada(a))
+    except (ValueError, KeyError):
+        raise HTTPException(status_code=404, detail="Audiência não encontrada")
+
+
+@router.get("/{aid}/ata.txt", response_class=PlainTextResponse)
+async def ata_txt(aid: str, utilizador: Utilizador = Depends(requer_login)):
+    """Ata em texto simples (.txt) — arquivo universal, sem marcação."""
+    try:
+        a = motor_audiencias.obter_audiencia(aid)
+        return _ata_txt(motor_audiencias.ata_consolidada(a))
     except (ValueError, KeyError):
         raise HTTPException(status_code=404, detail="Audiência não encontrada")
 
