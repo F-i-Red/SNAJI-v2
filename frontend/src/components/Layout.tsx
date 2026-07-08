@@ -6,7 +6,6 @@ const NAV_POR_ROLE = {
   cidadao: [
     { path: '/dashboard', icon: 'ti-home', label: 'Início' },
     { path: '/instrutor', icon: 'ti-list-search', label: 'Descrever o meu caso' },
-    { path: '/cenarios', icon: 'ti-scale', label: 'Ver soluções' },
     { path: '/casos', icon: 'ti-folder', label: 'Os meus casos' },
     { path: '/processos', icon: 'ti-eye', label: 'Acompanhar processos' },
     { path: '/consulta', icon: 'ti-message-question', label: 'Tirar uma dúvida' },
