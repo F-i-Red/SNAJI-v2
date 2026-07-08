@@ -11,7 +11,7 @@ GET  /auth/cmd/callback                 → callback CMD
 GET  /integracoes/estado                → estado de todas as integrações
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, UploadFile, File
 from typing import Optional
 import structlog
 
@@ -20,9 +20,13 @@ from app.security.rbac import Role
 from app.db.utilizadores import Utilizador
 from app.integrations.dre import get_cliente_dre
 from app.integrations.jurisprudencia import motor_jurisprudencia
+from app.documents.analisador_pecas import AnalisadorPecas
+from app.documents.processador import ProcessadorDocumentos
 from app.integrations.cmd import gestor_cmd
 
 router = APIRouter(tags=["Integrações Gov — Fase 4"])
+_doc_proc = ProcessadorDocumentos()
+_analisador_juris = AnalisadorPecas()
 logger = structlog.get_logger(__name__)
 
 
@@ -118,6 +122,70 @@ async def pesquisar_jurisprudencia(
             }
             for a in resultado.acordaos
         ],
+    }
+
+
+@router.post("/integracoes/jurisprudencia/por-documento")
+async def jurisprudencia_por_documento(
+    ficheiros: list[UploadFile] = File(...),
+    utilizador: Utilizador = Depends(requer_login),
+):
+    """
+    Recebe documentos (a peça do caso), extrai as normas citadas e devolve,
+    para cada uma, os acórdãos relevantes do STJ. O cruzamento automático:
+    em vez de escrever artigo a artigo, larga-se a peça e o SNAJI encontra
+    a jurisprudência aplicável a todas as normas que lá deteta.
+    """
+    # extrair texto de todos os documentos
+    partes = []
+    for f in ficheiros:
+        if not f.filename:
+            continue
+        ext = f.filename.rsplit('.', 1)[-1].lower()
+        if ext not in ('pdf', 'docx', 'txt'):
+            continue
+        conteudo = await f.read()
+        doc = _doc_proc.processar(f.filename, conteudo)
+        if doc.texto.strip():
+            partes.append(doc.texto)
+    texto = "\n\n".join(partes)
+
+    if not texto.strip():
+        return {"normas_encontradas": [], "resultados": [],
+                "aviso": "Não foi possível ler texto dos documentos."}
+
+    # extrair as normas citadas (reutiliza o verificador de peças)
+    analise = _analisador_juris.analisar(texto, "documento", 0)
+    normas = [(c.diploma, c.artigo) for c in analise.citacoes]
+
+    # para cada norma, buscar acórdãos relevantes
+    resultados = []
+    normas_com_acordaos = 0
+    for diploma, artigo in normas:
+        acs = motor_jurisprudencia.acordaos_por_norma(diploma, artigo)
+        if acs:
+            normas_com_acordaos += 1
+        resultados.append({
+            "norma": f"{diploma}-{artigo}",
+            "diploma": diploma,
+            "artigo": artigo,
+            "total_acordaos": len(acs),
+            "acordaos": [
+                {"id": a.id, "tribunal": a.tribunal, "numero_processo": a.numero_processo,
+                 "data": a.data, "sumario": a.sumario, "descritores": a.descritores,
+                 "normas_citadas": a.normas_citadas, "url": a.url}
+                for a in acs
+            ],
+        })
+    # ordenar: normas com acórdãos primeiro
+    resultados.sort(key=lambda x: x["total_acordaos"], reverse=True)
+    logger.info("jurisprudencia.por_documento", user_id=utilizador.id,
+                normas=len(normas), com_acordaos=normas_com_acordaos)
+    return {
+        "normas_encontradas": [f"{d}-{a}" for d, a in normas],
+        "total_normas": len(normas),
+        "normas_com_acordaos": normas_com_acordaos,
+        "resultados": resultados,
     }
 
 
