@@ -122,8 +122,8 @@ def _obter_sessao(caso_id: str, utilizador: Utilizador) -> _Sessao:
 # ── Modelos de pedido/resposta ──────────────────────────────────────────────
 
 class IniciarInstrucaoRequest(BaseModel):
-    relato: str = Field(..., min_length=10, max_length=8000,
-                        description="Descrição livre do caso pelo cidadão")
+    relato: str = Field(..., min_length=10, max_length=200_000,
+                        description="Descrição do caso — texto livre e/ou conteúdo de documentos anexados (até ~80 páginas)")
     dificuldades_economicas: bool = Field(
         default=False,
         description="Se True, emite o alerta de apoio judiciário (Seg. Social)",
