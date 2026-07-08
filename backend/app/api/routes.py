@@ -129,6 +129,47 @@ async def upload_documento(
     return resposta
 
 
+@router.post("/documentos/extrair-texto", tags=["Documentos"])
+async def extrair_texto_documentos(
+    ficheiros: list[UploadFile] = File(...),
+    utilizador: Utilizador = Depends(requer_permissao(Permissao.SUBMETER_CASO)),
+):
+    """
+    Campo universal de entrada: recebe um ou mais documentos (PDF, Word, texto),
+    lê-os por inteiro e devolve o texto extraído — pronto a alimentar a caixa de
+    descrição do caso. Não analisa; apenas transcreve, para o utilizador poder
+    rever e completar antes de submeter.
+    """
+    partes = []
+    avisos_gerais = []
+    total_paginas = 0
+    for f in ficheiros:
+        if not f.filename:
+            continue
+        ext = f.filename.rsplit('.', 1)[-1].lower()
+        if ext not in ('pdf', 'docx', 'txt'):
+            avisos_gerais.append(f"{f.filename}: formato não suportado (ignorado).")
+            continue
+        conteudo = await f.read()
+        doc = _doc_processor.processar(f.filename, conteudo)
+        total_paginas += doc.num_paginas
+        if doc.texto.strip():
+            partes.append(f"===== {f.filename} =====\n{doc.texto.strip()}")
+        else:
+            avisos_gerais.append(f"{f.filename}: sem texto legível (PDF digitalizado sem OCR?).")
+        avisos_gerais.extend(doc.avisos)
+    texto = "\n\n".join(partes)
+    logger.info("documentos.extrair_texto", user_id=utilizador.id,
+                ficheiros=len(ficheiros), paginas=total_paginas, chars=len(texto))
+    return {
+        "texto": texto,
+        "num_ficheiros": len([p for p in partes]),
+        "num_paginas": total_paginas,
+        "num_caracteres": len(texto),
+        "avisos": avisos_gerais,
+    }
+
+
 @router.post("/pecas/analisar", tags=["Documentos"])
 async def analisar_peca(
     ficheiro: UploadFile = File(...),

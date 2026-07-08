@@ -132,6 +132,10 @@ class IniciarInstrucaoRequest(BaseModel):
         default=None, max_length=40,
         description="Distrito/região (opcional; apenas para estatística agregada anónima)",
     )
+    numero_processo: str | None = Field(
+        default=None, max_length=40,
+        description="Número de processo existente (ex.: CITIUS 1234/25.6T8LSB) — o SNAJI adota-o em vez de inventar",
+    )
 
 
 class ResponderRequest(BaseModel):
@@ -229,6 +233,9 @@ async def iniciar_instrucao(
     if request.distrito:
         estado.ficha.respostas_normalizadas["distrito"] = request.distrito.strip().lower()
 
+    if request.numero_processo:
+        estado.ficha.respostas_normalizadas["numero_processo"] = request.numero_processo.strip()
+
     # Funil: regista o INÍCIO (permite medir abandono — sem viés de sobrevivência)
     registar("instrucao_iniciada", {
         "areas": [a.value for a in estado.classificacao.todas_as_areas]
@@ -312,6 +319,7 @@ async def concluir_instrucao(
         "areas": [a.value for a in estado.classificacao.todas_as_areas]
         if estado.classificacao else [],
         "papel": estado.ficha.respostas_normalizadas.get("papel_no_caso", ""),
+        "numero_processo": estado.ficha.respostas_normalizadas.get("numero_processo", ""),
         "ficha": ficha.para_dict(),
         "alertas": [a.model_dump() for a in _alertas_out(estado)],
         "texto_para_analise": ficha.para_texto_rag(),
