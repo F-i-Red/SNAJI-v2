@@ -206,6 +206,8 @@ class CriarProcessoRequest(BaseModel):
     caso_id_analise: Optional[str] = None
     # caso misto: ex.: ["penal", "civil"] — o tipo principal comanda fases/prazos
     areas: Optional[list[str]] = None
+    # número oficial do tribunal, se o processo já existe no Citius (opcional)
+    numero_citius: Optional[str] = None
 
 
 @router.get("/processos", tags=["Processos"])
@@ -218,6 +220,9 @@ async def listar_processos(utilizador: Utilizador = Depends(requer_login)):
                 "numero": p.numero,
                 "tipo": p.tipo.value,
                 "areas": getattr(p, "areas", []) or [p.tipo.value],
+        "numero_interno": p.numero_interno,
+        "numero_citius": p.numero_citius,
+        "tem_numero_oficial": p.tem_numero_oficial,
                 "descricao": p.descricao,
                 "estado": p.estado.value,
                 "partes": [{"nome": pt.nome, "papel": pt.papel} for pt in p.partes],
@@ -243,8 +248,10 @@ async def criar_processo(
         criado_por=utilizador.id, caso_id_analise=dados.caso_id_analise,
         valor_causa=dados.valor_causa, tribunal=dados.tribunal, comarca=dados.comarca,
         areas=dados.areas,
+        numero_citius=dados.numero_citius or "",
     )
-    return {"id": p.id, "numero": p.numero, "estado": p.estado.value}
+    return {"id": p.id, "numero": p.numero, "numero_interno": p.numero_interno,
+            "numero_citius": p.numero_citius, "estado": p.estado.value}
 
 
 @router.get("/processos/{pid}", tags=["Processos"])
@@ -263,6 +270,9 @@ async def ver_processo(pid: str, utilizador: Utilizador = Depends(requer_login))
         "partes": [{"nome": pt.nome, "papel": pt.papel} for pt in p.partes],
         "tribunal": p.tribunal, "comarca": p.comarca, "valor_causa": p.valor_causa,
         "areas": getattr(p, "areas", []) or [p.tipo.value],
+        "numero_interno": p.numero_interno,
+        "numero_citius": p.numero_citius,
+        "tem_numero_oficial": p.tem_numero_oficial,
         "criado_em": p.criado_em.isoformat(), "atualizado_em": p.atualizado_em.isoformat(),
         "prazos": [{"descricao": pr.descricao, "data_limite": pr.data_limite.isoformat(),
                     "urgente": pr.urgente, "cumprido": pr.cumprido} for pr in p.prazos],
@@ -294,6 +304,24 @@ async def retificar_processo(pid: str, utilizador: Utilizador = Depends(requer_p
     try:
         p = repositorio_processos.retificar(pid, str(utilizador.id))
         return {"numero": p.numero, "estado": p.estado.value, "mensagem": "Estado retificado"}
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+
+class AdotarNumeroRequest(BaseModel):
+    numero_citius: str
+
+
+@router.post("/processos/{pid}/numero-citius", tags=["Processos"])
+async def adotar_numero_citius(
+    pid: str, dados: AdotarNumeroRequest,
+    utilizador: Utilizador = Depends(requer_permissao(Permissao.GERIR_PROCESSOS)),
+):
+    """Adota o número oficial do Citius (o interno fica como referência)."""
+    try:
+        p = repositorio_processos.adotar_numero_citius(pid, dados.numero_citius, str(utilizador.id))
+        return {"numero": p.numero, "numero_interno": p.numero_interno,
+                "numero_citius": p.numero_citius, "mensagem": "Número oficial adotado"}
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
