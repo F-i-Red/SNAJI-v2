@@ -41,6 +41,7 @@ const NAV_POR_ROLE = {
   ],
   admin: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
+    { path: '/configuracao', icon: 'ti-settings', label: 'Configuração' },
     { path: '/jurisprudencia', icon: 'ti-gavel', label: 'Jurisprudência' },
     { path: '/casos', icon: 'ti-folder', label: 'Os meus casos' },
     { path: '/observatorio', icon: 'ti-chart-dots', label: 'Observatório' },
