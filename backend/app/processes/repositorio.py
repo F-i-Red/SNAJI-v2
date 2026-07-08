@@ -368,14 +368,21 @@ class RepositorioProcessos:
         if not numero_citius:
             raise ValueError("Indique o número do Citius")
         anterior = p.numero_citius or "(nenhum)"
+        ja_tinha = bool(p.numero_citius)
         p.numero_citius = numero_citius
         p.atualizado_em = datetime.now(timezone.utc)
+        descricao = (
+            f"Número oficial CORRIGIDO: {anterior} → {numero_citius} "
+            f"(referência interna: {p.numero_interno})"
+            if ja_tinha else
+            f"Adotado o número oficial do tribunal: {numero_citius} "
+            f"(referência interna: {p.numero_interno})"
+        )
         p.eventos.append(EventoProcesso(
             id=str(uuid.uuid4()),
             timestamp=p.atualizado_em,
             tipo="numero_citius",
-            descricao=f"Adotado o número oficial do tribunal: {numero_citius} "
-                      f"(referência interna: {p.numero_interno})",
+            descricao=descricao,
             utilizador_id=utilizador_id,
             estado_anterior=anterior,
             estado_novo=numero_citius,
