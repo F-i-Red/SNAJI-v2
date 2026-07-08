@@ -3,6 +3,7 @@ Rotas completas da API SNAJI — v1.
 """
 from __future__ import annotations
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from typing import Optional
 import structlog
@@ -14,6 +15,7 @@ from app.security.rbac import Permissao
 from app.db.utilizadores import Utilizador
 from app.db import casos_repo
 from app.documents.processador import ProcessadorDocumentos
+from app.documents.analisador_pecas import AnalisadorPecas
 from app.processes.repositorio import repositorio_processos, TipoProcesso, Parte
 from app.generation.gerador import GeradorDocumentos, TipoDocumento
 from app.reasoning.pipeline import ReasoningPipeline
@@ -37,6 +39,7 @@ _orchestrator: JuridicalOrchestrator | None = None
 _doc_processor = ProcessadorDocumentos()
 _gerador = GeradorDocumentos()
 _reasoning = ReasoningPipeline(llm_client=None)
+_analisador_pecas = AnalisadorPecas(llm_client=None)
 
 
 def get_orchestrator() -> JuridicalOrchestrator:
@@ -124,6 +127,29 @@ async def upload_documento(
             logger.warning("upload.analise.falhou", error=str(e))
 
     return resposta
+
+
+@router.post("/pecas/analisar", tags=["Documentos"])
+async def analisar_peca(
+    ficheiro: UploadFile = File(...),
+    utilizador: Utilizador = Depends(requer_permissao(Permissao.FERRAMENTAS_PROFISSIONAIS)),
+):
+    """
+    Analisa uma peça processual INTEIRA (advogado/magistrado): verifica todas
+    as citações contra o corpus, deteta estrutura e prazos, e resume. As
+    citações inexistentes são devolvidas separadamente para exibição a vermelho.
+    """
+    if not ficheiro.filename:
+        raise HTTPException(status_code=400, detail="Nome de ficheiro inválido")
+    ext = ficheiro.filename.rsplit('.', 1)[-1].lower()
+    if ext not in ('pdf', 'docx', 'txt'):
+        raise HTTPException(status_code=400, detail="Formato não suportado. Use PDF, DOCX ou TXT.")
+    conteudo = await ficheiro.read()
+    doc = _doc_processor.processar(ficheiro.filename, conteudo)
+    analise = _analisador_pecas.analisar(doc.texto, ficheiro.filename, doc.num_paginas)
+    logger.info("peca.analisada", user_id=utilizador.id,
+                paginas=doc.num_paginas, invalidas=len(analise.citacoes_invalidas))
+    return analise.para_dict()
 
 
 # ── Processos jurídicos ───────────────────────────────────────────────────────
