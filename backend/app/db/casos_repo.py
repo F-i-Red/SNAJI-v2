@@ -59,6 +59,7 @@ def guardar_caso(user_id: str, dados: dict) -> str:
             "criado_em": datetime.now(timezone.utc).isoformat(),
             "areas": dados.get("areas", []),
             "papel": dados.get("papel", ""),
+            "numero_processo": dados.get("numero_processo", ""),
             "relato": relato,
             "ficha": dados.get("ficha", {}),
             "alertas": dados.get("alertas", []),
@@ -81,6 +82,7 @@ def listar_casos(user_id: str) -> list[dict]:
             "criado_em": c["criado_em"],
             "areas": c.get("areas", []),
             "papel": c.get("papel", ""),
+            "numero_processo": c.get("numero_processo", ""),
             "n_alertas": len(c.get("alertas", [])),
             "n_analises": len(c.get("analises_cenarios", [])),
         }
