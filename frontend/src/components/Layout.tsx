@@ -13,6 +13,7 @@ const NAV_POR_ROLE = {
   ],
   advogado: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
+    { path: '/pecas', icon: 'ti-file-search', label: 'Análise de peças' },
     { path: '/jurisprudencia', icon: 'ti-gavel', label: 'Jurisprudência' },
     { path: '/casos', icon: 'ti-folder', label: 'Os meus casos' },
     { path: '/consulta', icon: 'ti-message-question', label: 'Análise de casos' },
@@ -25,6 +26,7 @@ const NAV_POR_ROLE = {
   ],
   magistrado: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
+    { path: '/pecas', icon: 'ti-file-search', label: 'Análise de peças' },
     { path: '/jurisprudencia', icon: 'ti-gavel', label: 'Jurisprudência' },
     { path: '/observatorio', icon: 'ti-chart-dots', label: 'Observatório' },
     { path: '/processos', icon: 'ti-scale', label: 'Processos em carteira' },
