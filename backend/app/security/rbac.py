@@ -60,6 +60,7 @@ _PERMISSOES: dict[Role, frozenset[Permissao]] = {
         Permissao.LER_CASO_PROPRIO,
         Permissao.VER_ANALISE,
         Permissao.VER_AUDITORIA_BASICA,
+        Permissao.VER_METRICAS,   # observatório: tendências úteis à prática
     ]),
 
     Role.ANALISTA: frozenset([
