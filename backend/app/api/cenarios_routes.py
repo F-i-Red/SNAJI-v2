@@ -52,7 +52,7 @@ def get_motor() -> MotorCenarios:
 
 
 class CenariosRequest(BaseModel):
-    texto: str = Field(..., min_length=20, max_length=20000,
+    texto: str = Field(..., min_length=20, max_length=200_000,
                        description="Texto do caso ou texto_para_analise do Instrutor")
     top_k_normas: int = Field(default=8, ge=3, le=15)
     caso_id: str | None = Field(default=None,
