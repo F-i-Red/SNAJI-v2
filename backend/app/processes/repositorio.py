@@ -86,7 +86,7 @@ class Prazo:
 @dataclass
 class Processo:
     id: str
-    numero: str
+    numero_interno: str                      # nasce sempre (SNAJI-ANO/NNNNN-T)
     tipo: TipoProcesso
     descricao: str
     estado: EstadoProcesso
@@ -101,9 +101,19 @@ class Processo:
     valor_causa: Optional[float] = None
     tribunal: str = "Tribunal Judicial"
     comarca: str = "Lisboa"
+    numero_citius: str = ""                  # adotado quando entra no tribunal (Citius)
     # V5.3: caso misto — ex.: ["penal", "civil"]; o tipo principal comanda
     # as fases e prazos; as áreas registam a natureza completa do litígio
     areas: list[str] = field(default_factory=list)
+
+    @property
+    def numero(self) -> str:
+        """O número a mostrar: o do Citius quando adotado, senão o interno."""
+        return self.numero_citius or self.numero_interno
+
+    @property
+    def tem_numero_oficial(self) -> bool:
+        return bool(self.numero_citius)
 
     def fase_index(self) -> int:
         try:
@@ -121,12 +131,15 @@ class Processo:
         return ORDEM_FASES[idx + 1]
 
 
-def _gerar_numero(tipo: TipoProcesso) -> str:
-    """Gera número de processo no formato português: ANO/NÚMERO-TIPO"""
+def _gerar_numero_interno(tipo: TipoProcesso) -> str:
+    """Número INTERNO do SNAJI — nasce com todo o processo criado no sistema.
+    O prefixo 'SNAJI-' garante que nunca se confunde com um número oficial do
+    tribunal. Quando o processo entrar no Citius, adota-se o número real e este
+    fica como referência interna (rastreabilidade)."""
     ano = datetime.now().year
-    num = str(uuid.uuid4().int)[:4]
+    num = str(uuid.uuid4().int)[:5]
     sigla = {"laboral":"L","penal":"P","civil":"C","administrativo":"A","familia":"F","consumo":"C","dados_pessoais":"D"}.get(tipo.value, "X")
-    return f"{ano}/{num}-{sigla}"
+    return f"SNAJI-{ano}/{num}-{sigla}"
 
 
 class RepositorioProcessos:
@@ -195,7 +208,7 @@ class RepositorioProcessos:
             agora_menos = agora - timedelta(days=d["dias_atras"])
             p = Processo(
                 id=pid,
-                numero=_gerar_numero(d["tipo"]),
+                numero_interno=_gerar_numero_interno(d["tipo"]),
                 tipo=d["tipo"],
                 descricao=d["descricao"],
                 estado=d["estado"],
@@ -233,12 +246,14 @@ class RepositorioProcessos:
         tribunal: str = "Tribunal Judicial",
         comarca: str = "Lisboa",
         areas: Optional[list[str]] = None,
+        numero_citius: str = "",
     ) -> Processo:
         pid = str(uuid.uuid4())
         agora = datetime.now(timezone.utc)
         p = Processo(
             id=pid,
-            numero=_gerar_numero(tipo),
+            numero_interno=_gerar_numero_interno(tipo),
+            numero_citius=(numero_citius or "").strip(),
             tipo=tipo,
             descricao=descricao,
             estado=EstadoProcesso.APRESENTACAO,
@@ -340,6 +355,33 @@ class RepositorioProcessos:
             estado_novo=p.estado.value,
         ))
         logger.info("processo.retificado", id=p.id, de=anterior.value, para=p.estado.value)
+        return p
+
+    def adotar_numero_citius(self, processo_id: str, numero_citius: str,
+                             utilizador_id: str) -> "Processo":
+        """Adota o número oficial do Citius. O número interno fica no histórico
+        (rastreabilidade) — nada se apaga; regista-se a adoção como evento."""
+        p = self.por_id(processo_id)
+        if p is None:
+            raise ValueError("Processo não encontrado")
+        numero_citius = (numero_citius or "").strip()
+        if not numero_citius:
+            raise ValueError("Indique o número do Citius")
+        anterior = p.numero_citius or "(nenhum)"
+        p.numero_citius = numero_citius
+        p.atualizado_em = datetime.now(timezone.utc)
+        p.eventos.append(EventoProcesso(
+            id=str(uuid.uuid4()),
+            timestamp=p.atualizado_em,
+            tipo="numero_citius",
+            descricao=f"Adotado o número oficial do tribunal: {numero_citius} "
+                      f"(referência interna: {p.numero_interno})",
+            utilizador_id=utilizador_id,
+            estado_anterior=anterior,
+            estado_novo=numero_citius,
+        ))
+        logger.info("processo.numero_citius", id=p.id,
+                    interno=p.numero_interno, citius=numero_citius)
         return p
 
 
