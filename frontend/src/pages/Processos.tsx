@@ -12,7 +12,7 @@ const CORES: Record<string, string> = {
 }
 
 interface Processo {
-  id: string; numero: string; tipo: string; descricao: string
+  id: string; numero: string; numero_interno?: string; numero_citius?: string; tem_numero_oficial?: boolean; tipo: string; descricao: string
   estado: string; estado_index: number; proximo_estado: string | null
   partes: { nome: string; papel: string }[]
   tribunal: string; comarca: string; valor_causa: number | null
@@ -36,6 +36,7 @@ export default function PaginaProcessos() {
   const [mostrarFormNovo, setMostrarFormNovo] = useState(false)
   const [formNovo, setFormNovo] = useState({ descricao: '', nome_autor: '', nome_reu: '', comarca: 'Lisboa' })
   const [areasSel, setAreasSel] = useState<string[]>(['civil'])
+  const [numeroCitius, setNumeroCitius] = useState('')
   const [criando, setCriando] = useState(false)
 
   const carregar = () => {
@@ -65,6 +66,15 @@ export default function PaginaProcessos() {
     } catch (e) { setErro(tratarErroAPI(e)) }
   }
 
+  const adotarNumero = async (pid: string) => {
+    const num = window.prompt('Número oficial do processo no tribunal (Citius):\nex.: 1234/25.6T8LSB')
+    if (!num || !num.trim()) return
+    try {
+      await api.post(`/processos/${pid}/numero-citius`, { numero_citius: num.trim() })
+      await verDetalhe(pid); carregar()
+    } catch (e) { setErro(tratarErroAPI(e)) }
+  }
+
   const retificar = async (pid: string) => {
     try {
       await api.post(`/processos/${pid}/retificar`, new FormData())
@@ -80,6 +90,7 @@ export default function PaginaProcessos() {
       await api.post('/processos', {
         ...formNovo,
         areas: areasSel,
+        numero_citius: numeroCitius.trim() || null,
         tipo: areasSel.includes('penal') ? 'penal' : (areasSel[0] ?? 'civil'),
       })
       setMostrarFormNovo(false)
@@ -186,9 +197,23 @@ export default function PaginaProcessos() {
         {seleccionado && (
           <div style={{ background: 'var(--color-background-primary)', border: '0.5px solid var(--color-border-tertiary)', borderRadius: 'var(--border-radius-lg)', overflow: 'hidden' }}>
             <div style={{ padding: '10px 14px', borderBottom: '0.5px solid var(--color-border-tertiary)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-text-secondary)', flex: 1 }}>
-                {seleccionado.numero}
+              <span style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-text-secondary)', flex: 1, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{seleccionado.numero}</span>
+                {seleccionado.tem_numero_oficial
+                  ? <span style={{ fontSize: 10, padding: '1px 7px', borderRadius: 10, background: 'var(--color-background-success)', color: 'var(--color-text-success)', textTransform: 'none', letterSpacing: 0 }}>número oficial (Citius)</span>
+                  : <span style={{ fontSize: 10, padding: '1px 7px', borderRadius: 10, background: 'var(--color-background-secondary)', color: 'var(--color-text-tertiary)', textTransform: 'none', letterSpacing: 0 }}>número interno SNAJI</span>}
+                {seleccionado.tem_numero_oficial && seleccionado.numero_interno &&
+                  <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)', textTransform: 'none', letterSpacing: 0 }}>(ref. {seleccionado.numero_interno})</span>}
               </span>
+              {podeGerir && !seleccionado.tem_numero_oficial && (
+                <button
+                  onClick={() => adotarNumero(seleccionado.id)}
+                  title="Se o processo já existe no Citius, indique o número oficial"
+                  style={{ padding: '5px 10px', background: 'transparent', border: '0.5px solid #0a2342', borderRadius: 'var(--border-radius-md)', fontSize: 11, color: '#0a2342', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
+                >
+                  + Nº do tribunal
+                </button>
+              )}
               <button
                 onClick={() => {
                   const doc: DocumentoImprimivel = {
