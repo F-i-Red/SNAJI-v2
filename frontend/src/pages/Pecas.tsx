@@ -7,7 +7,7 @@
  * resume-a. As citações inexistentes surgem A VERMELHO.
  */
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { api, tratarErroAPI } from '../services/api'
 import { imprimirDocumento, descarregarTxt, DocumentoImprimivel } from '../utils/imprimir'
 
@@ -33,11 +33,16 @@ const NOME_SECCAO: Record<string, string> = {
 
 export default function PaginaPecas() {
   const [analise, setAnalise] = useState<Analise | null>(null)
+  const [contactos, setContactos] = useState<{ email_suporte: string; telefone_suporte: string; mensagem_casos_extensos: string } | null>(null)
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const [arrastar, setArrastar] = useState(false)
   const [nomeFicheiro, setNomeFicheiro] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    api.get('/config').then(r => setContactos(r.data)).catch(() => {})
+  }, [])
 
   const enviar = async (file: File) => {
     setCarregando(true); setErro(null); setAnalise(null); setNomeFicheiro(file.name)
@@ -131,6 +136,20 @@ export default function PaginaPecas() {
 
       {erro && <div style={{ ...cartao, borderLeft: '3px solid var(--color-text-danger)', fontSize: 13 }}>{erro}</div>}
 
+      {analise && analise.num_caracteres > 150000 && (
+        <div style={{ background: 'var(--color-background-primary)', border: '0.5px solid var(--color-border-tertiary)', borderLeft: '3px solid #c4960a', borderRadius: 'var(--border-radius-lg)', padding: '14px 16px', fontSize: 13, lineHeight: 1.6 }}>
+          <strong>Documento muito extenso.</strong>{' '}
+          {contactos?.mensagem_casos_extensos ?? 'Para processos muito extensos, contacte o SNAJI.'}
+          {(contactos?.email_suporte || contactos?.telefone_suporte) && (
+            <div style={{ marginTop: 6, color: 'var(--color-text-secondary)' }}>
+              Contacto:{' '}
+              {contactos?.email_suporte && <span>{contactos.email_suporte}</span>}
+              {contactos?.email_suporte && contactos?.telefone_suporte && ' · '}
+              {contactos?.telefone_suporte && <span>{contactos.telefone_suporte}</span>}
+            </div>
+          )}
+        </div>
+      )}
       {analise && (
         <>
           {/* Cabeçalho da análise + imprimir */}

@@ -79,6 +79,15 @@ export default function PaginaProcessos() {
     } catch (e) { setErro(tratarErroAPI(e)) }
   }
 
+  const editarDados = async (pid: string) => {
+    const nova = window.prompt('Corrigir a descrição do processo:\n(o valor anterior fica registado no histórico)', seleccionado?.descricao ?? '')
+    if (nova === null || !nova.trim() || nova.trim() === seleccionado?.descricao) return
+    try {
+      await api.post(`/processos/${pid}/editar`, { descricao: nova.trim() })
+      await verDetalhe(pid); carregar()
+    } catch (e) { setErro(tratarErroAPI(e)) }
+  }
+
   const retificar = async (pid: string) => {
     try {
       await api.post(`/processos/${pid}/retificar`, new FormData())
@@ -238,6 +247,13 @@ export default function PaginaProcessos() {
                 🖨 Imprimir
               </button>
               {podeGerir && (<>
+              <button
+                onClick={() => editarDados(seleccionado.id)}
+                title="Corrigir a descrição do processo (fica registado)"
+                style={{ padding: '7px 12px', background: 'transparent', border: '0.5px solid var(--color-border-secondary)', borderRadius: 'var(--border-radius-md)', fontSize: 12, color: 'var(--color-text-secondary)', cursor: 'pointer', fontFamily: 'inherit' }}
+              >
+                ✎ Corrigir dados
+              </button>
               <button
                 onClick={() => {
                   if (!window.confirm('Anular o último avanço de estado deste processo?\n(Fica registado como retificação na linha do tempo.)')) return

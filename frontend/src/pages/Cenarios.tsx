@@ -91,11 +91,29 @@ export default function PaginaCenarios() {
   const navigate = useNavigate()
 
   const [texto, setTexto] = useState(location.state?.texto ?? '')
+  const [arrastar, setArrastar] = useState(false)
+  const [aExtrair, setAExtrair] = useState(false)
+  const [docsAnexados, setDocsAnexados] = useState<string[]>([])
   const [resultado, setResultado] = useState<CenariosAPI | null>(null)
   const [registoTecnico, setRegistoTecnico] = useState(ehProfissional)
   const [carregando, setCarregando] = useState(false)
   const [mostrarPercurso, setMostrarPercurso] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
+
+  const extrairDocs = async (files: FileList) => {
+    if (!files.length) return
+    setAExtrair(true); setErro(null)
+    try {
+      const nomes = Array.from(files).map(f => f.name)
+      const fd = new FormData()
+      Array.from(files).forEach(f => fd.append('ficheiros', f))
+      const r = await api.post<{ texto: string }>('/documentos/extrair-texto', fd,
+        { headers: { 'Content-Type': 'multipart/form-data' } })
+      setTexto(prev => (prev.trim() ? prev.trim() + '\n\n' : '') + r.data.texto)
+      setDocsAnexados(prev => [...prev, ...nomes])
+    } catch (e) { setErro(tratarErroAPI(e)) }
+    finally { setAExtrair(false) }
+  }
 
   const gerar = async (t?: string) => {
     const corpo = (t ?? texto).trim()
@@ -290,6 +308,28 @@ export default function PaginaCenarios() {
             fontSize: 13.5, fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.6,
           }}
         />
+        <div
+          onDragOver={e => { e.preventDefault(); setArrastar(true) }}
+          onDragLeave={() => setArrastar(false)}
+          onDrop={e => { e.preventDefault(); setArrastar(false); if (e.dataTransfer.files.length) extrairDocs(e.dataTransfer.files) }}
+          onClick={() => document.getElementById('docs-cenarios')?.click()}
+          style={{
+            border: `2px dashed ${arrastar ? '#0a2342' : 'var(--color-border-tertiary)'}`,
+            borderRadius: 'var(--border-radius-md)', padding: '12px', textAlign: 'center', cursor: 'pointer',
+            background: arrastar ? 'var(--color-background-info)' : 'transparent',
+            fontSize: 12.5, color: 'var(--color-text-secondary)',
+          }}
+        >
+          {aExtrair ? 'A ler os documentos…'
+            : '📎 Arraste documentos do caso (PDF, Word, texto) — pode largar vários. O SNAJI lê-os e junta ao texto.'}
+          <input id="docs-cenarios" type="file" accept=".pdf,.docx,.txt" multiple style={{ display: 'none' }}
+            onChange={e => e.target.files && extrairDocs(e.target.files)} />
+        </div>
+        {docsAnexados.length > 0 && (
+          <div style={{ fontSize: 11.5, color: 'var(--color-text-tertiary)' }}>
+            {docsAnexados.length} documento(s) anexado(s): {docsAnexados.join(', ')}
+          </div>
+        )}
         <div>
           <button style={botaoPrimario} disabled={carregando || texto.trim().length < 20}
                   onClick={() => gerar()}>
