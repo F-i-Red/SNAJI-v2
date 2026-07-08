@@ -87,6 +87,10 @@ export default function PaginaInstrutor() {
   const [relato, setRelato] = useState('')
   const [dificuldades, setDificuldades] = useState(false)
   const [distrito, setDistrito] = useState('')
+  const [numeroProcesso, setNumeroProcesso] = useState('')
+  const [aExtrair, setAExtrair] = useState(false)
+  const [arrastar, setArrastar] = useState(false)
+  const [docsInfo, setDocsInfo] = useState<string | null>(null)
   const [estado, setEstado] = useState<EstadoAPI | null>(null)
   const [ficha, setFicha] = useState<FichaAPI | null>(null)
   const [analise, setAnalise] = useState<AnalysisResponse | null>(null)
@@ -129,6 +133,22 @@ export default function PaginaInstrutor() {
 
   // ── Chamadas à API ─────────────────────────────────────────────────────
 
+  const extrairDocs = async (files: FileList) => {
+    if (!files.length) return
+    setAExtrair(true); setErro(null)
+    try {
+      const fd = new FormData()
+      Array.from(files).forEach(f => fd.append('ficheiros', f))
+      const r = await api.post<{ texto: string; num_ficheiros: number; num_paginas: number; avisos: string[] }>(
+        '/documentos/extrair-texto', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+      // acrescenta o texto extraído ao relato existente
+      setRelato(prev => (prev.trim() ? prev.trim() + '\n\n' : '') + r.data.texto)
+      setDocsInfo(`${r.data.num_ficheiros} documento(s), ${r.data.num_paginas} página(s) lidas.` +
+        (r.data.avisos.length ? ' ⚠ ' + r.data.avisos.join(' ') : ''))
+    } catch (e) { setErro(tratarErroAPI(e)) }
+    finally { setAExtrair(false) }
+  }
+
   const iniciar = async () => {
     if (relato.trim().length < 10 || carregando) return
     setCarregando(true); setErro(null)
@@ -136,6 +156,7 @@ export default function PaginaInstrutor() {
       const res = await api.post<EstadoAPI>('/instrutor/iniciar', {
         relato, dificuldades_economicas: dificuldades,
         distrito: distrito || null,
+        numero_processo: numeroProcesso.trim() || null,
       })
       setEstado(res.data)
       setFase('perguntas')
@@ -184,7 +205,7 @@ export default function PaginaInstrutor() {
 
   const recomecar = () => {
     setFase('intro'); setEstado(null); setFicha(null); setAnalise(null)
-    setRelato(''); setDificuldades(false); setErro(null)
+    setRelato(''); setDificuldades(false); setErro(null); setNumeroProcesso(''); setDocsInfo(null)
     setRespostaTexto(''); setModoOutro(false)
   }
 
@@ -400,6 +421,37 @@ export default function PaginaInstrutor() {
               lineHeight: 1.6,
             }}
           />
+
+          {/* Campo universal: arrastar documentos do caso */}
+          <div
+            onDragOver={e => { e.preventDefault(); setArrastar(true) }}
+            onDragLeave={() => setArrastar(false)}
+            onDrop={e => { e.preventDefault(); setArrastar(false); if (e.dataTransfer.files.length) extrairDocs(e.dataTransfer.files) }}
+            onClick={() => document.getElementById('docs-instrutor')?.click()}
+            style={{
+              border: `2px dashed ${arrastar ? '#0a2342' : 'var(--color-border-tertiary)'}`,
+              borderRadius: 'var(--border-radius-md)', padding: '14px', textAlign: 'center',
+              cursor: 'pointer', background: arrastar ? 'var(--color-background-info)' : 'transparent',
+              fontSize: 12.5, color: 'var(--color-text-secondary)',
+            }}
+          >
+            {aExtrair ? 'A ler os documentos…'
+              : '📎 Tem documentos do caso? Arraste-os aqui (PDF, Word, texto) — o SNAJI lê-os e junta ao texto acima.'}
+            <input id="docs-instrutor" type="file" accept=".pdf,.docx,.txt" multiple style={{ display: 'none' }}
+              onChange={e => e.target.files && extrairDocs(e.target.files)} />
+          </div>
+          {docsInfo && <div style={{ fontSize: 11.5, color: 'var(--color-text-tertiary)' }}>{docsInfo}</div>}
+
+          {/* Número de processo existente (opcional) */}
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--color-text-secondary)', flexWrap: 'wrap' }}>
+            Já tem número de processo? (opcional)
+            <input
+              type="text" value={numeroProcesso}
+              onChange={e => setNumeroProcesso(e.target.value)}
+              placeholder="ex.: 1234/25.6T8LSB"
+              style={{ border: '0.5px solid var(--color-border-secondary)', borderRadius: 'var(--border-radius-md)', padding: '6px 10px', fontSize: 13, fontFamily: 'inherit', flex: 1, minWidth: 160 }}
+            />
+          </label>
           <label style={{
             display: 'flex', alignItems: 'center', gap: 8,
             fontSize: 13, color: 'var(--color-text-secondary)', cursor: 'pointer',

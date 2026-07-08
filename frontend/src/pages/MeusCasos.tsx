@@ -19,6 +19,7 @@ interface CasoResumo {
   criado_em: string
   areas: string[]
   papel: string
+  numero_processo?: string
   n_alertas: number
   n_analises: number
 }
@@ -263,7 +264,7 @@ export default function PaginaMeusCasos() {
               {c.titulo}
             </div>
             <div style={{ fontSize: 11.5, color: 'var(--color-text-tertiary)', marginTop: 3 }}>
-              {new Date(c.criado_em).toLocaleDateString('pt-PT', { day: 'numeric', month: 'long', year: 'numeric' })}
+              {c.numero_processo ? `Proc. ${c.numero_processo} · ` : ''}{new Date(c.criado_em).toLocaleDateString('pt-PT', { day: 'numeric', month: 'long', year: 'numeric' })}
               {' · '}{c.n_analises} análise{c.n_analises === 1 ? '' : 's'}
               {c.n_alertas > 0 && <span style={{ color: '#8a1d1d' }}>{' · '}{c.n_alertas} alerta{c.n_alertas === 1 ? '' : 's'}</span>}
             </div>

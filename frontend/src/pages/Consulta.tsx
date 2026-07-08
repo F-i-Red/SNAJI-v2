@@ -24,6 +24,8 @@ const PASSOS_PIPELINE = ['Recepção', 'RAG', 'Classificação', 'Análise', 'Co
 export default function PaginaConsulta() {
   const { utilizador } = useAuthStore()
   const [texto, setTexto] = useState('')
+  const [aExtrair, setAExtrair] = useState(false)
+  const [arrastar, setArrastar] = useState(false)
   const [carregando, setCarregando] = useState(false)
   const [passoActual, setPassoActual] = useState(-1)
   const [resultado, setResultado] = useState<AnalysisResponse | null>(null)
@@ -31,6 +33,19 @@ export default function PaginaConsulta() {
   const resultadoRef = useRef<HTMLDivElement>(null)
 
   const avancarPasso = (p: number) => setPassoActual(p)
+
+  const extrairDocs = async (files: FileList) => {
+    if (!files.length) return
+    setAExtrair(true); setErro(null)
+    try {
+      const fd = new FormData()
+      Array.from(files).forEach(f => fd.append('ficheiros', f))
+      const r = await api.post<{ texto: string }>('/documentos/extrair-texto', fd,
+        { headers: { 'Content-Type': 'multipart/form-data' } })
+      setTexto(prev => (prev.trim() ? prev.trim() + '\n\n' : '') + r.data.texto)
+    } catch (e) { setErro(tratarErroAPI(e)) }
+    finally { setAExtrair(false) }
+  }
 
   const analisar = async () => {
     if (!texto.trim() || carregando) return
@@ -110,6 +125,15 @@ export default function PaginaConsulta() {
           padding: '8px 14px',
           display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
         }}>
+          <button
+            onClick={() => document.getElementById('docs-consulta')?.click()}
+            title="Anexar documentos (PDF, Word, texto) — o SNAJI lê-os e junta ao texto"
+            style={{ padding: '5px 10px', background: 'transparent', border: '0.5px solid var(--color-border-secondary)', borderRadius: 'var(--border-radius-md)', fontSize: 12, color: 'var(--color-text-secondary)', cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            {aExtrair ? 'A ler…' : '📎 Anexar documentos'}
+          </button>
+          <input id="docs-consulta" type="file" accept=".pdf,.docx,.txt" multiple style={{ display: 'none' }}
+            onChange={e => e.target.files && extrairDocs(e.target.files)} />
           <button
             onClick={analisar}
             disabled={carregando || !texto.trim()}
