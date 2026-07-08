@@ -74,6 +74,25 @@ export default function PaginaAnalista() {
   const [q, setQ] = useState<Qualidade | null>(null)
   const [g, setG] = useState<Governacao | null>(null)
   const [erro, setErro] = useState<string | null>(null)
+
+  const BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:8000/api/v1'
+  const abrirRelatorio = async () => {
+    try {
+      const tok = sessionStorage.getItem('snaji_token')
+      const r = await fetch(`${BASE}/analista/relatorio.html?dias=${dias}`, { headers: { Authorization: `Bearer ${tok}` } })
+      const html = await r.text()
+      const w = window.open('', '_blank'); if (w) { w.document.write(html); w.document.close() }
+    } catch { setErro('Não foi possível gerar o relatório.') }
+  }
+  const baixarCSV = async () => {
+    try {
+      const tok = sessionStorage.getItem('snaji_token')
+      const r = await fetch(`${BASE}/analista/relatorio.csv?dias=${dias}`, { headers: { Authorization: `Bearer ${tok}` } })
+      const blob = await r.blob(); const url = URL.createObjectURL(blob)
+      const link = document.createElement('a'); link.href = url; link.download = 'observatorio-snaji.csv'; link.click()
+      URL.revokeObjectURL(url)
+    } catch { setErro('Não foi possível descarregar o CSV.') }
+  }
   const [carregando, setCarregando] = useState(false)
 
   const carregar = async (d: number) => {
@@ -164,6 +183,16 @@ export default function PaginaAnalista() {
         }}>
           Observatório da conflitualidade
         </h1>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+          <button onClick={abrirRelatorio} title="Relatório consolidado — imprimir ou guardar PDF"
+            style={{ padding: '7px 12px', background: 'transparent', border: '0.5px solid #0a2342', borderRadius: 'var(--border-radius-md)', fontSize: 12, color: '#0a2342', cursor: 'pointer', fontFamily: 'inherit' }}>
+            🖨 Relatório
+          </button>
+          <button onClick={baixarCSV} title="Dados em folha de cálculo (CSV)"
+            style={{ padding: '7px 12px', background: 'transparent', border: '0.5px solid var(--color-border-secondary)', borderRadius: 'var(--border-radius-md)', fontSize: 12, color: 'var(--color-text-secondary)', cursor: 'pointer', fontFamily: 'inherit' }}>
+            ⬇ CSV
+          </button>
+        </div>
         <small style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>
           Indicadores agregados e anonimizados (k-anonimato: contagens &lt;3 mascaradas)
         </small>
