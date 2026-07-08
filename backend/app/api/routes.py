@@ -14,6 +14,7 @@ from app.security.dependencias import requer_login, requer_permissao
 from app.security.rbac import Permissao
 from app.db.utilizadores import Utilizador
 from app.db import casos_repo
+from app.db import config_repo
 from app.documents.processador import ProcessadorDocumentos
 from app.documents.analisador_pecas import AnalisadorPecas
 from app.processes.repositorio import repositorio_processos, TipoProcesso, Parte
@@ -193,6 +194,30 @@ async def analisar_peca(
     return analise.para_dict()
 
 
+# ── Configuração do sistema (contactos institucionais) ────────────────────────
+
+class ConfigRequest(BaseModel):
+    email_suporte: Optional[str] = None
+    telefone_suporte: Optional[str] = None
+    horario: Optional[str] = None
+    mensagem_casos_extensos: Optional[str] = None
+
+
+@router.get("/config", tags=["Configuração"])
+async def obter_config(utilizador: Utilizador = Depends(requer_login)):
+    """Contactos institucionais (qualquer utilizador autenticado pode ler)."""
+    return config_repo.obter_config()
+
+
+@router.put("/config", tags=["Configuração"])
+async def atualizar_config(
+    dados: ConfigRequest,
+    utilizador: Utilizador = Depends(requer_permissao(Permissao.GERIR_UTILIZADORES)),
+):
+    """Atualiza os contactos institucionais (só o administrador técnico)."""
+    return config_repo.guardar_config(dados.model_dump(exclude_none=True), str(utilizador.id))
+
+
 # ── Processos jurídicos ───────────────────────────────────────────────────────
 
 class CriarProcessoRequest(BaseModel):
@@ -322,6 +347,25 @@ async def adotar_numero_citius(
         p = repositorio_processos.adotar_numero_citius(pid, dados.numero_citius, str(utilizador.id))
         return {"numero": p.numero, "numero_interno": p.numero_interno,
                 "numero_citius": p.numero_citius, "mensagem": "Número oficial adotado"}
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+
+class EditarProcessoRequest(BaseModel):
+    descricao: Optional[str] = None
+    comarca: Optional[str] = None
+
+
+@router.post("/processos/{pid}/editar", tags=["Processos"])
+async def editar_processo(
+    pid: str, dados: EditarProcessoRequest,
+    utilizador: Utilizador = Depends(requer_permissao(Permissao.GERIR_PROCESSOS)),
+):
+    """Corrige dados do processo (descrição, comarca), com registo auditável."""
+    try:
+        p = repositorio_processos.editar_dados(pid, str(utilizador.id),
+                                               descricao=dados.descricao, comarca=dados.comarca)
+        return {"id": p.id, "descricao": p.descricao, "comarca": p.comarca, "mensagem": "Dados corrigidos"}
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
