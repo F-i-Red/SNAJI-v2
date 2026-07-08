@@ -41,6 +41,9 @@ const EXEMPLOS = [
 
 export default function PaginaJurisprudencia() {
   const [query, setQuery] = useState('')
+  const [arrastar, setArrastar] = useState(false)
+  const [porDoc, setPorDoc] = useState<any | null>(null)
+  const [aLerDoc, setALerDoc] = useState(false)
   const [diploma, setDiploma] = useState('CT')
   const [artigo, setArtigo] = useState('')
   const [acordaos, setAcordaos] = useState<Acordao[] | null>(null)
@@ -74,6 +77,19 @@ export default function PaginaJurisprudencia() {
       setContexto(`Acórdãos que interpretam o art. ${a}.º do ${NOME_DIPLOMA[d] ?? d}`)
     } catch (e) { setErro(tratarErroAPI(e)) }
     finally { setCarregando(false) }
+  }
+
+  const cruzarDocumentos = async (files: FileList) => {
+    if (!files.length) return
+    setALerDoc(true); setErro(null); setPorDoc(null)
+    try {
+      const fd = new FormData()
+      Array.from(files).forEach(f => fd.append('ficheiros', f))
+      const r = await api.post('/integracoes/jurisprudencia/por-documento', fd,
+        { headers: { 'Content-Type': 'multipart/form-data' } })
+      setPorDoc(r.data)
+    } catch (e) { setErro(tratarErroAPI(e)) }
+    finally { setALerDoc(false) }
   }
 
   const clicarNorma = (ref: string) => {
@@ -139,6 +155,52 @@ export default function PaginaJurisprudencia() {
           ))}
         </div>
       </div>
+
+      {/* Cruzamento por DOCUMENTO — largar a peça e obter jurisprudência aplicável */}
+      <div
+        onDragOver={e => { e.preventDefault(); setArrastar(true) }}
+        onDragLeave={() => setArrastar(false)}
+        onDrop={e => { e.preventDefault(); setArrastar(false); if (e.dataTransfer.files.length) cruzarDocumentos(e.dataTransfer.files) }}
+        onClick={() => document.getElementById('docs-juris')?.click()}
+        style={{
+          border: `2px dashed ${arrastar ? '#0a2342' : 'var(--color-border-secondary)'}`,
+          borderRadius: 'var(--border-radius-lg)', padding: '18px', textAlign: 'center', cursor: 'pointer',
+          background: arrastar ? 'var(--color-background-info)' : 'transparent', fontSize: 13, color: 'var(--color-text-secondary)',
+        }}
+      >
+        {aLerDoc ? 'A ler os documentos e a cruzar as normas…'
+          : '📎 Largue aqui uma peça (PDF, Word, texto) — o SNAJI extrai as normas citadas e mostra os acórdãos do STJ relevantes para cada uma.'}
+        <input id="docs-juris" type="file" accept=".pdf,.docx,.txt" multiple style={{ display: 'none' }}
+          onChange={e => e.target.files && cruzarDocumentos(e.target.files)} />
+      </div>
+
+      {/* Resultados do cruzamento por documento */}
+      {porDoc && (
+        <div style={cartao}>
+          <div style={{ fontSize: 13, marginBottom: 10 }}>
+            <strong>{porDoc.total_normas}</strong> norma(s) detetada(s) no documento;{' '}
+            <strong>{porDoc.normas_com_acordaos}</strong> com acórdãos do STJ.
+          </div>
+          {porDoc.resultados.filter((r: any) => r.total_acordaos > 0).map((r: any) => (
+            <div key={r.norma} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '0.5px solid var(--color-border-tertiary)' }}>
+              <div style={{ fontWeight: 600, fontSize: 13, color: '#0a2342', marginBottom: 4 }}>
+                {r.diploma} art. {r.artigo} — {r.total_acordaos} acórdão(s)
+              </div>
+              {r.acordaos.map((a: any) => (
+                <div key={a.id} style={{ fontSize: 12.5, color: 'var(--color-text-secondary)', marginBottom: 4, paddingLeft: 8 }}>
+                  <span style={{ fontFamily: 'monospace' }}>{a.numero_processo}</span> · {a.data}
+                  {a.url && <> · <a href={a.url} target="_blank" rel="noreferrer" style={{ color: '#0a2342' }}>fonte ↗</a></>}
+                </div>
+              ))}
+            </div>
+          ))}
+          {porDoc.normas_com_acordaos === 0 && (
+            <div style={{ fontSize: 12.5, color: 'var(--color-text-tertiary)' }}>
+              As normas detetadas não têm acórdãos uniformizadores na base atual. Normas encontradas: {porDoc.normas_encontradas.join(', ') || 'nenhuma'}.
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Cruzamento por norma */}
       <div style={cartao}>
