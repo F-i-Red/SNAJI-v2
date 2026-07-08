@@ -66,9 +66,13 @@ export default function PaginaProcessos() {
     } catch (e) { setErro(tratarErroAPI(e)) }
   }
 
-  const adotarNumero = async (pid: string) => {
-    const num = window.prompt('Número oficial do processo no tribunal (Citius):\nex.: 1234/25.6T8LSB')
-    if (!num || !num.trim()) return
+  const adotarNumero = async (pid: string, jaTem?: boolean) => {
+    const atual = jaTem ? (seleccionado?.numero_citius ?? '') : ''
+    const aviso = jaTem
+      ? 'Corrigir o número oficial (Citius).\nO anterior fica registado no histórico.'
+      : 'Número oficial do processo no tribunal (Citius):\nex.: 1234/25.6T8LSB'
+    const num = window.prompt(aviso, atual)
+    if (!num || !num.trim() || num.trim() === atual) return
     try {
       await api.post(`/processos/${pid}/numero-citius`, { numero_citius: num.trim() })
       await verDetalhe(pid); carregar()
@@ -205,13 +209,13 @@ export default function PaginaProcessos() {
                 {seleccionado.tem_numero_oficial && seleccionado.numero_interno &&
                   <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)', textTransform: 'none', letterSpacing: 0 }}>(ref. {seleccionado.numero_interno})</span>}
               </span>
-              {podeGerir && !seleccionado.tem_numero_oficial && (
+              {podeGerir && (
                 <button
-                  onClick={() => adotarNumero(seleccionado.id)}
-                  title="Se o processo já existe no Citius, indique o número oficial"
+                  onClick={() => adotarNumero(seleccionado.id, seleccionado.tem_numero_oficial)}
+                  title={seleccionado.tem_numero_oficial ? 'Corrigir o número oficial (fica registado)' : 'Se o processo já existe no Citius, indique o número oficial'}
                   style={{ padding: '5px 10px', background: 'transparent', border: '0.5px solid #0a2342', borderRadius: 'var(--border-radius-md)', fontSize: 11, color: '#0a2342', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}
                 >
-                  + Nº do tribunal
+                  {seleccionado.tem_numero_oficial ? '✎ Corrigir nº' : '+ Nº do tribunal'}
                 </button>
               )}
               <button
