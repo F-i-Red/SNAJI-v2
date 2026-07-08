@@ -13,9 +13,10 @@ const NAV_POR_ROLE = {
   advogado: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
     { path: '/pecas', icon: 'ti-file-search', label: 'Análise de peças' },
+    { path: '/observatorio', icon: 'ti-chart-dots', label: 'Observatório' },
     { path: '/jurisprudencia', icon: 'ti-gavel', label: 'Jurisprudência' },
     { path: '/casos', icon: 'ti-folder', label: 'Os meus casos' },
-    { path: '/consulta', icon: 'ti-message-question', label: 'Análise de casos' },
+    { path: '/consulta', icon: 'ti-message-question', label: 'Consulta jurídica' },
     { path: '/instrutor', icon: 'ti-list-search', label: 'Instrução do caso' },
     { path: '/cenarios', icon: 'ti-scale', label: 'Cenários de resolução' },
     { path: '/processos', icon: 'ti-briefcase', label: 'Carteira de processos' },
@@ -36,7 +37,6 @@ const NAV_POR_ROLE = {
   analista: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
     { path: '/observatorio', icon: 'ti-chart-dots', label: 'Observatório' },
-    { path: '/jurisprudencia', icon: 'ti-gavel', label: 'Jurisprudência' },
     { path: '/auditoria', icon: 'ti-chart-bar', label: 'Métricas' },
   ],
   admin: [
