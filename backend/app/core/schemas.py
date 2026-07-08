@@ -16,7 +16,7 @@ class AreaJuridica(str, Enum):
 
 
 class AnalysisRequest(BaseModel):
-    texto: str = Field(..., min_length=20, max_length=8000, description="Descrição do caso")
+    texto: str = Field(..., min_length=20, max_length=200_000, description="Descrição do caso — texto livre e/ou documentos anexados")
     area_juridica: Optional[AreaJuridica] = None
     fontes: list[str] = Field(
         default=["CRP", "CC", "CPC"],
