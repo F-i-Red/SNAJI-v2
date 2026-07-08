@@ -391,6 +391,35 @@ class RepositorioProcessos:
                     interno=p.numero_interno, citius=numero_citius)
         return p
 
+    def editar_dados(self, processo_id: str, utilizador_id: str,
+                     descricao: str | None = None, comarca: str | None = None) -> "Processo":
+        """Corrige dados do processo (descrição, comarca) com registo auditável.
+        Os valores anteriores ficam na descrição do evento — nada se apaga."""
+        p = self.por_id(processo_id)
+        if p is None:
+            raise ValueError("Processo não encontrado")
+        mudancas = []
+        if descricao is not None and descricao.strip() and descricao.strip() != p.descricao:
+            mudancas.append(f"descrição: «{p.descricao}» → «{descricao.strip()}»")
+            p.descricao = descricao.strip()
+        if comarca is not None and comarca.strip() and comarca.strip() != p.comarca:
+            mudancas.append(f"comarca: «{p.comarca}» → «{comarca.strip()}»")
+            p.comarca = comarca.strip()
+        if not mudancas:
+            return p
+        p.atualizado_em = datetime.now(timezone.utc)
+        p.eventos.append(EventoProcesso(
+            id=str(uuid.uuid4()),
+            timestamp=p.atualizado_em,
+            tipo="edicao",
+            descricao="Dados corrigidos — " + "; ".join(mudancas),
+            utilizador_id=utilizador_id,
+            estado_anterior=None,
+            estado_novo=None,
+        ))
+        logger.info("processo.editado", id=p.id, mudancas=len(mudancas))
+        return p
+
 
     def adicionar_nota(self, pid: str, nota: str, utilizador_id: str) -> Processo:
         p = self._processos.get(pid)
