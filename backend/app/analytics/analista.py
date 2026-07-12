@@ -99,6 +99,24 @@ class MotorAnalista:
 
     # ── Governação do sistema ───────────────────────────────────────────
 
+    def utilizacao(self) -> dict:
+        """Métricas de utilização do sistema: logins, funcionalidades mais usadas,
+        atividade por perfil. Para o analista melhorar o SNAJI e o admin
+        acompanhar a adoção. Dados agregados."""
+        from collections import Counter
+        logins = [e for e in self.eventos if e["evento"] == "login"]
+        por_perfil = Counter(e.get("dados", {}).get("role", "?") for e in logins)
+        # Funcionalidades usadas (todos os eventos que não são de sistema)
+        func = Counter(e["evento"] for e in self.eventos)
+        mais_usadas = dict(func.most_common(10))
+        return {
+            "periodo_dias": self.dias,
+            "total_logins": len(logins),
+            "logins_por_perfil": dict(por_perfil),
+            "funcionalidades_mais_usadas": mais_usadas,
+            "total_eventos": len(self.eventos),
+        }
+
     def governacao(self) -> dict:
         """
         Indicadores para governar o sistema e informar política pública:
