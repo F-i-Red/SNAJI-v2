@@ -126,6 +126,13 @@ async def relatorio_csv(dias: int = Query(default=30, ge=1, le=365),
     return "\n".join(linhas)
 
 
+@router.get("/analista/utilizacao", tags=["Analista"])
+async def utilizacao(dias: int = Query(default=30, ge=1, le=365),
+                     utilizador: Utilizador = Depends(dep_metricas)):
+    """Métricas de utilização: logins, funcionalidades mais usadas (agregado)."""
+    return MotorAnalista(dias=dias).utilizacao()
+
+
 @router.get("/analista/governacao", tags=["Analista"])
 async def governacao(
     dias: int = Query(default=30, ge=1, le=365),

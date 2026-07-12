@@ -27,6 +27,29 @@ from app.integrations.cmd import gestor_cmd
 router = APIRouter(tags=["Integrações Gov — Fase 4"])
 _doc_proc = ProcessadorDocumentos()
 _analisador_juris = AnalisadorPecas()
+
+
+def _descrever_norma(diploma: str, artigo: str) -> str:
+    """Epígrafe da norma (ex.: 'Prescrição') a partir do corpus, para descrever
+    cada artigo mesmo quando não há acórdãos que o interpretem."""
+    try:
+        from app.rag.motor import RAGJuridico, _rag_singleton
+        rag = _rag_singleton() if callable(globals().get("_rag_singleton")) else None
+    except Exception:
+        rag = None
+    try:
+        from app.integrations.jurisprudencia import motor_jurisprudencia
+        # acede ao RAG já carregado pelo pipeline, se existir
+        from app.api import routes as _routes
+        rag = getattr(_routes, "_reasoning", None)
+        chunks = getattr(getattr(rag, "_rag", None), "_chunks", None) if rag else None
+        if chunks:
+            for c in chunks:
+                if c["diploma"] == diploma and c["artigo"] == artigo:
+                    return c.get("epigrase", "") or ""
+    except Exception:
+        pass
+    return ""
 logger = structlog.get_logger(__name__)
 
 
@@ -169,6 +192,7 @@ async def jurisprudencia_por_documento(
             "norma": f"{diploma}-{artigo}",
             "diploma": diploma,
             "artigo": artigo,
+            "descricao": _descrever_norma(diploma, artigo),
             "total_acordaos": len(acs),
             "acordaos": [
                 {"id": a.id, "tribunal": a.tribunal, "numero_processo": a.numero_processo,

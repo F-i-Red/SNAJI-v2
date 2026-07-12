@@ -17,6 +17,7 @@ from app.db import casos_repo
 from app.db import config_repo
 from app.documents.processador import ProcessadorDocumentos
 from app.documents.analisador_pecas import AnalisadorPecas
+from app.documents.compilador_dossie import CompiladorDossie
 from app.processes.repositorio import repositorio_processos, TipoProcesso, Parte
 from app.generation.gerador import GeradorDocumentos, TipoDocumento
 from app.reasoning.pipeline import ReasoningPipeline
@@ -41,6 +42,7 @@ _doc_processor = ProcessadorDocumentos()
 _gerador = GeradorDocumentos()
 _reasoning = ReasoningPipeline(llm_client=None)
 _analisador_pecas = AnalisadorPecas(llm_client=None)
+_compilador_dossie = CompiladorDossie(llm_client=None)
 
 
 def get_orchestrator() -> JuridicalOrchestrator:
@@ -171,6 +173,31 @@ async def extrair_texto_documentos(
     }
 
 
+@router.post("/dossie/compilar", tags=["Documentos"])
+async def compilar_dossie(
+    ficheiros: list[UploadFile] = File(...),
+    utilizador: Utilizador = Depends(requer_permissao(Permissao.FERRAMENTAS_PROFISSIONAIS)),
+):
+    """
+    Compila vários documentos de um processo (petição, contestação, sentença…)
+    num dossiê coerente: identifica o papel de cada peça, ordena-os pela marcha
+    processual, consolida as citações e sinaliza as inexistentes.
+    """
+    docs = []
+    for f in ficheiros:
+        if not f.filename:
+            continue
+        ext = f.filename.rsplit('.', 1)[-1].lower()
+        if ext not in ('pdf', 'docx', 'txt'):
+            continue
+        conteudo = await f.read()
+        doc = _doc_processor.processar(f.filename, conteudo)
+        docs.append((f.filename, doc.texto, doc.num_paginas))
+    dossie = _compilador_dossie.compilar(docs)
+    logger.info("dossie.api", user_id=utilizador.id, docs=len(docs))
+    return dossie.para_dict()
+
+
 @router.post("/pecas/analisar", tags=["Documentos"])
 async def analisar_peca(
     ficheiro: UploadFile = File(...),
@@ -201,6 +228,24 @@ class ConfigRequest(BaseModel):
     telefone_suporte: Optional[str] = None
     horario: Optional[str] = None
     mensagem_casos_extensos: Optional[str] = None
+
+
+@router.get("/admin/utilizadores", tags=["Administração"])
+async def listar_utilizadores_admin(
+    utilizador: Utilizador = Depends(requer_permissao(Permissao.GERIR_UTILIZADORES)),
+):
+    """Lista de contas com data do último login (só administrador técnico)."""
+    from app.db.utilizadores import repositorio as _ru
+    return {
+        "utilizadores": [
+            {
+                "nome": u.nome, "email": u.email, "role": u.role.value,
+                "activo": u.activo,
+                "ultimo_login": u.ultimo_login.isoformat() if u.ultimo_login else None,
+            }
+            for u in _ru.listar()
+        ]
+    }
 
 
 @router.get("/config", tags=["Configuração"])

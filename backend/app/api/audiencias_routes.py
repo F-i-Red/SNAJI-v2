@@ -337,6 +337,8 @@ def _ata_markdown(d: dict) -> str:
              f"{d['total_atos']} atos, {d['total_atas']} atas")
     L.append("")
     L.append(f"_{d['rodape']}_")
+    L.append("")
+    L.append("**SNAJI — Serviço Nacional de Assistência Jurídica Inteligente**")
     return "\n".join(L)
 
 
@@ -388,6 +390,8 @@ def _ata_txt(d: dict) -> str:
     L.append("")
     for linha in _wrap(d["rodape"], 66):
         L.append(linha)
+    L.append("")
+    L.append("SNAJI — Serviço Nacional de Assistência Jurídica Inteligente")
     return "\n".join(L)
 
 
@@ -451,7 +455,7 @@ Audiência de {d['tipo_audiencia']} — {d['data_por_extenso']}<br>
 {provas}{decisao}
 <div class="selo"><strong>Integridade da cadeia de atas:</strong> {estado}<br>
 Selo: <code>{d['selo']}</code> · {d['total_atos']} atos · {d['total_atas']} atas</div>
-<p class="rodape">{d['rodape']}</p>
+<p class="rodape">{d['rodape']}<br><strong>SNAJI — Serviço Nacional de Assistência Jurídica Inteligente</strong></p>
 </body></html>"""
 
 
