@@ -29,6 +29,21 @@ export default function PaginaDocumentos() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const [erro, setErro] = useState<string | null>(null)
+  const [arrastarGer, setArrastarGer] = useState(false)
+  const [aExtrairGer, setAExtrairGer] = useState(false)
+
+  const extrairParaCaso = async (files: FileList) => {
+    if (!files.length) return
+    setAExtrairGer(true); setErro(null)
+    try {
+      const fd = new FormData()
+      Array.from(files).forEach(f => fd.append('ficheiros', f))
+      const r = await api.post<{ texto: string }>('/documentos/extrair-texto', fd,
+        { headers: { 'Content-Type': 'multipart/form-data' } })
+      setTextoCaso(prev => (prev.trim() ? prev.trim() + '\n\n' : '') + r.data.texto)
+    } catch (e) { setErro(tratarErroAPI(e)) }
+    finally { setAExtrairGer(false) }
+  }
 
   const gerarDocumento = async () => {
     if (!textoCaso.trim()) return
@@ -131,6 +146,23 @@ export default function PaginaDocumentos() {
             <textarea value={textoCaso} onChange={e => setTextoCaso(e.target.value)}
               placeholder="Descreva os factos relevantes do caso. Quanto mais detalhe, melhor o documento gerado..."
               rows={5} style={{ width: '100%' }} />
+            <div
+              onDragOver={e => { e.preventDefault(); setArrastarGer(true) }}
+              onDragLeave={() => setArrastarGer(false)}
+              onDrop={e => { e.preventDefault(); setArrastarGer(false); if (e.dataTransfer.files.length) extrairParaCaso(e.dataTransfer.files) }}
+              onClick={() => document.getElementById('docs-geracao')?.click()}
+              style={{
+                marginTop: 8, border: `2px dashed ${arrastarGer ? '#0a2342' : 'var(--color-border-tertiary)'}`,
+                borderRadius: 'var(--border-radius-md)', padding: '12px', textAlign: 'center', cursor: 'pointer',
+                background: arrastarGer ? 'var(--color-background-info)' : 'transparent',
+                fontSize: 12.5, color: 'var(--color-text-secondary)',
+              }}
+            >
+              {aExtrairGer ? 'A ler os documentos…'
+                : '📎 Arraste documentos do caso (PDF, Word, texto) para preencher os factos automaticamente.'}
+              <input id="docs-geracao" type="file" accept=".pdf,.docx,.txt" multiple style={{ display: 'none' }}
+                onChange={e => e.target.files && extrairParaCaso(e.target.files)} />
+            </div>
           </div>
 
           <button onClick={gerarDocumento} disabled={gerando || !textoCaso.trim()} style={{
