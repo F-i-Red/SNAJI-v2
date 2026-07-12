@@ -7,7 +7,7 @@ GET  /auth/roles  → lista papéis e permissões (público, para documentação
 """
 
 from fastapi import APIRouter, HTTPException, Depends, status
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 import structlog
 
 from app.security.jwt_manager import jwt_manager, TokenResponse
@@ -34,7 +34,7 @@ class UtilizadorInfo(BaseModel):
 
 class RegistoRequest(BaseModel):
     nome: str = Field(..., min_length=3, max_length=80)
-    email: EmailStr
+    email: str = Field(..., min_length=5, max_length=120)
     password: str = Field(..., min_length=10, max_length=128,
                           description="Mínimo 10 caracteres")
 
@@ -48,10 +48,14 @@ async def registo_cidadao(dados: RegistoRequest) -> TokenResponse:
     da aplicação). Numa versão de produção, o registo do cidadão usaria a
     Chave Móvel Digital / autenticação.gov para verificar a identidade.
     """
+    import re as _re
+    email = str(dados.email).strip().lower()
+    if not _re.fullmatch(r"[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}", email):
+        raise HTTPException(status_code=422, detail="Indique um email válido.")
     from app.db.utilizadores import repositorio as _ru
     from app.security.rbac import Role
     try:
-        u = _ru.criar(email=str(dados.email).strip().lower(),
+        u = _ru.criar(email=email,
                       nome=dados.nome.strip(),
                       role=Role.CIDADAO,
                       password=dados.password)
