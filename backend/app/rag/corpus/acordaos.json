@@ -624,5 +624,691 @@
     "ecli": "",
     "tipo": "AUJ",
     "ficheiro_origem": "stj.pt (recolha web verificável)"
+  },
+  {
+    "id": "stj-auj-1-2025",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 1/2025",
+    "processo": "4839/21.5T8FNC-A.L1.S1",
+    "data": "2025",
+    "relator": "",
+    "sumario": "I &#8211; A vinculação para aval prestada em livrança em branco é, desde que assumida sem prazo ou por prazo renovável, decorrido o prazo inicial, suscetível de denúncia, pelo vinculado para aval que tenha deixado de ser sócio ou sócio-gerente da avalizada, até ao preenchimento do título. II &#8211; A denúncia só produzirá efeitos para o futuro, ou seja, a desvinculação só será eficaz em relação a montantes que venham a ser solicitados após a denúncia produzir os seus efeitos.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-uniformizada-civel-ano-2025/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-1-2026",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 1/2026",
+    "processo": "319/23.2T9OLH.E1.S1",
+    "data": "12-03-2026",
+    "relator": "",
+    "sumario": "É competente para a instauração e tramitação da execução por coimas aplicadas por autoridades administrativas relativamente a contraordenações previstas no Código da Estrada “o tribunal",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-fixada-criminal-ano-2026/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-10-2016",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 10/2016",
+    "processo": "",
+    "data": "2016",
+    "relator": "",
+    "sumario": "As alterações introduzidas pela Lei n.º 23/2012 de 25 de Junho ao Código do Trabalho, que determinaram a redução do valor do trabalho suplementar e suspenderam pelo período de 2 anos a vigência da cláusula 40.ª do CCTV do setor dos transportes rodoviários de mercadorias, publicado no Boletim do Trabalho e Emprego, n.º 9 de 8/03/1980, com as sucessivas alterações, não se repercutem no valor mensal atribuído à retribuição prevista na Cláusula 74.ª n.º 7 do mesmo CCTV, não determinando a sua redução em função do valor atribuído ao trabalho suplementar",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "social"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-uniformizada-social-ano-2016/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-10-2023",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 10/2023",
+    "processo": "",
+    "data": "2023",
+    "relator": "",
+    "sumario": "Na fase de inquérito, compete ao juiz de instrução ordenar ou autorizar a apreensão de mensagens de correio eletrónico ou de outros registos de comunicações de natureza semelhante, independentemente de se encontrarem abertas (lidas) ou fechadas (não lidas), que se afigurem ser de grande interesse para descoberta da verdade ou para a prova, nos termos do art. 17.º, da Lei n.º 109/2009, de 15/09 (Lei do Cibercrime)",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "geral"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-fixada-criminl-ano-2024/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-10-2025",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 10/2025",
+    "processo": "1070/20.0T8BJA.E1.S1-A",
+    "data": "2025",
+    "relator": "",
+    "sumario": "A obrigação do mandatário de transferir para o mandante os direitos adquiridos em execução do mandato prevista no art.1181º do Código Civil é passível de execução específica nos termos do artigo 830º, nº1, do mesmo diploma.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [
+      "CC-1181"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-uniformizada-civel-ano-2025/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-11-2023",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 11/2023",
+    "processo": "",
+    "data": "2023",
+    "relator": "",
+    "sumario": "O requerimento apresentado pelo condenado, peticionando a substituição da multa por dias de trabalho, nos termos do artigo 48.º, n.º 1 do Código Penal, não integra a causa suspensiva da prescrição prevista no artigo 125.º, n.º 1, alínea a), do Código Penal.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "geral"
+    ],
+    "normas_citadas": [
+      "CP-48",
+      "CP-125"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-fixada-criminl-ano-2024/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-11-2024",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 11/2024",
+    "processo": "",
+    "data": "2024",
+    "relator": "",
+    "sumario": "O despacho previsto no art. 495.º, n.º 2, do CPP, com fundamento no disposto no art. 56.º, n.º 1, al. b), do Código Penal, deve ser precedido, salvo em caso de ausência por facto que lhe seja imputável, de audição presencial do condenado, nos termos dos arts. 495.º, n.º 2, e 61.º, n.º 1, als. a) e b), ambos do Código de Processo Penal, constituindo a preterição injustificada de tal audição nulidade insanável cominada no art. 119.º, n.º 1, al. c), do Código de Processo Penal",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [
+      "CPP-495",
+      "CP-56",
+      "CPP-119"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-fixada-criminal-ano-2024/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-11-2025",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 11/2025",
+    "processo": "4216/22.0T8VCT.S1-A",
+    "data": "2025",
+    "relator": "",
+    "sumario": "A deliberação dos sócios a que se refere o art.º 242.º n.º2 do Código das Sociedades Comerciais deve ocorrer no prazo de 90 dias a contar da data em que os respectivos gerentes tiveram conhecimento dos factos que fundamentam a exclusão de sócio. Por sua vez, a acção de exclusão deve ser proposta, no prazo de 90 dias, a contar da data dessa deliberação. Caduca o direito da sociedade, caso não seja cumprido algum daqueles prazos.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [
+      "CSC-242"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-uniformizada-civel-ano-2025/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-12-2023",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 12/2023",
+    "processo": "8344/17.6T8STB.E1-A.S1",
+    "data": "2023",
+    "relator": "",
+    "sumario": "Nos termos da alínea c), do n.º 1 do artigo 640.º do Código de Processo Civil, o Recorrente que impugna a decisão sobre a matéria de facto não está vinculado a indicar nas conclusões a decisão alternativa pretendida, desde que a mesma resulte, de forma inequívoca, das alegações .",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [
+      "CPC-640"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-uniformizada-civel-ano-2023/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-12-2025",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 12/2025",
+    "processo": "96/19.1GBNLS-G.C1-A.S1",
+    "data": "01-10-2025",
+    "relator": "",
+    "sumario": "A expressão «por pessoas que tenham entre 16 e 30 anos de idade à data da prática do facto",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-fixada-criminal-ano-2025/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-13-2025",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 13/2025",
+    "processo": "724/20.6PDAMD.L1-A.S1",
+    "data": "01-10-2025",
+    "relator": "",
+    "sumario": "Quem, com menos de 60 anos de idade, sendo titular de carteira nacional de habilitação de condução emitida pelo Brasil, caducada há menos de 10 anos, conduz veículo automóvel na via pública, em Portugal, incorre na contraordenação prevista e punida pelo artigo 125º números 5 e 8 do Código da Estrada.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-fixada-criminal-ano-2025/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-16-2024",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 16/2024",
+    "processo": "",
+    "data": "2024",
+    "relator": "",
+    "sumario": "1. A bonificação do fator 1.5 prevista na alínea a) do n.º 5 das Instruções Gerais da Tabela Nacional de Incapacidades por Acidentes de Trabalho e Doenças Profissionais aprovada em anexo ao Decreto-Lei n.º 352/2007 de 23 de outubro é aplicável a qualquer sinistrado que tenha 50 ou mais anos de idade, quer já tenha essa idade no momento do acidente, quer só depois venha a atingir essa idade, desde que não tenha anteriormente beneficiado da aplicação desse fator; 2. O sinistrado pode recorrer ao incidente de revisão da incapacidade para invocar o agravamento por força da idade e a bonificação deverá ser concedida mesmo que não haja revisão da incapacidade e agravamento da mesma em razão de outro motivo.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "social"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-uniformizada-social-ano-2024/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-16-2025",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 16/2025",
+    "processo": "4025/23.0T9AVR.P1-A.S1",
+    "data": "19-11-2025",
+    "relator": "",
+    "sumario": "Ao prazo de 20 dias para apresentação do recurso de impugnação judicial da decisão da autoridade administrativa que aplica uma coima, previsto no artigo 59.º, n.º 3, do Decreto-Lei n.º 433/82, de 27 de outubro, não é aplicável o disposto no artigo 279.º, al. e), do Código Civil, pelo que, quando ocorra em férias judiciais, o termo desse prazo não se transfere para o primeiro dia útil subsequente",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [
+      "CC-279"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-fixada-criminal-ano-2025/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-2-2020",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 2/2020",
+    "processo": "",
+    "data": "2020",
+    "relator": "",
+    "sumario": "O assistente, ainda que desacompanhado do Ministério Público, pode recorrer para que a suspensão da execução da pena de prisão em que o arguido foi condenado fique condicionada ao pagamento, dentro de certo prazo, da indemnização que lhe foi arbitrada.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-fixada-criminal-ano-2020/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-2-2024",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 2/2024",
+    "processo": "",
+    "data": "2024",
+    "relator": "",
+    "sumario": "Em processo penal, não é admissível recurso para o Supremo Tribunal de Justiça do acórdão da Relação que confirma, em recurso, decisão que julgou não verificada a ofensa de caso julgado em matéria penal, com esse único fundamento e por aplicação do art. 629.º, n.º 2, al. a), do CPC",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [
+      "CPC-629"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-fixada-criminal-ano-2024/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-2-2025",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 2/2025",
+    "processo": "4368/22.0T8LRA.C1.S1",
+    "data": "2025",
+    "relator": "",
+    "sumario": "I &#8211; A decisão judicial que declara a deserção da instância nos termos do artigo 281º, nº 1, do Código de Processo Civil pressupõe a inércia no impulso processual, com a paragem dos autos por mais de seis meses consecutivos, exclusivamente imputável à parte a quem compete esse ónus, não se integrando o acto em falta no âmbito dos poderes/deveres oficiosos do tribunal. II – Quando o juiz decida julgar deserta a instância haverá lugar ao cumprimento do contraditório, nos termos do artigo 3º, nº 3, do Código de Processo Civil, com inerente audiência prévia da parte, a menos que fosse, ou devesse ser, seguramente do seu conhecimento, por força do regime jurídico aplicável ou de adequada notificação, que o processo aguardaria o impulso processual que lhe competia sob a cominação prevista no artigo 281º, nº 1, do Código de Processo Civil.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [
+      "CPC-281",
+      "CPC-3"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-uniformizada-civel-ano-2025/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-3-2020",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 3/2020",
+    "processo": "",
+    "data": "2020",
+    "relator": "",
+    "sumario": "O conceito de &#8216;organismo de utilidade pública&#8217;, constante da parte final da actual redacção da alínea d) do n.º 1 do artigo 386.º do Código Penal, não abarca as instituições particulares de solidariedade social, cujo estatuto consta hoje do Decreto-Lei n.º 172-A/2014, de 14 de Novembro, alterado pela Lei n.º 76/2015, de 28 de Julho.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [
+      "CP-386"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-fixada-criminal-ano-2020/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-3-2025",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 3/2025",
+    "processo": "204/22.5YUSTR.L1-A.S1",
+    "data": "15-01-2025",
+    "relator": "",
+    "sumario": "A dilação prevista no artigo 88.º, n.º 1, al. b), do Código do Procedimento Administrativo, aprovado pelo Decreto-Lei n.º 4/2015, de 7 de janeiro, não é aplicável à contagem do prazo de recurso de impugnação judicial da decisão da autoridade administrativa que aplica uma coima, previsto no artigo 59.º, n.º 3, do Decreto-Lei n.º 433/82, de 27 de outubro, que instituiu o ilícito de mera ordenação social e respetivo processo",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-fixada-criminal-ano-2025/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-3-2026",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 3/2026",
+    "processo": "589/23.6PTPRT.P1-A.S1",
+    "data": "13-05-2026",
+    "relator": "",
+    "sumario": "O cumprimento da pena acessória de proibição de conduzir veículos com motor, prevista no art. 69.º, n.º 1, do CP, só pode iniciar-se com o trânsito em julgado da decisão que a aplicou, nos termos do seu n.º 2, não havendo lugar a desconto, no cômputo da pena, do período decorrido entre a entrega voluntária do título habilitante e o referido trânsito.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [
+      "CP-69"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-fixada-criminal-ano-2026/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-4-2020",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 4/2020",
+    "processo": "",
+    "data": "2020",
+    "relator": "",
+    "sumario": "O n.º 8 do art.º 139.º do Código de Processo Civil, no qual se estabelece a possibilidade excepcional da redução ou dispensa da multa pela prática de acto processual fora do prazo, é aplicável em processo penal.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [
+      "CPC-139"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/criminais/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-4-2025",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 4/2025",
+    "processo": "777/07.2TBBCL-F.G1.S1-A",
+    "data": "2025",
+    "relator": "",
+    "sumario": "A indemnização atribuída ao trabalhador ilicitamente despedido, em substituição da reintegração, é parcialmente impenhorável, nos termos do n.º 1 do artigo 738.º do Código de Processo Civil.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [
+      "CPC-738"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-uniformizada-civel-ano-2025/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-5-2025",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 5/2025",
+    "processo": "92/07.1TELSB-M.S1",
+    "data": "19-02-2025",
+    "relator": "",
+    "sumario": "O prazo de prescrição do procedimento pelo crime de fraude fiscal qualificada, p. e p. no artigo 104.º, n.º 2, al. a), do RGIT, com utilização de facturas fraudulentas (as designadas &#8220;facturas falsas&#8221;) inicia-se no momento da entrega da correspondente declaração à administração fiscal.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-fixada-criminal-ano-2025/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-6-2016",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 6/2016",
+    "processo": "",
+    "data": "2016",
+    "relator": "",
+    "sumario": "Interposto recurso com efeito suspensivo para o Tribunal da Relação da decisão proferida em providência cautelar que tenha decretado a suspensão do despedimento, não são devidas ao trabalhador retribuições entre a data do despedimento e o trânsito em julgado do acórdão do Tribunal da Relação que confirme a suspensão do despedimento, sem prejuízo do disposto no n.º 3 do artigo 40.º do Código de Processo do Trabalho, aprovado pelo Decreto-Lei n.º 480/99, de 9 de novembro",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "social"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-uniformizada-social-ano-2016/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-6-2023",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 6/2023",
+    "processo": "",
+    "data": "2023",
+    "relator": "",
+    "sumario": "Nos arrendamentos para fins não habitacionais, celebrados antes do Decreto-Lei n.º 257/95, de 30 de Setembro, o locador que pretenda promover a transição do contrato para o NRAU, sem actualização da renda, não está obrigado à indicação do valor do locado, avaliado nos termos dos artigos 38.º e seguintes do CIMI, nem à junção da cópia da caderneta predial urbana, como previsto nas alíneas b) e c) do artigo 50.º da Lei n.º 6/2006, de 27 de Fevereiro, na redacção da Lei n.º 79/2014, de 19 de Dezembro",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-uniformizada-civel-ano-2023/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-6-2024",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 6/2024",
+    "processo": "",
+    "data": "2024",
+    "relator": "",
+    "sumario": "Para que se possa imputar o acidente e suas consequências danosas à violação culposa das regras de segurança pelo empregador ou por uma qualquer das pessoas mencionadas no artigo 18.º, n.º 1, da LAT, é necessário apurar se nas circunstâncias do caso concreto tal violação se traduziu em um aumento da probabilidade de ocorrência do acidente, tal como ele efetivamente veio a verificar-se, embora não seja exigível a demonstração de que o acidente não teria ocorrido sem a referida violação.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "social"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-uniformizada-social-ano-2024/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-6-2025",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 6/2025",
+    "processo": "4624/21.4T8GMR.L1.S1",
+    "data": "15-01-2025",
+    "relator": "",
+    "sumario": "Declara a nulidade da cláusula 115.ª do Acordo Coletivo de Trabalho para o sector bancário, publicado no BTE n.º 29, de 08.08.2016, na parte em que dispõe no sentido de deixar de ser aplicável aos trabalhadores do Banco Santander Totta oriundos do BANIF a cláusula 23.ª do Acordo de Empresa celebrado entre os Sindicatos subscritores daquele ACT e o BANIF ― Banco Internacional do Funchal, S. A., publicado no Boletim do Trabalho e Emprego, n.º 33, de 08.09.2008.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "social"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-uniformizada-social-ano-2025/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-7-2022",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 7/2022",
+    "processo": "",
+    "data": "2022",
+    "relator": "",
+    "sumario": "Em acção de responsabilidade civil extracontratual fundada em facto ilícito, a conformidade decisória que caracteriza a dupla conforme impeditiva da admissibilidade da revista, nos termos do artigo 671º, nº. 3, do CPC, avaliada em função do benefício que o apelante retirou do Acórdão da Relação, é apreciada, separadamente, para cada segmento decisório autónomo e cindível em que a pretensão indemnizatória global se encontra decomposta.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [
+      "CPC-671"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-uniformizada-civel-ano-2022/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-7-2023",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 7/2023",
+    "processo": "",
+    "data": "2023",
+    "relator": "",
+    "sumario": "A ação de indemnização fundada na venda de coisa indeterminada de certo género defeituosa está submetida ao prazo de caducidade previsto no artigo 917.º do Código Civil, a tanto não se opondo o disposto no artigo 918.º do mesmo Código",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [
+      "CC-917"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-uniformizada-civel-ano-2023/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-7-2024",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 7/2024",
+    "processo": "",
+    "data": "2024",
+    "relator": "",
+    "sumario": "Para que possa ser ilidida a presunção de aceitação do despedimento constante do n.º 4 do artigo 366.º do Código do Trabalho (Lei n.º 7/2009, de 12 de fevereiro, com as alterações que, entretanto, lhe foram introduzidas) a totalidade da compensação recebida pelo trabalhador deverá ser devolvida por este até à instauração do respetivo procedimento cautelar ou ação de impugnação do despedimento, sendo esse o significado da expressão ‘em simultâneo’ constante do n.º 5 do mencionado artigo 366.º",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "social"
+    ],
+    "normas_citadas": [
+      "CT-366"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-uniformizada-social-ano-2024/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-8-2022",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 8/2022",
+    "processo": "",
+    "data": "2022",
+    "relator": "",
+    "sumario": "1. No âmbito da responsabilidade civil pré-contratual ou contratual do intermediário financeiro, nos termos dos artigos 7.º, nº 1, 312º nº 1, alínea a), e 314º do Código dos Valores Mobiliários, na redação anterior à introduzida pelo Decreto-Lei n.º 357-A/2007, de 31 de outubro, e 342.º, nº 1, do Código Civil, incumbe ao investidor, mesmo quando seja não qualificado, o ónus de provar a violação pelo intermediário financeiro dos deveres de informação que a este são legalmente impostos e o nexo de causalidade entre a violação do dever de informação e o dano. 2. Se o Banco, intermediário financeiro – que sugeriu a subscrição de obrigações subordinadas pelo prazo de maturidade de 10 anos a um cliente que não tinha conhecimentos para avaliar o risco daquele produto financeiro nem pretendia aplicar o seu dinheiro em “produtos de risco",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-uniformizada-civel-ano-2022/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-8-2023",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 8/2023",
+    "processo": "",
+    "data": "2023",
+    "relator": "",
+    "sumario": "Nos termos do artigo 69.º, n.º 2, do Código Penal (na redação dada pela Lei n.º 77/2001, de 13 de julho), a pena acessória de proibição de conduzir veículos com motor abrange a condução de todas as categorias destes veículos.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "geral"
+    ],
+    "normas_citadas": [
+      "CP-69"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-fixada-criminl-ano-2024/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-8-2025",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 8/2025",
+    "processo": "913/11.4PBEVR.E3-A.S1",
+    "data": "2025",
+    "relator": "",
+    "sumario": "Decorrido o período de suspensão da execução de pena de prisão, sem que tenha sido prorrogada ou revogada, a pena suspensa prescreve decorridos 4 anos contados do termo daquele período, nos termos da al. d) do n.º 1 do art. 122.º, do CP, salvo se ocorrerem causas suspensivas ou interruptivas desse prazo prescricional.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [
+      "CP-122"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-fixada-criminal-ano-2025/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-9-2023",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 9/2023",
+    "processo": "",
+    "data": "2023",
+    "relator": "",
+    "sumario": "No crime de tráfico de estupefacientes previsto no art.º 21º n.º 1 do Decreto-Lei n.º 15/93, de 22.1, que se realiza em actos reiterados, o momento que, por referência à data do trânsito em julgado da primeira condenação anterior, releva para aferir a existência da relação de concurso de conhecimento superveniente prevista no art.º 78º do Código Penal, é o da prática do último acto típico.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "geral"
+    ],
+    "normas_citadas": [
+      "CP-78"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-fixada-criminl-ano-2024/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
+  },
+  {
+    "id": "stj-auj-9-2025",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 9/2025",
+    "processo": "985/20.0T8VCD-B.P1.S1",
+    "data": "2025",
+    "relator": "",
+    "sumario": "A obra edificada (casa de morada de família) por dois cônjuges, casados no regime da comunhão de bens adquiridos, com dinheiro ou bens comuns, em terreno próprio de um deles, constitui coisa nova que é bem próprio do cônjuge titular do terreno e dá lugar a um crédito de compensação do património comum sobre o património do dono da coisa nova, com vista à reposição do equilíbrio patrimonial.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/jurisprudencia-uniformizada-civel-ano-2025/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "atualizador (2026-07-12)"
   }
 ]
