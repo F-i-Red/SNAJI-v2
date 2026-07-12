@@ -227,18 +227,19 @@ class AnalisadorPecas:
         import unicodedata
         t = unicodedata.normalize("NFKD", texto[:3000].lower())
         t = "".join(ch for ch in t if not unicodedata.combining(ch))
-        if re.search(r"petição\s+inicial|vem\s+propor|intenta", t):
+        # padrões SEM acentos (o texto foi normalizado acima)
+        if re.search(r"peticao\s+inicial|vem\s+(?:o\s+autor\s+)?propor|intenta|propor\s+(?:a\s+)?(?:presente\s+)?acao", t):
             return "Petição inicial"
-        if re.search(r"contesta(?:ção|r)|impugna", t):
-            return "Contestação"
-        if re.search(r"sentença|decisão|condeno|absolvo|julgo", t):
-            return "Sentença / Decisão"
-        if re.search(r"recurso|recorre|alega", t):
-            return "Recurso / Alegações"
-        if re.search(r"requer(?:imento|-se)", t):
-            return "Requerimento"
-        if re.search(r"acusaç(?:ão|ao)", t):
+        if re.search(r"acusa(?:cao|-se)|deduz(?:-se)?\s+acusacao", t):
             return "Acusação"
+        if re.search(r"contesta(?:cao|r)|impugna|deduz.*oposicao", t):
+            return "Contestação"
+        if re.search(r"sentenca|decisao\s+final|condeno|absolvo|julgo\s+(?:a\s+)?(?:acao|procedente|improcedente)", t):
+            return "Sentença / Decisão"
+        if re.search(r"recurso|recorre|alega(?:coes|r)", t):
+            return "Recurso / Alegações"
+        if re.search(r"requer(?:imento|-se|\s+a\s+v)", t):
+            return "Requerimento"
         return "Peça processual (tipo não determinado)"
 
     def _resumir(self, texto: str, analise: AnalisePeca) -> str:
