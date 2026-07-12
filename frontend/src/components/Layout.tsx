@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuthStore, useRole } from '../auth/session'
 
@@ -52,9 +52,20 @@ const NAV_POR_ROLE = {
 
 export default function Layout() {
   const { utilizador, logout, restaurarSessao } = useAuthStore()
+  const [contactos, setContactos] = useState<{ email_suporte?: string; telefone_suporte?: string; horario?: string } | null>(null)
   const role = useRole()
   const navigate = useNavigate()
   const location = useLocation()
+
+  useEffect(() => {
+    if (!utilizador) return
+    api.get('/config')
+      .then(r => {
+        setContactos(r.data)
+        sessionStorage.setItem('snaji_contactos', JSON.stringify(r.data))
+      })
+      .catch(() => {})
+  }, [utilizador])
 
   useEffect(() => {
     if (!utilizador) restaurarSessao()
@@ -199,6 +210,18 @@ export default function Layout() {
               </Link>
             )
           })}
+          {contactos && (contactos.email_suporte || contactos.telefone_suporte) && (
+            <div style={{
+              marginTop: 'auto', padding: '10px 12px',
+              borderTop: '0.5px solid var(--color-border-tertiary)',
+              fontSize: 11, lineHeight: 1.6, color: 'var(--color-text-tertiary)',
+            }}>
+              <div style={{ fontWeight: 600, marginBottom: 2 }}>Apoio SNAJI</div>
+              {contactos.email_suporte && <div>{contactos.email_suporte}</div>}
+              {contactos.telefone_suporte && <div>{contactos.telefone_suporte}</div>}
+              {contactos.horario && <div>{contactos.horario}</div>}
+            </div>
+          )}
         </nav>
 
         {/* Conteúdo principal */}
