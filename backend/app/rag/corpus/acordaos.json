@@ -1,273 +1,628 @@
 [
- {
-  "id": "stj-acordao-stj-n-o-12-2024",
-  "tribunal": "STJ",
-  "numero_processo": "ACÓRDÃO STJ N.º 12/2024",
-  "data": "2024",
-  "relator": "",
-  "sumario": "Em processo de contraordenação relativo a práticas restritivas da concorrência previstas no Regime Jurídico da Concorrência (Lei n.º 19/2012, de 8 de maio), compete ao juiz de instrução ordenar ou autorizar a apreensão de mensagens de correio eletrónico ou de outros registos de comunicações de natureza semelhante, independentemente de se encontrarem abertas (lidas) ou fechadas (não lidas), que se afigurem ser de grande interesse para a descoberta da verdade ou para a prova, nos termos do art. 17.º da Lei n.º 109/2009, de 15 de setembro (Lei do Cibercrime), aplicável por força do disposto no art. 13.º, n.º 1, do RJC e do art. 41.º, n.º 1, do RGCO.",
-  "descritores": [
-   "uniformização de jurisprudência",
-   "concorrência",
-   "contraordenação",
-   "apreensão de correio eletrónico"
-  ],
-  "normas_citadas": [],
-  "normas_nao_verificadas": [],
-  "url": "http://www.dgsi.pt",
-  "ecli": "",
-  "tipo": "AUJ",
-  "ficheiro_origem": "auj_12_2024_apreensao_email.txt"
- },
- {
-  "id": "stj-acordao-stj-n-o-13-2024",
-  "tribunal": "STJ",
-  "numero_processo": "ACÓRDÃO STJ N.º 13/2024",
-  "data": "2024",
-  "relator": "",
-  "sumario": "Prescrevem no prazo de 5 anos, por aplicação analógica do art. 310.º, alínea e), do Código Civil, as rendas do locatário no contrato de locação financeira.",
-  "descritores": [
-   "uniformização de jurisprudência",
-   "locação financeira",
-   "prescrição",
-   "rendas"
-  ],
-  "normas_citadas": [
-   "CC-310"
-  ],
-  "normas_nao_verificadas": [],
-  "url": "http://www.dgsi.pt",
-  "ecli": "",
-  "tipo": "AUJ",
-  "ficheiro_origem": "auj_13_2024_locacao_financeira.txt"
- },
- {
-  "id": "stj-1292-20-4t8far-a-e1-s1-a",
-  "tribunal": "STJ",
-  "numero_processo": "1292/20.4T8FAR-A.E1.S1-A",
-  "data": "2025-06-15",
-  "relator": "",
-  "sumario": "O termo inicial do prazo prescricional, estabelecido no artigo 498.º, n.º 1, do Código Civil, do direito de indemnização, com fundamento em responsabilidade civil extracontratual decorrente de ocupação ilícita de imóvel, deverá coincidir com o momento em que o lesado adquira conhecimento dos factos que integram os pressupostos legais do direito invocado, independentemente de, à data do início da contagem daquele prazo, ainda não ter cessado a produção dos danos que venham a ser reclamados.",
-  "descritores": [
-   "uniformização de jurisprudência",
-   "prescrição",
-   "responsabilidade civil extracontratual",
-   "ocupação ilícita de imóvel"
-  ],
-  "normas_citadas": [
-   "CC-498"
-  ],
-  "normas_nao_verificadas": [],
-  "url": "http://www.dgsi.pt",
-  "ecli": "",
-  "tipo": "AUJ",
-  "ficheiro_origem": "auj_14_2025_prescricao_ocupacao.txt"
- },
- {
-  "id": "stj-8882-20-3t8lsb-l1-s1",
-  "tribunal": "STJ",
-  "numero_processo": "8882/20.3T8LSB.L1.S1",
-  "data": "2025-03-12",
-  "relator": "Júlio Gomes",
-  "sumario": "São nulas por violação de norma legal imperativa cláusulas de uma convenção coletiva que prevejam categorias inferiores na admissão para os contratados a termo.",
-  "descritores": [
-   "uniformização de jurisprudência",
-   "convenção coletiva",
-   "contrato a termo",
-   "nulidade"
-  ],
-  "normas_citadas": [],
-  "normas_nao_verificadas": [],
-  "url": "http://www.dgsi.pt",
-  "ecli": "",
-  "tipo": "AUJ",
-  "ficheiro_origem": "auj_15_2025_convencao_coletiva.txt"
- },
- {
-  "id": "stj-1118-16-3t8vrl-b-g1-s1-a",
-  "tribunal": "STJ",
-  "numero_processo": "1118/16.3T8VRL-B.G1.S1-A",
-  "data": "2021-11-10",
-  "relator": "Fernando Baptista De Oliveira",
-  "sumario": "A preclusão do direito de requerer a dispensa do pagamento do remanescente da taxa de justiça, a que se reporta o n.º 7 do artigo 6.º do Regulamento das Custas Processuais, tem lugar com o trânsito em julgado da decisão final do processo.",
-  "descritores": [
-   "uniformização de jurisprudência",
-   "taxa de justiça",
-   "remanescente",
-   "preclusão"
-  ],
-  "normas_citadas": [],
-  "normas_nao_verificadas": [],
-  "url": "http://www.dgsi.pt",
-  "ecli": "",
-  "tipo": "AUJ",
-  "ficheiro_origem": "auj_1_2022_taxa_justica.txt"
- },
- {
-  "id": "stj-acordao-stj-n-o-1-2024",
-  "tribunal": "STJ",
-  "numero_processo": "ACÓRDÃO STJ N.º 1/2024",
-  "data": "2023-11-08",
-  "relator": "",
-  "sumario": "Nos termos dos n.os 1 e 2 do art. 449.º do Código de Processo Penal, não é admissível recurso extraordinário de revisão do despacho que revoga a suspensão de execução da pena.",
-  "descritores": [
-   "fixação de jurisprudência",
-   "recurso extraordinário de revisão",
-   "suspensão da execução da pena"
-  ],
-  "normas_citadas": [
-   "CPP-449"
-  ],
-  "normas_nao_verificadas": [],
-  "url": "http://www.dgsi.pt",
-  "ecli": "",
-  "tipo": "AUJ",
-  "ficheiro_origem": "auj_1_2024_revisao_pena.txt"
- },
- {
-  "id": "stj-acordao-stj-n-o-2-2022",
-  "tribunal": "STJ",
-  "numero_processo": "ACÓRDÃO STJ N.º 2/2022",
-  "data": "2022",
-  "relator": "",
-  "sumario": "O dano da perda de chance processual, fundamento da obrigação de indemnizar, tem de ser consistente e sério, cabendo ao lesado o ónus da prova de tal consistência e seriedade.",
-  "descritores": [
-   "uniformização de jurisprudência",
-   "perda de chance processual",
-   "responsabilidade civil",
-   "ónus da prova"
-  ],
-  "normas_citadas": [],
-  "normas_nao_verificadas": [],
-  "url": "http://www.dgsi.pt",
-  "ecli": "",
-  "tipo": "AUJ",
-  "ficheiro_origem": "auj_2_2022_perda_de_chance.txt"
- },
- {
-  "id": "stj-acordao-stj-n-o-3-2024",
-  "tribunal": "STJ",
-  "numero_processo": "ACÓRDÃO STJ N.º 3/2024",
-  "data": "2024-03-13",
-  "relator": "",
-  "sumario": "Quando, em face de apresentação do Requerimento de Abertura de Instrução remetido por correio eletrónico simples, desprovido de assinatura eletrónica avançada e sem validação cronológica, não se seguir o envio do seu original, no prazo de 10 dias, conforme o disposto nos artigos 3.º, n.os 1 a 3, e 10.º da Portaria 642/2004, de 16 de Junho, 4.º do Decreto-Lei n.º 28/92, de 27 de Fevereiro, 6.º, n.º 1, al. b), do Decreto-Lei n.º 329-A/95, de 12 de Fevereiro, e 287.º, n.º 3, do Código de Processo Penal, deve o tribunal notificar o arguido para, no prazo que lhe for fixado, apresentar o documento em falta.",
-  "descritores": [
-   "fixação de jurisprudência",
-   "requerimento de abertura de instrução",
-   "correio eletrónico"
-  ],
-  "normas_citadas": [],
-  "normas_nao_verificadas": [],
-  "url": "http://www.dgsi.pt",
-  "ecli": "",
-  "tipo": "AUJ",
-  "ficheiro_origem": "auj_3_2024_rai_email.txt"
- },
- {
-  "id": "stj-2947-12-2tbvlg-p1-s2",
-  "tribunal": "STJ",
-  "numero_processo": "2947/12.2TBVLG.P1.S2",
-  "data": "2020-09-17",
-  "relator": "José Manuel Bernardo Domingos",
-  "sumario": "Nas ações de investigação de paternidade, intentadas nos termos da alínea b) do n.º 3 do artigo 1817.º, ex vi do artigo 1873.º do Código Civil, compete ao Réu/investigado o ónus de provar que o prazo de três anos referido no aludido normativo já se mostrava expirado à data em que o investigante intentou a ação.",
-  "descritores": [
-   "uniformização de jurisprudência",
-   "investigação de paternidade",
-   "prazo",
-   "ónus da prova"
-  ],
-  "normas_citadas": [],
-  "normas_nao_verificadas": [],
-  "url": "http://www.dgsi.pt",
-  "ecli": "",
-  "tipo": "AUJ",
-  "ficheiro_origem": "auj_4_2021_investigacao_paternidade.txt"
- },
- {
-  "id": "stj-1730-13-2tbstb-e1-s1-a",
-  "tribunal": "STJ",
-  "numero_processo": "1730/13.2TBSTB.E1.S1-A",
-  "data": "2021-11-10",
-  "relator": "João Cura Mariano",
-  "sumario": "A existência de uma declaração sub-rogatória pelo credor, de acordo com o artigo 589.º do Código Civil, no confiador solidariamente responsável que satisfez o crédito, não afasta a aplicação do regime da sub-rogação legal e do direito ao reembolso pelos outros confiadores, na medida das suas quotas, resultante da conjugação dos artigos 650.º, n.º 1, e 524.º do Código Civil.",
-  "descritores": [
-   "uniformização de jurisprudência",
-   "fiança",
-   "sub-rogação",
-   "direito ao reembolso"
-  ],
-  "normas_citadas": [
-   "CC-589",
-   "CC-650"
-  ],
-  "normas_nao_verificadas": [],
-  "url": "http://www.dgsi.pt",
-  "ecli": "",
-  "tipo": "AUJ",
-  "ficheiro_origem": "auj_6_2021_fianca_subrogacao.txt"
- },
- {
-  "id": "stj-acordao-stj-n-o-6-2022",
-  "tribunal": "STJ",
-  "numero_processo": "ACÓRDÃO STJ N.º 6/2022",
-  "data": "2022-06-30",
-  "relator": "",
-  "sumario": "I - No caso de quotas de amortização do capital mutuado pagável com juros, a prescrição opera no prazo de cinco anos, nos termos do artigo 310.º, alínea e), do Código Civil, em relação ao vencimento de cada prestação.\nII - Ocorrendo o seu vencimento antecipado, designadamente nos termos do artigo 781.º daquele mesmo diploma, o prazo de prescrição mantém-se, incidindo o seu termo 'a quo' na data desse vencimento e em relação a todas as quotas assim vencidas.",
-  "descritores": [
-   "uniformização de jurisprudência",
-   "mútuo",
-   "quotas de amortização",
-   "prescrição",
-   "vencimento antecipado"
-  ],
-  "normas_citadas": [
-   "CC-310"
-  ],
-  "normas_nao_verificadas": [],
-  "url": "http://www.dgsi.pt",
-  "ecli": "",
-  "tipo": "AUJ",
-  "ficheiro_origem": "auj_6_2022_prescricao_credito.txt"
- },
- {
-  "id": "stj-474-21-6t8mts-p1-s1",
-  "tribunal": "STJ",
-  "numero_processo": "474/21.6T8MTS.P1.S1",
-  "data": "2024-04-17",
-  "relator": "Júlio Gomes",
-  "sumario": "Para que possa ser ilidida a presunção de aceitação do despedimento constante do n.º 4 do artigo 366.º do Código do Trabalho (Lei n.º 7/2009, de 12 de fevereiro, com as alterações que, entretanto, lhe foram introduzidas) a totalidade da compensação recebida pelo trabalhador deverá ser devolvida por este até à instauração do respetivo procedimento cautelar ou ação de impugnação do despedimento, sendo esse o significado da expressão \"em simultâneo\" constante do n.º 5 do mencionado artigo 366.º do Código do Trabalho.",
-  "descritores": [
-   "uniformização de jurisprudência",
-   "presunção de aceitação do despedimento",
-   "despedimento coletivo",
-   "compensação"
-  ],
-  "normas_citadas": [
-   "CT-366"
-  ],
-  "normas_nao_verificadas": [],
-  "url": "https://www.dgsi.pt/jstj.nsf/954f0ce6ad9dd8b980256b5f003fa814/50e56c8144e6e34080258b03004b9be3",
-  "ecli": "",
-  "tipo": "AUJ",
-  "ficheiro_origem": "auj_7_2024_despedimento_compensacao.txt"
- },
- {
-  "id": "stj-acordao-stj-n-o-7-2025",
-  "tribunal": "STJ",
-  "numero_processo": "ACÓRDÃO STJ N.º 7/2025",
-  "data": "2025-03-19",
-  "relator": "",
-  "sumario": "1. O apuramento do capital devido ao segurado, ao abrigo do contrato de seguro desportivo, por situação de invalidez permanente parcial, nos termos do art. 16.º, alínea d), do Decreto-Lei n.º 10/2009, de 12 de janeiro — determinado em função do grau de incapacidade fixado e tendo como parâmetro o montante mínimo de capital previsto no citado art. 16.º, atualizado nos termos do art. 18.º (ou superior, se contratualmente acordado) —, resulta da multiplicação da percentagem do grau de incapacidade fixado pelo montante desse capital, independentemente do valor do dano efetivo sofrido pelo lesado.\n2. A cobertura do contrato de seguro mencionado no ponto 1 não abrange a reparação dos danos não patrimoniais sofridos pelo segurado.",
-  "descritores": [
-   "uniformização de jurisprudência",
-   "contrato de seguro desportivo",
-   "invalidez permanente parcial"
-  ],
-  "normas_citadas": [],
-  "normas_nao_verificadas": [],
-  "url": "http://www.dgsi.pt",
-  "ecli": "",
-  "tipo": "AUJ",
-  "ficheiro_origem": "auj_7_2025_seguro_desportivo.txt"
- }
+  {
+    "id": "stj-acordao-stj-n-o-12-2024",
+    "tribunal": "STJ",
+    "numero_processo": "ACÓRDÃO STJ N.º 12/2024",
+    "data": "2024",
+    "relator": "",
+    "sumario": "Em processo de contraordenação relativo a práticas restritivas da concorrência previstas no Regime Jurídico da Concorrência (Lei n.º 19/2012, de 8 de maio), compete ao juiz de instrução ordenar ou autorizar a apreensão de mensagens de correio eletrónico ou de outros registos de comunicações de natureza semelhante, independentemente de se encontrarem abertas (lidas) ou fechadas (não lidas), que se afigurem ser de grande interesse para a descoberta da verdade ou para a prova, nos termos do art. 17.º da Lei n.º 109/2009, de 15 de setembro (Lei do Cibercrime), aplicável por força do disposto no art. 13.º, n.º 1, do RJC e do art. 41.º, n.º 1, do RGCO.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "concorrência",
+      "contraordenação",
+      "apreensão de correio eletrónico"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "http://www.dgsi.pt",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "auj_12_2024_apreensao_email.txt"
+  },
+  {
+    "id": "stj-acordao-stj-n-o-13-2024",
+    "tribunal": "STJ",
+    "numero_processo": "ACÓRDÃO STJ N.º 13/2024",
+    "data": "2024",
+    "relator": "",
+    "sumario": "Prescrevem no prazo de 5 anos, por aplicação analógica do art. 310.º, alínea e), do Código Civil, as rendas do locatário no contrato de locação financeira.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "locação financeira",
+      "prescrição",
+      "rendas"
+    ],
+    "normas_citadas": [
+      "CC-310"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "http://www.dgsi.pt",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "auj_13_2024_locacao_financeira.txt"
+  },
+  {
+    "id": "stj-1292-20-4t8far-a-e1-s1-a",
+    "tribunal": "STJ",
+    "numero_processo": "1292/20.4T8FAR-A.E1.S1-A",
+    "data": "2025-06-15",
+    "relator": "",
+    "sumario": "O termo inicial do prazo prescricional, estabelecido no artigo 498.º, n.º 1, do Código Civil, do direito de indemnização, com fundamento em responsabilidade civil extracontratual decorrente de ocupação ilícita de imóvel, deverá coincidir com o momento em que o lesado adquira conhecimento dos factos que integram os pressupostos legais do direito invocado, independentemente de, à data do início da contagem daquele prazo, ainda não ter cessado a produção dos danos que venham a ser reclamados.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "prescrição",
+      "responsabilidade civil extracontratual",
+      "ocupação ilícita de imóvel"
+    ],
+    "normas_citadas": [
+      "CC-498"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "http://www.dgsi.pt",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "auj_14_2025_prescricao_ocupacao.txt"
+  },
+  {
+    "id": "stj-8882-20-3t8lsb-l1-s1",
+    "tribunal": "STJ",
+    "numero_processo": "8882/20.3T8LSB.L1.S1",
+    "data": "2025-03-12",
+    "relator": "Júlio Gomes",
+    "sumario": "São nulas por violação de norma legal imperativa cláusulas de uma convenção coletiva que prevejam categorias inferiores na admissão para os contratados a termo.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "convenção coletiva",
+      "contrato a termo",
+      "nulidade"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "http://www.dgsi.pt",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "auj_15_2025_convencao_coletiva.txt"
+  },
+  {
+    "id": "stj-1118-16-3t8vrl-b-g1-s1-a",
+    "tribunal": "STJ",
+    "numero_processo": "1118/16.3T8VRL-B.G1.S1-A",
+    "data": "2021-11-10",
+    "relator": "Fernando Baptista De Oliveira",
+    "sumario": "A preclusão do direito de requerer a dispensa do pagamento do remanescente da taxa de justiça, a que se reporta o n.º 7 do artigo 6.º do Regulamento das Custas Processuais, tem lugar com o trânsito em julgado da decisão final do processo.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "taxa de justiça",
+      "remanescente",
+      "preclusão"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "http://www.dgsi.pt",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "auj_1_2022_taxa_justica.txt"
+  },
+  {
+    "id": "stj-acordao-stj-n-o-1-2024",
+    "tribunal": "STJ",
+    "numero_processo": "ACÓRDÃO STJ N.º 1/2024",
+    "data": "2023-11-08",
+    "relator": "",
+    "sumario": "Nos termos dos n.os 1 e 2 do art. 449.º do Código de Processo Penal, não é admissível recurso extraordinário de revisão do despacho que revoga a suspensão de execução da pena.",
+    "descritores": [
+      "fixação de jurisprudência",
+      "recurso extraordinário de revisão",
+      "suspensão da execução da pena"
+    ],
+    "normas_citadas": [
+      "CPP-449"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "http://www.dgsi.pt",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "auj_1_2024_revisao_pena.txt"
+  },
+  {
+    "id": "stj-acordao-stj-n-o-2-2022",
+    "tribunal": "STJ",
+    "numero_processo": "ACÓRDÃO STJ N.º 2/2022",
+    "data": "2022",
+    "relator": "",
+    "sumario": "O dano da perda de chance processual, fundamento da obrigação de indemnizar, tem de ser consistente e sério, cabendo ao lesado o ónus da prova de tal consistência e seriedade.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "perda de chance processual",
+      "responsabilidade civil",
+      "ónus da prova"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "http://www.dgsi.pt",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "auj_2_2022_perda_de_chance.txt"
+  },
+  {
+    "id": "stj-acordao-stj-n-o-3-2024",
+    "tribunal": "STJ",
+    "numero_processo": "ACÓRDÃO STJ N.º 3/2024",
+    "data": "2024-03-13",
+    "relator": "",
+    "sumario": "Quando, em face de apresentação do Requerimento de Abertura de Instrução remetido por correio eletrónico simples, desprovido de assinatura eletrónica avançada e sem validação cronológica, não se seguir o envio do seu original, no prazo de 10 dias, conforme o disposto nos artigos 3.º, n.os 1 a 3, e 10.º da Portaria 642/2004, de 16 de Junho, 4.º do Decreto-Lei n.º 28/92, de 27 de Fevereiro, 6.º, n.º 1, al. b), do Decreto-Lei n.º 329-A/95, de 12 de Fevereiro, e 287.º, n.º 3, do Código de Processo Penal, deve o tribunal notificar o arguido para, no prazo que lhe for fixado, apresentar o documento em falta.",
+    "descritores": [
+      "fixação de jurisprudência",
+      "requerimento de abertura de instrução",
+      "correio eletrónico"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "http://www.dgsi.pt",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "auj_3_2024_rai_email.txt"
+  },
+  {
+    "id": "stj-2947-12-2tbvlg-p1-s2",
+    "tribunal": "STJ",
+    "numero_processo": "2947/12.2TBVLG.P1.S2",
+    "data": "2020-09-17",
+    "relator": "José Manuel Bernardo Domingos",
+    "sumario": "Nas ações de investigação de paternidade, intentadas nos termos da alínea b) do n.º 3 do artigo 1817.º, ex vi do artigo 1873.º do Código Civil, compete ao Réu/investigado o ónus de provar que o prazo de três anos referido no aludido normativo já se mostrava expirado à data em que o investigante intentou a ação.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "investigação de paternidade",
+      "prazo",
+      "ónus da prova"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "http://www.dgsi.pt",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "auj_4_2021_investigacao_paternidade.txt"
+  },
+  {
+    "id": "stj-1730-13-2tbstb-e1-s1-a",
+    "tribunal": "STJ",
+    "numero_processo": "1730/13.2TBSTB.E1.S1-A",
+    "data": "2021-11-10",
+    "relator": "João Cura Mariano",
+    "sumario": "A existência de uma declaração sub-rogatória pelo credor, de acordo com o artigo 589.º do Código Civil, no confiador solidariamente responsável que satisfez o crédito, não afasta a aplicação do regime da sub-rogação legal e do direito ao reembolso pelos outros confiadores, na medida das suas quotas, resultante da conjugação dos artigos 650.º, n.º 1, e 524.º do Código Civil.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "fiança",
+      "sub-rogação",
+      "direito ao reembolso"
+    ],
+    "normas_citadas": [
+      "CC-589",
+      "CC-650"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "http://www.dgsi.pt",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "auj_6_2021_fianca_subrogacao.txt"
+  },
+  {
+    "id": "stj-acordao-stj-n-o-6-2022",
+    "tribunal": "STJ",
+    "numero_processo": "ACÓRDÃO STJ N.º 6/2022",
+    "data": "2022-06-30",
+    "relator": "",
+    "sumario": "I - No caso de quotas de amortização do capital mutuado pagável com juros, a prescrição opera no prazo de cinco anos, nos termos do artigo 310.º, alínea e), do Código Civil, em relação ao vencimento de cada prestação.\nII - Ocorrendo o seu vencimento antecipado, designadamente nos termos do artigo 781.º daquele mesmo diploma, o prazo de prescrição mantém-se, incidindo o seu termo 'a quo' na data desse vencimento e em relação a todas as quotas assim vencidas.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "mútuo",
+      "quotas de amortização",
+      "prescrição",
+      "vencimento antecipado"
+    ],
+    "normas_citadas": [
+      "CC-310"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "http://www.dgsi.pt",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "auj_6_2022_prescricao_credito.txt"
+  },
+  {
+    "id": "stj-474-21-6t8mts-p1-s1",
+    "tribunal": "STJ",
+    "numero_processo": "474/21.6T8MTS.P1.S1",
+    "data": "2024-04-17",
+    "relator": "Júlio Gomes",
+    "sumario": "Para que possa ser ilidida a presunção de aceitação do despedimento constante do n.º 4 do artigo 366.º do Código do Trabalho (Lei n.º 7/2009, de 12 de fevereiro, com as alterações que, entretanto, lhe foram introduzidas) a totalidade da compensação recebida pelo trabalhador deverá ser devolvida por este até à instauração do respetivo procedimento cautelar ou ação de impugnação do despedimento, sendo esse o significado da expressão \"em simultâneo\" constante do n.º 5 do mencionado artigo 366.º do Código do Trabalho.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "presunção de aceitação do despedimento",
+      "despedimento coletivo",
+      "compensação"
+    ],
+    "normas_citadas": [
+      "CT-366"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.dgsi.pt/jstj.nsf/954f0ce6ad9dd8b980256b5f003fa814/50e56c8144e6e34080258b03004b9be3",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "auj_7_2024_despedimento_compensacao.txt"
+  },
+  {
+    "id": "stj-acordao-stj-n-o-7-2025",
+    "tribunal": "STJ",
+    "numero_processo": "ACÓRDÃO STJ N.º 7/2025",
+    "data": "2025-03-19",
+    "relator": "",
+    "sumario": "1. O apuramento do capital devido ao segurado, ao abrigo do contrato de seguro desportivo, por situação de invalidez permanente parcial, nos termos do art. 16.º, alínea d), do Decreto-Lei n.º 10/2009, de 12 de janeiro — determinado em função do grau de incapacidade fixado e tendo como parâmetro o montante mínimo de capital previsto no citado art. 16.º, atualizado nos termos do art. 18.º (ou superior, se contratualmente acordado) —, resulta da multiplicação da percentagem do grau de incapacidade fixado pelo montante desse capital, independentemente do valor do dano efetivo sofrido pelo lesado.\n2. A cobertura do contrato de seguro mencionado no ponto 1 não abrange a reparação dos danos não patrimoniais sofridos pelo segurado.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "contrato de seguro desportivo",
+      "invalidez permanente parcial"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "http://www.dgsi.pt",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "auj_7_2025_seguro_desportivo.txt"
+  },
+  {
+    "id": "stj-auj-14-2025",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 14/2025",
+    "processo": "1292/20.4T8FAR-A.E1.S1-A",
+    "data": "2025",
+    "relator": "",
+    "sumario": "O termo inicial do prazo prescricional, estabelecido no artigo 498.º n.º 1 do Código Civil, do direito de indemnização com fundamento em responsabilidade civil extracontratual decorrente de ocupação ilícita de imóvel, conta-se a partir do conhecimento do direito pelo lesado.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [
+      "CC-498"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/civel/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "stj.pt (recolha web verificável)"
+  },
+  {
+    "id": "stj-auj-15-2025",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 15/2025",
+    "processo": "8882/20.3T8LSB.L1.S1",
+    "data": "2025-03-12",
+    "relator": "",
+    "sumario": "São nulas por violação de norma legal imperativa cláusulas de uma convenção coletiva que prevejam categorias inferiores na admissão para os contratados a termo.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "social"
+    ],
+    "normas_citadas": [
+      "CT-3"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/social/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "stj.pt (recolha web verificável)"
+  },
+  {
+    "id": "stj-auj-17-2025",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 17/2025",
+    "processo": "41/19.4GBVNF.G1-A.S1",
+    "data": "2025-11-19",
+    "relator": "",
+    "sumario": "O procedimento criminal pelo crime de ameaça agravada previsto pelas disposições conjugadas dos artigos 153.º n.º 1 e 155.º n.º 1 do Código Penal depende de queixa.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [
+      "CP-153",
+      "CP-155"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/criminais/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "stj.pt (recolha web verificável)"
+  },
+  {
+    "id": "stj-auj-18-2025",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 18/2025",
+    "processo": "916/19.0T8GDM.P1.S1",
+    "data": "2025",
+    "relator": "",
+    "sumario": "Um condómino pode adquirir, por usucapião, um espaço de arrumos de um prédio já constituído em propriedade horizontal, desde que a posse preencha os requisitos exigíveis para a usucapião.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [
+      "CC-1287"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/civel/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "stj.pt (recolha web verificável)"
+  },
+  {
+    "id": "stj-auj-5-2024",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 5/2024",
+    "processo": "1105/18.7T9PNF.P1-A.S1",
+    "data": "2024-04-11",
+    "relator": "",
+    "sumario": "Nos termos do artigo 111.º n.ºs 2 e 4 do Código Penal, as vantagens adquiridas pela prática de um facto ilícito típico devem ser declaradas perdidas a favor do Estado, mesmo quando já integram a indemnização civil judicialmente pedida e atribuída ao lesado pelo mesmo facto.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [
+      "CP-111",
+      "CP-130"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/criminais/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "stj.pt (recolha web verificável)"
+  },
+  {
+    "id": "stj-auj-9-2024",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 9/2024",
+    "processo": "560/19.2PATVD.L1",
+    "data": "2024",
+    "relator": "",
+    "sumario": "O Ministério Público e o Assistente têm legitimidade para prosseguir com a ação penal em casos de alteração da qualificação jurídica dos factos, no decurso do julgamento, por crime de violência doméstica, passando o arguido a ser confrontado com a prática de crimes de natureza particular.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [
+      "CP-152"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/criminais/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "stj.pt (recolha web verificável)"
+  },
+  {
+    "id": "stj-auj-15-2024",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 15/2024",
+    "processo": "",
+    "data": "2024",
+    "relator": "",
+    "sumario": "O acréscimo de seis meses dos prazos de duração máximos de prisão preventiva, em razão da interposição de recurso para o Tribunal Constitucional, previsto no artigo 215.º n.º 5 do Código de Processo Penal, aplica-se aos casos aí previstos.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [
+      "CPP-215"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/criminais/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "stj.pt (recolha web verificável)"
+  },
+  {
+    "id": "stj-auj-14-2023",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 14/2023",
+    "processo": "5259/19.7T9CBR.C1-A.S1",
+    "data": "2023-11-12",
+    "relator": "",
+    "sumario": "O crime de ofensa a organismo, serviço ou pessoa coletiva, previsto e punível pelo artigo 187.º do Código Penal, pode ser cometido através de escrito.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [
+      "CP-187"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/criminais/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "stj.pt (recolha web verificável)"
+  },
+  {
+    "id": "stj-auj-13-2023",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 13/2023",
+    "processo": "3125/11.3TJCBR-B.C1.S1-A",
+    "data": "2023",
+    "relator": "",
+    "sumario": "A regra prevista no artigo 14.º n.º 1 do CIRE restringe o acesso geral de recurso ao STJ às decisões proferidas no processo principal de insolvência, nos incidentes nele processados e aos embargos.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [
+      "CIRE-14"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/civel/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "stj.pt (recolha web verificável)"
+  },
+  {
+    "id": "stj-auj-1-2022",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 1/2022",
+    "processo": "1118.16.3T8VRL-B.G1.S1-A",
+    "data": "2021-11-10",
+    "relator": "",
+    "sumario": "A preclusão do direito de requerer a dispensa do pagamento do remanescente da taxa de justiça, a que se reporta o n.º 7 do artigo 6.º do Regulamento das Custas Processuais, tem lugar com o trânsito em julgado da decisão final do processo.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/civel/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "stj.pt (recolha web verificável)"
+  },
+  {
+    "id": "stj-auj-10-2022",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 10/2022",
+    "processo": "",
+    "data": "2022",
+    "relator": "",
+    "sumario": "A escritura pública declaratória de união estável celebrada no Brasil não constitui uma decisão revestida de força de caso julgado que recaia sobre direitos privados, não sendo suscetível de revisão e confirmação pelos tribunais portugueses.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/civel/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "stj.pt (recolha web verificável)"
+  },
+  {
+    "id": "stj-auj-4-2021",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 4/2021",
+    "processo": "2947/12.2TBVLG.P1.S2",
+    "data": "2020-09-17",
+    "relator": "",
+    "sumario": "Nas ações de investigação de paternidade intentadas nos termos da alínea b) do n.º 3 do artigo 1817.º, ex vi do artigo 1873.º do Código Civil, compete ao Réu/investigado o ónus de provar que o prazo de três anos referido no aludido normativo já se mostrava expirado à data em que o investigante intentou a ação.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [
+      "CC-1817",
+      "CC-1873"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/civel/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "stj.pt (recolha web verificável)"
+  },
+  {
+    "id": "stj-auj-6-2021",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 6/2021",
+    "processo": "",
+    "data": "2021",
+    "relator": "",
+    "sumario": "A existência de uma declaração sub-rogatória pelo credor, de acordo com o artigo 589.º do Código Civil, no confiador solidariamente responsável que satisfez o crédito, não afasta a aplicação do regime da sub-rogação legal.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [
+      "CC-589"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/civel/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "stj.pt (recolha web verificável)"
+  },
+  {
+    "id": "stj-auj-14-2024",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 14/2024",
+    "processo": "",
+    "data": "2024",
+    "relator": "",
+    "sumario": "A venda de imóvel hipotecado, com arrendamento rural celebrado posteriormente à hipoteca, não faz caducar este arrendamento de harmonia com o preceituado no n.º 1 do art. 22.º do RAR.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/civel/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "stj.pt (recolha web verificável)"
+  },
+  {
+    "id": "stj-auj-1-2020",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 1/2020",
+    "processo": "",
+    "data": "2020",
+    "relator": "",
+    "sumario": "O recurso subordinado de revista está sujeito ao n.º 3 do artigo 671.º do Código de Processo Civil, a isso não obstando o n.º 5 do artigo 633.º do mesmo Código.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "civel"
+    ],
+    "normas_citadas": [
+      "CPC-671",
+      "CPC-633"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/civel/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "stj.pt (recolha web verificável)"
+  },
+  {
+    "id": "stj-auj-4-2026",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 4/2026",
+    "processo": "3704/23.6T8BRG.S1-A",
+    "data": "2026-05-19",
+    "relator": "",
+    "sumario": "O pedido de indemnização cível deduzido em ação popular, fundado numa causa de pedir integrada por factos qualificados como crime, não está submetido ao princípio da adesão obrigatória.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [
+      "CPP-71"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/criminais/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "stj.pt (recolha web verificável)"
+  },
+  {
+    "id": "stj-auj-2-2026",
+    "tribunal": "STJ",
+    "numero_processo": "Acórdão STJ n.º 2/2026",
+    "processo": "6/23.1PJLRS-A.L1-A.S1",
+    "data": "2026-03-12",
+    "relator": "",
+    "sumario": "A omissão da redução a escrito do despacho que aplica medidas de coação, proferido oralmente após primeiro interrogatório judicial de arguido detido, desde que documentado por registo áudio, não constitui nulidade.",
+    "descritores": [
+      "uniformização de jurisprudência",
+      "criminal"
+    ],
+    "normas_citadas": [
+      "CPP-194"
+    ],
+    "normas_nao_verificadas": [],
+    "url": "https://www.stj.pt/uniformizacao-de-jurisprudencia/criminais/",
+    "ecli": "",
+    "tipo": "AUJ",
+    "ficheiro_origem": "stj.pt (recolha web verificável)"
+  }
 ]
