@@ -44,13 +44,8 @@ const NAV_POR_ROLE = {
   admin: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
     { path: '/configuracao', icon: 'ti-settings', label: 'Configuração' },
-    { path: '/jurisprudencia', icon: 'ti-gavel', label: 'Jurisprudência' },
-    { path: '/casos', icon: 'ti-folder', label: 'Os meus casos' },
+    { path: '/utilizadores', icon: 'ti-users', label: 'Utilizadores' },
     { path: '/observatorio', icon: 'ti-chart-dots', label: 'Observatório' },
-    { path: '/consulta', icon: 'ti-message-question', label: 'Consulta' },
-    { path: '/instrutor', icon: 'ti-list-search', label: 'Instrução do caso' },
-    { path: '/cenarios', icon: 'ti-scale', label: 'Cenários de resolução' },
-    { path: '/processos', icon: 'ti-folder', label: 'Processos' },
     { path: '/auditoria', icon: 'ti-shield', label: 'Auditoria' },
   ],
 }
