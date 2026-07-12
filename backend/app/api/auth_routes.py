@@ -7,7 +7,7 @@ GET  /auth/roles  → lista papéis e permissões (público, para documentação
 """
 
 from fastapi import APIRouter, HTTPException, Depends, status
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 import structlog
 
 from app.security.jwt_manager import jwt_manager, TokenResponse
@@ -30,6 +30,37 @@ class UtilizadorInfo(BaseModel):
     nome: str
     role: str
     permissoes: list[str]
+
+
+class RegistoRequest(BaseModel):
+    nome: str = Field(..., min_length=3, max_length=80)
+    email: EmailStr
+    password: str = Field(..., min_length=10, max_length=128,
+                          description="Mínimo 10 caracteres")
+
+
+@router.post("/registo", response_model=TokenResponse, status_code=201)
+async def registo_cidadao(dados: RegistoRequest) -> TokenResponse:
+    """
+    Auto-registo de CIDADÃOS. Advogados, magistrados e analistas não se
+    auto-registam: são credenciados pelo administrador (a verificação do
+    papel profissional — cédula da Ordem, vínculo ao CSM — é feita fora
+    da aplicação). Numa versão de produção, o registo do cidadão usaria a
+    Chave Móvel Digital / autenticação.gov para verificar a identidade.
+    """
+    from app.db.utilizadores import repositorio as _ru
+    from app.security.rbac import Role
+    try:
+        u = _ru.criar(email=str(dados.email).strip().lower(),
+                      nome=dados.nome.strip(),
+                      role=Role.CIDADAO,
+                      password=dados.password)
+    except ValueError:
+        # não revelar se o email existe (enumeração de contas)
+        raise HTTPException(status_code=409,
+                            detail="Não foi possível criar a conta com esses dados.")
+    logger.info("auth.registo.cidadao", user_id=u.id)
+    return jwt_manager.criar_token(user_id=u.id, role=u.role)
 
 
 @router.post(

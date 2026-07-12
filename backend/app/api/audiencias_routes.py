@@ -20,6 +20,7 @@ from typing import Optional
 import structlog
 
 from app.security.dependencias import requer_login, requer_permissao
+from app.db import config_repo
 from fastapi.responses import HTMLResponse, PlainTextResponse, Response
 from app.security.rbac import Permissao
 from app.db.utilizadores import Utilizador
@@ -299,6 +300,16 @@ async def proferir_decisao(aid: str, utilizador: Utilizador = Depends(requer_log
 
 # ── Ata da sessão (escrivão): consultar e exportar ───────────────────────────
 
+def _linha_contactos() -> str:
+    try:
+        c = config_repo.obter_config()
+        partes = [c.get("email_suporte"), c.get("telefone_suporte"), c.get("horario")]
+        partes = [p for p in partes if p]
+        return ("Apoio: " + " · ".join(partes)) if partes else ""
+    except Exception:
+        return ""
+
+
 def _ata_markdown(d: dict) -> str:
     """Compõe a ata em Markdown — legível, copiável, imprimível."""
     L = []
@@ -339,6 +350,8 @@ def _ata_markdown(d: dict) -> str:
     L.append(f"_{d['rodape']}_")
     L.append("")
     L.append("**SNAJI — Serviço Nacional de Assistência Jurídica Inteligente**")
+    if _linha_contactos():
+        L.append(_linha_contactos())
     return "\n".join(L)
 
 
@@ -392,6 +405,8 @@ def _ata_txt(d: dict) -> str:
         L.append(linha)
     L.append("")
     L.append("SNAJI — Serviço Nacional de Assistência Jurídica Inteligente")
+    if _linha_contactos():
+        L.append(_linha_contactos())
     return "\n".join(L)
 
 
@@ -455,7 +470,7 @@ Audiência de {d['tipo_audiencia']} — {d['data_por_extenso']}<br>
 {provas}{decisao}
 <div class="selo"><strong>Integridade da cadeia de atas:</strong> {estado}<br>
 Selo: <code>{d['selo']}</code> · {d['total_atos']} atos · {d['total_atas']} atas</div>
-<p class="rodape">{d['rodape']}<br><strong>SNAJI — Serviço Nacional de Assistência Jurídica Inteligente</strong></p>
+<p class="rodape">{d['rodape']}<br><strong>SNAJI — Serviço Nacional de Assistência Jurídica Inteligente</strong><br>{_linha_contactos()}</p>
 </body></html>"""
 
 
