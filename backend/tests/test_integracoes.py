@@ -44,7 +44,7 @@ class TestJurisprudencia:
 
     def test_pesquisa_sem_resultados_nao_falha(self):
         """Tema sem acórdãos na base devolve 0 resultados, sem erro nem invenções."""
-        r = self.motor.pesquisar("corrupção funcionário público suborno")
+        r = self.motor.pesquisar("patente farmacêutica biotecnologia")
         assert r.total == 0
         assert r.acordaos == []
 
