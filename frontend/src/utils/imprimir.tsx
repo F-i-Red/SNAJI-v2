@@ -30,6 +30,8 @@ export interface DocumentoImprimivel {
 
 // ── Texto simples (.txt) ────────────────────────────────────────────────
 
+const ASSINATURA_SNAJI = 'SNAJI — Serviço Nacional de Assistência Jurídica Inteligente'
+
 export function documentoParaTexto(doc: DocumentoImprimivel): string {
   const L: string[] = []
   const sep = '='.repeat(66)
@@ -55,10 +57,12 @@ export function documentoParaTexto(doc: DocumentoImprimivel): string {
     }
     if (s.itens?.length) L.push('')
   }
+  L.push(sep)
   if (doc.rodape) {
-    L.push(sep)
     quebrar(doc.rodape, 66).forEach(l => L.push(l))
+    L.push('')
   }
+  L.push(ASSINATURA_SNAJI)
   return L.join('\n')
 }
 
@@ -108,7 +112,7 @@ export function documentoParaHTML(doc: DocumentoImprimivel): string {
 ${doc.subtitulo ? `<div class="sub">${esc(doc.subtitulo)}</div>` : ''}
 ${meta ? `<div class="meta">${meta}</div>` : ''}
 ${seccoes}
-${doc.rodape ? `<div class="rodape">${esc(doc.rodape)}</div>` : ''}
+<div class="rodape">${doc.rodape ? esc(doc.rodape) + '<br>' : ''}${esc(ASSINATURA_SNAJI)}</div>
 </body></html>`
 }
 
