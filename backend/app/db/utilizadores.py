@@ -93,6 +93,11 @@ class RepositorioUtilizadores:
             return None
         # Actualiza último login
         u.ultimo_login = datetime.now(timezone.utc)
+        try:
+            from app.analytics.registo import registar
+            registar("login", {"role": u.role.value})
+        except Exception:
+            pass
         return u
 
     def listar(self) -> list[Utilizador]:
