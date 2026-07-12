@@ -32,9 +32,16 @@ export default function PaginaConfiguracao() {
     if (!cfg) return
     setAGuardar(true); setErro(null); setGuardado(false)
     try {
-      const r = await api.put<Config>('/config', cfg)
-      setCfg(r.data); setGuardado(true)
-      setTimeout(() => setGuardado(false), 2500)
+      await api.put<Config>('/config', cfg)
+      // confirmação real: reler do servidor para garantir que persistiu
+      const confirmacao = await api.get<Config>('/config')
+      setCfg(confirmacao.data)
+      if (!confirmacao.data.email_suporte && cfg.email_suporte) {
+        setErro('O servidor não persistiu os valores — verifique se o ficheiro backend/app/db/config.json foi criado e se o processo tem permissão de escrita nessa pasta.')
+      } else {
+        setGuardado(true)
+        setTimeout(() => setGuardado(false), 2500)
+      }
     } catch (e) { setErro(tratarErroAPI(e)) }
     finally { setAGuardar(false) }
   }
