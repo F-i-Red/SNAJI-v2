@@ -105,7 +105,7 @@ class MotorAnalista:
         acompanhar a adoção. Dados agregados."""
         from collections import Counter
         logins = [e for e in self.eventos if e["evento"] == "login"]
-        por_perfil = Counter(e.get("dados", {}).get("role", "?") for e in logins)
+        por_perfil = Counter(e.get("role", "?") for e in logins)
         # Funcionalidades usadas (todos os eventos que não são de sistema)
         func = Counter(e["evento"] for e in self.eventos)
         mais_usadas = dict(func.most_common(10))
