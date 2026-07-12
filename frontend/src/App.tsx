@@ -10,6 +10,7 @@ import PaginaAnalista from './pages/Analista'
 import PaginaMeusCasos from './pages/MeusCasos'
 import PaginaJurisprudencia from './pages/Jurisprudencia'
 import PaginaPecas from './pages/Pecas'
+import PaginaDossie from './pages/Dossie'
 import PaginaConfiguracao from './pages/Configuracao'
 import PaginaProcessos from './pages/Processos'
 import PaginaDocumentos from './pages/Documentos'
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="casos" element={<PaginaMeusCasos />} />
           <Route path="jurisprudencia" element={<PaginaJurisprudencia />} />
           <Route path="pecas" element={<PaginaPecas />} />
+          <Route path="dossie" element={<PaginaDossie />} />
           <Route path="configuracao" element={<PaginaConfiguracao />} />
           <Route path="processos"  element={<PaginaProcessos />} />
           <Route path="documentos" element={<PaginaDocumentos />} />
