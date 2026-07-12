@@ -60,8 +60,10 @@ def guardar_config(novos: dict, utilizador_id: str) -> dict:
         for chave in _PADRAO:
             if chave in novos and novos[chave] is not None:
                 atual[chave] = str(novos[chave]).strip()
-        FICHEIRO_CONFIG.write_text(
-            json.dumps(atual, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
+        # Gravação atómica (Windows-safe): escreve num temporário e substitui.
+        tmp = FICHEIRO_CONFIG.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(atual, ensure_ascii=False, indent=2), encoding="utf-8")
+        tmp.replace(FICHEIRO_CONFIG)
+        logger.info("config.gravada_em", caminho=str(FICHEIRO_CONFIG.resolve()))
     logger.info("config.guardada", por=utilizador_id, chaves=list(novos.keys()))
     return atual
