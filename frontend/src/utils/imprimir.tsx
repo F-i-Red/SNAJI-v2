@@ -32,6 +32,16 @@ export interface DocumentoImprimivel {
 
 const ASSINATURA_SNAJI = 'SNAJI — Serviço Nacional de Assistência Jurídica Inteligente'
 
+function contactosInstitucionais(): string {
+  try {
+    const raw = sessionStorage.getItem('snaji_contactos')
+    if (!raw) return ''
+    const c = JSON.parse(raw)
+    const partes = [c.email_suporte, c.telefone_suporte, c.horario].filter(Boolean)
+    return partes.length ? 'Apoio: ' + partes.join(' · ') : ''
+  } catch { return '' }
+}
+
 export function documentoParaTexto(doc: DocumentoImprimivel): string {
   const L: string[] = []
   const sep = '='.repeat(66)
@@ -63,6 +73,8 @@ export function documentoParaTexto(doc: DocumentoImprimivel): string {
     L.push('')
   }
   L.push(ASSINATURA_SNAJI)
+  const ct = contactosInstitucionais()
+  if (ct) L.push(ct)
   return L.join('\n')
 }
 
@@ -112,7 +124,7 @@ export function documentoParaHTML(doc: DocumentoImprimivel): string {
 ${doc.subtitulo ? `<div class="sub">${esc(doc.subtitulo)}</div>` : ''}
 ${meta ? `<div class="meta">${meta}</div>` : ''}
 ${seccoes}
-<div class="rodape">${doc.rodape ? esc(doc.rodape) + '<br>' : ''}${esc(ASSINATURA_SNAJI)}</div>
+<div class="rodape">${doc.rodape ? esc(doc.rodape) + '<br>' : ''}${esc(ASSINATURA_SNAJI)}${contactosInstitucionais() ? '<br>' + esc(contactosInstitucionais()) : ''}</div>
 </body></html>`
 }
 
