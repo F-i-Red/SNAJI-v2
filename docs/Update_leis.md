@@ -1,4 +1,4 @@
-## Como usar o atualizador ## (no teu PC, na pasta backend):
+## Como usar o atualizador (no teu PC, na pasta backend):
 
 ```bash
 py ferramentas/atualizador_acordaos.py --simular    ← só mostra o que faria
