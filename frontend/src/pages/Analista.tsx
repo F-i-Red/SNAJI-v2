@@ -74,6 +74,7 @@ export default function PaginaAnalista() {
   const [q, setQ] = useState<Qualidade | null>(null)
   const [g, setG] = useState<Governacao | null>(null)
   const [erro, setErro] = useState<string | null>(null)
+  const [util, setUtil] = useState<any | null>(null)
 
   const BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:8000/api/v1'
   const abrirRelatorio = async () => {
@@ -98,18 +99,26 @@ export default function PaginaAnalista() {
   const carregar = async (d: number) => {
     setCarregando(true); setErro(null)
     try {
-      const [r1, r2, r3, r4] = await Promise.all([
+      const [r1, r2, r3, r4, r5] = await Promise.all([
         api.get<Observatorio>(`/analista/observatorio?dias=${d}`),
         api.get<ZonasCinzentas>(`/analista/zonas-cinzentas?dias=${d}`),
         api.get<Qualidade>(`/analista/qualidade?dias=${d}`),
         api.get<Governacao>(`/analista/governacao?dias=${d}`),
+        api.get(`/analista/utilizacao?dias=${d}`),
       ])
-      setObs(r1.data); setZc(r2.data); setQ(r3.data); setG(r4.data)
+      setObs(r1.data); setZc(r2.data); setQ(r3.data); setG(r4.data); setUtil(r5.data)
     } catch (e) { setErro(tratarErroAPI(e)) }
     finally { setCarregando(false) }
   }
 
-  useEffect(() => { carregar(dias) }, [dias]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const NOME_FUNC: Record<string, string> = {
+    login: 'Sessões iniciadas', instrucao_iniciada: 'Instruções começadas',
+    instrucao_concluida: 'Instruções concluídas', cenarios_gerados: 'Cenários gerados',
+    analise_juridica: 'Análises jurídicas', peca_analisada: 'Peças analisadas',
+  }
+
+    useEffect(() => { carregar(dias) }, [dias]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Estilos base (design system SNAJI) ─────────────────────────────────
 
@@ -261,6 +270,38 @@ export default function PaginaAnalista() {
               </div>
             )}
           </div>
+
+          {/* Utilização do sistema */}
+          {util && (
+            <div style={cartao}>
+              <div style={titulo}>Utilização do sistema</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 12 }}>
+                <div>
+                  <div style={{ fontSize: 24, fontWeight: 600, color: '#0a2342' }}>{util.total_logins}</div>
+                  <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>sessões iniciadas ({util.periodo_dias} dias)</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 24, fontWeight: 600, color: '#0a2342' }}>{util.total_eventos}</div>
+                  <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>ações registadas</div>
+                </div>
+              </div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 6 }}>Sessões por perfil</div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+                {Object.entries(util.logins_por_perfil || {}).map(([perfil, n]: any) => (
+                  <span key={perfil} style={{ fontSize: 12, padding: '3px 10px', borderRadius: 12, background: 'var(--color-background-secondary)', color: 'var(--color-text-secondary)' }}>
+                    {perfil}: <strong>{n}</strong>
+                  </span>
+                ))}
+              </div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 6 }}>Funcionalidades mais usadas</div>
+              {Object.entries(util.funcionalidades_mais_usadas || {}).map(([func, n]: any) => (
+                <div key={func} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, padding: '3px 0', borderBottom: '0.5px solid var(--color-border-tertiary)' }}>
+                  <span>{NOME_FUNC[func] ?? func}</span>
+                  <strong>{n as any}</strong>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Zonas cinzentas + Qualidade */}
           <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
