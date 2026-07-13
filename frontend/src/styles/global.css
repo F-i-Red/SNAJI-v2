@@ -63,3 +63,11 @@ a { color: inherit; }
   color: var(--color-text-warning);
   line-height: 1.5;
 }
+
+
+/* Acessibilidade: foco visível na navegação por teclado (WCAG 2.4.7) */
+:focus-visible {
+  outline: 2px solid #0a2342;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
