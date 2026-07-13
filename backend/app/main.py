@@ -53,6 +53,27 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+def _backup_diario() -> None:
+    """Cópia diária dos dados persistidos (casos, processos, config).
+    Corre no arranque: se o backup de hoje não existe, cria-o."""
+    import shutil
+    from datetime import date
+    from pathlib import Path
+    base = Path(__file__).parent / "db"
+    destino = base / "backups" / date.today().isoformat()
+    if destino.exists():
+        return
+    destino.mkdir(parents=True, exist_ok=True)
+    for nome in ("casos.json", "processos.json", "config.json"):
+        f = base / nome
+        if f.exists():
+            shutil.copy2(f, destino / nome)
+    import structlog
+    structlog.get_logger(__name__).info("backup.diario", pasta=str(destino))
+
+
+_backup_diario()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(","),
