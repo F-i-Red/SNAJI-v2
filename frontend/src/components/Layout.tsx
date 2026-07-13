@@ -128,6 +128,8 @@ export default function Layout() {
             <div style={{ textTransform: 'uppercase', letterSpacing: '0.06em' }}>{role}</div>
           </div>
           <button
+            aria-label="Terminar sessão"
+            title="Terminar sessão"
             onClick={() => { if (window.confirm('Terminar a sessão?')) { logout(); navigate('/login') } }}
             style={{
               background: 'rgba(255,255,255,0.1)',
@@ -226,6 +228,9 @@ export default function Layout() {
               {contactos.email_suporte && <div>{contactos.email_suporte}</div>}
               {contactos.telefone_suporte && <div>{contactos.telefone_suporte}</div>}
               {contactos.horario && <div>{contactos.horario}</div>}
+              <Link to="/privacidade" style={{ fontSize: 11, color: 'var(--color-text-tertiary)', textDecoration: 'underline' }}>
+                Privacidade e dados
+              </Link>
             </div>
           )}
         </nav>
