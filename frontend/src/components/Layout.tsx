@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuthStore, useRole } from '../auth/session'
+import { api } from '../services/api'
 
 const NAV_POR_ROLE = {
   cidadao: [
