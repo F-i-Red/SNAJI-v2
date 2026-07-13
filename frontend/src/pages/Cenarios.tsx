@@ -109,6 +109,13 @@ export default function PaginaCenarios() {
       Array.from(files).forEach(f => fd.append('ficheiros', f))
       const r = await api.post<{ texto: string }>('/documentos/extrair-texto', fd,
         { headers: { 'Content-Type': 'multipart/form-data' } })
+      if (!r.data.texto || !r.data.texto.trim()) {
+        const avs = (r.data as any).avisos as string[] | undefined
+        setErro(avs && avs.length
+          ? 'O documento não continha texto legível: ' + avs.join(' · ')
+          : 'O documento não continha texto legível (PDF digitalizado sem OCR, ou ficheiro vazio).')
+        return
+      }
       setTexto(prev => (prev.trim() ? prev.trim() + '\n\n' : '') + r.data.texto)
       setDocsAnexados(prev => [...prev, ...nomes])
     } catch (e) { setErro(tratarErroAPI(e)) }

@@ -141,6 +141,13 @@ export default function PaginaInstrutor() {
       Array.from(files).forEach(f => fd.append('ficheiros', f))
       const r = await api.post<{ texto: string; num_ficheiros: number; num_paginas: number; avisos: string[] }>(
         '/documentos/extrair-texto', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+      if (!r.data.texto || !r.data.texto.trim()) {
+        const avs = (r.data as any).avisos as string[] | undefined
+        setErro(avs && avs.length
+          ? 'O documento não continha texto legível: ' + avs.join(' · ')
+          : 'O documento não continha texto legível (PDF digitalizado sem OCR, ou ficheiro vazio).')
+        return
+      }
       // acrescenta o texto extraído ao relato existente
       setRelato(prev => (prev.trim() ? prev.trim() + '\n\n' : '') + r.data.texto)
       setDocsInfo(`${r.data.num_ficheiros} documento(s), ${r.data.num_paginas} página(s) lidas.` +

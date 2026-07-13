@@ -44,6 +44,13 @@ export default function PaginaConsulta() {
       Array.from(files).forEach(f => fd.append('ficheiros', f))
       const r = await api.post<{ texto: string; num_ficheiros: number }>('/documentos/extrair-texto', fd,
         { headers: { 'Content-Type': 'multipart/form-data' } })
+      if (!r.data.texto || !r.data.texto.trim()) {
+        const avs = (r.data as any).avisos as string[] | undefined
+        setErro(avs && avs.length
+          ? 'O documento não continha texto legível: ' + avs.join(' · ')
+          : 'O documento não continha texto legível (PDF digitalizado sem OCR, ou ficheiro vazio).')
+        return
+      }
       setTexto(prev => (prev.trim() ? prev.trim() + '\n\n' : '') + r.data.texto)
       setDocsAnexados(prev => [...prev, ...nomes])   // acumula — vários docs somam-se
     } catch (e) { setErro(tratarErroAPI(e)) }
