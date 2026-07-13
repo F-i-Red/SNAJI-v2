@@ -10,6 +10,10 @@ significa que mudar de memória para PostgreSQL não toca em mais nenhum ficheir
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+
+import structlog
+
+logger = structlog.get_logger(__name__)
 from typing import Optional
 from uuid import uuid4
 
@@ -36,6 +40,7 @@ class RepositorioUtilizadores:
     """
 
     def __init__(self):
+        self._tentativas: dict[str, tuple[int, float]] = {}
         self._utilizadores: dict[str, Utilizador] = {}
         self._por_email: dict[str, str] = {}  # email → id
         self._seed_dados_demo()
@@ -77,6 +82,38 @@ class RepositorioUtilizadores:
         """Devolve utilizador pelo ID, ou None se não existir."""
         return self._utilizadores.get(uid)
 
+    # ── Travão anti força-bruta ──────────────────────────────────────────
+    # Após 5 falhas seguidas para o mesmo email, espera forçada crescente:
+    # 30s, 60s, 120s… (dobra a cada bloqueio). Reinicia com login certo.
+    _MAX_FALHAS = 5
+
+    def _verificar_travao(self, email: str) -> int:
+        """Devolve segundos de espera restantes (0 = pode tentar)."""
+        import time
+        reg = self._tentativas.get(email.lower())
+        if not reg:
+            return 0
+        falhas, bloqueado_ate = reg
+        restante = int(bloqueado_ate - time.time())
+        return max(0, restante)
+
+    def _registar_falha(self, email: str) -> None:
+        import time
+        e = email.lower()
+        falhas, _ = self._tentativas.get(e, (0, 0.0))
+        falhas += 1
+        if falhas >= self._MAX_FALHAS:
+            # espera cresce: 30s no 5º erro, 60s no 6º, 120s no 7º…
+            espera = 30 * (2 ** (falhas - self._MAX_FALHAS))
+            self._tentativas[e] = (falhas, time.time() + min(espera, 3600))
+            logger.warning("auth.travao.ativado", email=e, falhas=falhas,
+                           espera_segundos=min(espera, 3600))
+        else:
+            self._tentativas[e] = (falhas, 0.0)
+
+    def _limpar_falhas(self, email: str) -> None:
+        self._tentativas.pop(email.lower(), None)
+
     def autenticar(self, email: str, password: str) -> Optional[Utilizador]:
         """
         Verifica email + password.
@@ -88,9 +125,12 @@ class RepositorioUtilizadores:
         if not u or not u.activo:
             # Mesmo sem utilizador, verifica a password para evitar timing attacks
             verificar_password(password, "$2b$12$dummy_hash_para_timing_attack_prevention")
+            self._registar_falha(email)
             return None
         if not verificar_password(password, u.hash_password):
+            self._registar_falha(email)
             return None
+        self._limpar_falhas(email)
         # Actualiza último login
         u.ultimo_login = datetime.now(timezone.utc)
         try:
