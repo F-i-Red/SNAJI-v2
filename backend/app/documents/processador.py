@@ -60,25 +60,30 @@ def _detectar_tipo(nome: str, conteudo: bytes) -> TipoFicheiro:
 
 
 def _extrair_pdf(conteudo: bytes) -> tuple[str, int, list[str]]:
-    """Extrai texto de PDF página a página."""
+    """Extrai texto de PDF. Usa pypdf (moderno); aceita PyPDF2 como alternativa."""
+    leitor_cls = None
     try:
-        import PyPDF2
-        leitor = PyPDF2.PdfReader(io.BytesIO(conteudo))
-        paginas = []
-        avisos = []
-        for i, pagina in enumerate(leitor.pages):
-            try:
-                texto = pagina.extract_text() or ""
-                if texto.strip():
-                    paginas.append(texto)
-            except Exception:
-                avisos.append(f"Página {i+1} não pôde ser extraída")
-        texto_total = "\n\n".join(paginas)
-        return texto_total, len(leitor.pages), avisos
+        from pypdf import PdfReader as leitor_cls
     except ImportError:
-        return "", 0, ["PyPDF2 não instalado — instalar com: pip install PyPDF2"]
+        try:
+            from PyPDF2 import PdfReader as leitor_cls
+        except ImportError:
+            return "", 0, ["Leitor de PDF não instalado — instalar com: pip install pypdf"]
+    try:
+        reader = leitor_cls(io.BytesIO(conteudo))
+        paginas = len(reader.pages)
+        partes = []
+        for pg in reader.pages:
+            t = pg.extract_text() or ""
+            if t.strip():
+                partes.append(t)
+        texto = "\n".join(partes)
+        avisos = []
+        if not texto.strip():
+            avisos.append("sem texto legível (PDF digitalizado sem OCR?).")
+        return texto, paginas, avisos
     except Exception as e:
-        return "", 0, [f"Erro ao processar PDF: {e}"]
+        return "", 0, [f"Erro ao ler o PDF: {e}"]
 
 
 def _extrair_docx(conteudo: bytes) -> tuple[str, int, list[str]]:
