@@ -12,9 +12,6 @@ export default function PaginaLogin() {
   const navigate = useNavigate()
   const { login, carregando, erro, limparErro } = useAuthStore()
   const [email, setEmail] = useState('')
-  const [modoRegisto, setModoRegisto] = useState(false)
-  const [nome, setNome] = useState('')
-  const [erroRegisto, setErroRegisto] = useState<string | null>(null)
   const [password, setPassword] = useState('')
 
   const handleSubmit = async (e: FormEvent) => {
@@ -145,16 +142,6 @@ export default function PaginaLogin() {
             </div>
           )}
 
-          {modoRegisto && (
-            <input
-              type="text" value={nome} onChange={e => setNome(e.target.value)}
-              placeholder="O seu nome"
-              style={{ width: '100%', padding: '10px 12px', marginBottom: 10, border: '0.5px solid var(--color-border-secondary)', borderRadius: 'var(--border-radius-md)', fontSize: 13, fontFamily: 'inherit' }}
-            />
-          )}
-          {erroRegisto && (
-            <div style={{ fontSize: 12, color: 'var(--color-text-danger)', marginBottom: 8 }}>{erroRegisto}</div>
-          )}
           <button
             type="submit"
             disabled={carregando}
@@ -172,14 +159,8 @@ export default function PaginaLogin() {
               fontFamily: 'inherit',
             }}
           >
-            {carregando ? 'Aguarde…' : modoRegisto ? 'Criar conta de cidadão' : 'Entrar'}
+            {carregando ? 'A autenticar...' : 'Entrar'}
           </button>
-          <div style={{ textAlign: 'center', marginTop: 10 }}>
-            <button type="button" onClick={() => { setModoRegisto(!modoRegisto); setErroRegisto(null); limparErro() }}
-              style={{ background: 'none', border: 'none', fontSize: 12, color: '#0a2342', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}>
-              {modoRegisto ? '← Voltar ao início de sessão' : 'Não tem conta? Registe-se como cidadão'}
-            </button>
-          </div>
         </form>
 
         {/* Contas demo */}
