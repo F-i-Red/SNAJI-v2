@@ -13,6 +13,7 @@ import PaginaPecas from './pages/Pecas'
 import PaginaDossie from './pages/Dossie'
 import PaginaConfiguracao from './pages/Configuracao'
 import PaginaUtilizadores from './pages/Utilizadores'
+import PaginaContactos from './pages/Contactos'
 import PaginaProcessos from './pages/Processos'
 import PaginaDocumentos from './pages/Documentos'
 import PaginaAuditoria from './pages/Auditoria'
@@ -46,6 +47,7 @@ export default function App() {
           <Route path="dossie" element={<PaginaDossie />} />
           <Route path="configuracao" element={<PaginaConfiguracao />} />
           <Route path="utilizadores" element={<PaginaUtilizadores />} />
+          <Route path="contactos" element={<PaginaContactos />} />
           <Route path="processos"  element={<PaginaProcessos />} />
           <Route path="documentos" element={<PaginaDocumentos />} />
           <Route path="audiencias" element={<PaginaAudiencias />} />
