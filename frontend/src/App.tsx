@@ -11,7 +11,6 @@ import PaginaMeusCasos from './pages/MeusCasos'
 import PaginaJurisprudencia from './pages/Jurisprudencia'
 import PaginaPecas from './pages/Pecas'
 import PaginaDossie from './pages/Dossie'
-import PaginaConfiguracao from './pages/Configuracao'
 import PaginaUtilizadores from './pages/Utilizadores'
 import PaginaContactos from './pages/Contactos'
 import PaginaProcessos from './pages/Processos'
@@ -45,7 +44,6 @@ export default function App() {
           <Route path="jurisprudencia" element={<PaginaJurisprudencia />} />
           <Route path="pecas" element={<PaginaPecas />} />
           <Route path="dossie" element={<PaginaDossie />} />
-          <Route path="configuracao" element={<PaginaConfiguracao />} />
           <Route path="utilizadores" element={<PaginaUtilizadores />} />
           <Route path="contactos" element={<PaginaContactos />} />
           <Route path="processos"  element={<PaginaProcessos />} />
