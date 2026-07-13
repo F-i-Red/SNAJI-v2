@@ -9,7 +9,9 @@ Produção: substituir por PostgreSQL (a interface pública não muda).
 """
 
 from __future__ import annotations
+import json
 import uuid
+from pathlib import Path
 from dataclasses import dataclass, field
 from datetime import datetime, timezone, timedelta
 from enum import Enum
@@ -142,6 +144,52 @@ def _gerar_numero_interno(tipo: TipoProcesso) -> str:
     return f"SNAJI-{ano}/{num}-{sigla}"
 
 
+FICHEIRO_PROCESSOS = Path(__file__).parent.parent / "db" / "processos.json"
+
+
+def _processo_para_dict(p: "Processo") -> dict:
+    return {
+        "id": p.id, "numero_interno": p.numero_interno, "numero_citius": p.numero_citius,
+        "tipo": p.tipo.value, "estado": p.estado.value, "descricao": p.descricao,
+        "partes": [{"nome": x.nome, "papel": x.papel, "email": x.email, "nif": x.nif} for x in p.partes],
+        "criado_por": p.criado_por,
+        "criado_em": p.criado_em.isoformat(), "atualizado_em": p.atualizado_em.isoformat(),
+        "eventos": [{"id": e.id, "timestamp": e.timestamp.isoformat(), "tipo": e.tipo,
+                     "descricao": e.descricao, "utilizador_id": e.utilizador_id,
+                     "estado_anterior": e.estado_anterior, "estado_novo": e.estado_novo}
+                    for e in p.eventos],
+        "prazos": [{"descricao": x.descricao, "data_limite": x.data_limite.isoformat(),
+                    "urgente": x.urgente, "cumprido": x.cumprido} for x in p.prazos],
+        "caso_id_analise": p.caso_id_analise, "notas": p.notas, "valor_causa": p.valor_causa,
+        "tribunal": p.tribunal, "comarca": p.comarca, "areas": p.areas,
+    }
+
+
+def _processo_de_dict(d: dict) -> "Processo":
+    return Processo(
+        id=d["id"], numero_interno=d["numero_interno"],
+        numero_citius=d.get("numero_citius", ""),
+        tipo=TipoProcesso(d["tipo"]), estado=EstadoProcesso(d["estado"]),
+        descricao=d["descricao"],
+        partes=[Parte(**x) for x in d.get("partes", [])],
+        criado_por=d["criado_por"],
+        criado_em=datetime.fromisoformat(d["criado_em"]),
+        atualizado_em=datetime.fromisoformat(d["atualizado_em"]),
+        eventos=[EventoProcesso(id=e["id"], timestamp=datetime.fromisoformat(e["timestamp"]),
+                                tipo=e["tipo"], descricao=e["descricao"],
+                                utilizador_id=e["utilizador_id"],
+                                estado_anterior=e.get("estado_anterior"),
+                                estado_novo=e.get("estado_novo"))
+                 for e in d.get("eventos", [])],
+        prazos=[Prazo(descricao=x["descricao"], data_limite=datetime.fromisoformat(x["data_limite"]),
+                      urgente=x.get("urgente", False), cumprido=x.get("cumprido", False))
+                for x in d.get("prazos", [])],
+        caso_id_analise=d.get("caso_id_analise"), notas=d.get("notas", []),
+        valor_causa=d.get("valor_causa"), tribunal=d.get("tribunal", "Tribunal Judicial"),
+        comarca=d.get("comarca", "Lisboa"), areas=d.get("areas", []),
+    )
+
+
 class RepositorioProcessos:
     """
     CRUD de processos com histórico imutável de eventos.
@@ -149,8 +197,35 @@ class RepositorioProcessos:
 
     def __init__(self):
         self._processos: dict[str, Processo] = {}
-        self._por_utilizador: dict[str, list[str]] = {}  # user_id → [processo_id]
-        self._seed_demo()
+        self._por_utilizador: dict[str, list[str]] = {}
+        if FICHEIRO_PROCESSOS.exists():
+            self._carregar()
+        else:
+            self._seed_demo()
+            self._gravar()
+
+    def _carregar(self) -> None:
+        """Restaura os processos do disco (sobrevivem a reinícios)."""
+        try:
+            dados = json.loads(FICHEIRO_PROCESSOS.read_text(encoding="utf-8"))
+            for d in dados:
+                p = _processo_de_dict(d)
+                self._processos[p.id] = p
+                self._por_utilizador.setdefault(str(p.criado_por), []).append(p.id)
+            logger.info("processos.carregados_do_disco", total=len(self._processos))
+        except Exception as exc:
+            logger.error("processos.carregar_falhou", erro=str(exc)[:200])
+            self._seed_demo()
+
+    def _gravar(self) -> None:
+        """Persiste todos os processos (gravação atómica)."""
+        try:
+            dados = [_processo_para_dict(p) for p in self._processos.values()]
+            tmp = FICHEIRO_PROCESSOS.with_suffix(".json.tmp")
+            tmp.write_text(json.dumps(dados, ensure_ascii=False, indent=2), encoding="utf-8")
+            tmp.replace(FICHEIRO_PROCESSOS)
+        except Exception as exc:
+            logger.error("processos.gravar_falhou", erro=str(exc)[:200])
 
     def _seed_demo(self) -> None:
         """Cria processos de demonstração realistas, atribuídos às contas reais."""
@@ -278,6 +353,7 @@ class RepositorioProcessos:
         self._processos[pid] = p
         self._por_utilizador.setdefault(criado_por, []).append(pid)
         logger.info("processo.criado", id=pid, numero=p.numero, tipo=tipo.value)
+        self._gravar()
         return p
 
     def por_id(self, pid: str) -> Optional[Processo]:
@@ -328,6 +404,7 @@ class RepositorioProcessos:
             estado_novo=proximo.value,
         ))
         logger.info("processo.avancou", id=pid, de=estado_anterior.value, para=proximo.value)
+        self._gravar()
         return p
 
     def retificar(self, processo_id: str, utilizador_id: str) -> "Processo":
@@ -355,6 +432,7 @@ class RepositorioProcessos:
             estado_novo=p.estado.value,
         ))
         logger.info("processo.retificado", id=p.id, de=anterior.value, para=p.estado.value)
+        self._gravar()
         return p
 
     def adotar_numero_citius(self, processo_id: str, numero_citius: str,
@@ -389,6 +467,7 @@ class RepositorioProcessos:
         ))
         logger.info("processo.numero_citius", id=p.id,
                     interno=p.numero_interno, citius=numero_citius)
+        self._gravar()
         return p
 
     def editar_dados(self, processo_id: str, utilizador_id: str,
@@ -418,6 +497,7 @@ class RepositorioProcessos:
             estado_novo=None,
         ))
         logger.info("processo.editado", id=p.id, mudancas=len(mudancas))
+        self._gravar()
         return p
 
 
