@@ -51,7 +51,13 @@ def _carregar() -> dict:
 def obter_config() -> dict:
     """Configuração atual (contactos e mensagens). Pública — qualquer perfil lê."""
     with _lock:
-        return _carregar()
+        dados = _carregar()
+        preenchidas = [k for k in ("email_suporte", "telefone_suporte", "horario") if dados.get(k)]
+        logger.info("config.lida",
+                    caminho=str(FICHEIRO_CONFIG.resolve()),
+                    ficheiro_existe=FICHEIRO_CONFIG.exists(),
+                    campos_preenchidos=preenchidas or "nenhum")
+        return dados
 
 
 def guardar_config(novos: dict, utilizador_id: str) -> dict:
@@ -69,6 +75,8 @@ def guardar_config(novos: dict, utilizador_id: str) -> dict:
         tmp = FICHEIRO_CONFIG.with_suffix(".json.tmp")
         tmp.write_text(json.dumps(atual, ensure_ascii=False, indent=2), encoding="utf-8")
         tmp.replace(FICHEIRO_CONFIG)
-        logger.info("config.gravada_em", caminho=str(FICHEIRO_CONFIG.resolve()))
+        logger.info("config.gravada_em",
+                    caminho=str(FICHEIRO_CONFIG.resolve()),
+                    bytes=FICHEIRO_CONFIG.stat().st_size)
     logger.info("config.guardada", por=utilizador_id, chaves=list(novos.keys()))
     return atual
