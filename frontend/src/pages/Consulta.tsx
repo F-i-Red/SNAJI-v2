@@ -138,7 +138,7 @@ export default function PaginaConsulta() {
         >
           {aExtrair ? 'A ler os documentos…'
             : '📎 Arraste aqui documentos (PDF, Word, texto) — pode largar vários de uma vez. O SNAJI lê-os todos e junta ao texto.'}
-          <input id="docs-consulta" type="file" accept=".pdf,.docx,.txt" multiple style={{ display: 'none' }}
+          <input id="docs-consulta" type="file" accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.tif,.tiff,.bmp,.webp" multiple style={{ display: 'none' }}
             onChange={e => e.target.files && extrairDocs(e.target.files)} />
         </div>
         {docsAnexados.length > 0 && (

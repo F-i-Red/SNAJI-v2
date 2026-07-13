@@ -112,7 +112,7 @@ export default function PaginaDossie() {
         <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginTop: 4 }}>
           PDF, Word ou texto — petição, contestação, sentença, requerimentos…
         </div>
-        <input id="docs-dossie" type="file" accept=".pdf,.docx,.txt" multiple style={{ display: 'none' }}
+        <input id="docs-dossie" type="file" accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.tif,.tiff,.bmp,.webp" multiple style={{ display: 'none' }}
           onChange={e => e.target.files && compilar(e.target.files)} />
       </div>
 

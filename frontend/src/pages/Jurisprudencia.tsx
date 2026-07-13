@@ -170,7 +170,7 @@ export default function PaginaJurisprudencia() {
       >
         {aLerDoc ? 'A ler os documentos e a cruzar as normas…'
           : '📎 Largue aqui uma peça (PDF, Word, texto) — o SNAJI extrai as normas citadas e mostra os acórdãos do STJ relevantes para cada uma.'}
-        <input id="docs-juris" type="file" accept=".pdf,.docx,.txt" multiple style={{ display: 'none' }}
+        <input id="docs-juris" type="file" accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.tif,.tiff,.bmp,.webp" multiple style={{ display: 'none' }}
           onChange={e => e.target.files && cruzarDocumentos(e.target.files)} />
       </div>
 

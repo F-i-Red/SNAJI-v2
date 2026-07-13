@@ -322,7 +322,7 @@ export default function PaginaCenarios() {
         >
           {aExtrair ? 'A ler os documentos…'
             : '📎 Arraste documentos do caso (PDF, Word, texto) — pode largar vários. O SNAJI lê-os e junta ao texto.'}
-          <input id="docs-cenarios" type="file" accept=".pdf,.docx,.txt" multiple style={{ display: 'none' }}
+          <input id="docs-cenarios" type="file" accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.tif,.tiff,.bmp,.webp" multiple style={{ display: 'none' }}
             onChange={e => e.target.files && extrairDocs(e.target.files)} />
         </div>
         {docsAnexados.length > 0 && (

@@ -130,7 +130,7 @@ export default function PaginaPecas() {
         <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginTop: 4 }}>
           PDF, DOCX ou TXT · o documento é lido por inteiro, sem limite de páginas
         </div>
-        <input ref={inputRef} type="file" accept=".pdf,.docx,.txt" style={{ display: 'none' }}
+        <input ref={inputRef} type="file" accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.tif,.tiff,.bmp,.webp" style={{ display: 'none' }}
           onChange={e => { const f = e.target.files?.[0]; if (f) enviar(f) }} />
       </div>
 

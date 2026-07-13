@@ -160,7 +160,7 @@ export default function PaginaDocumentos() {
             >
               {aExtrairGer ? 'A ler os documentos…'
                 : '📎 Arraste documentos do caso (PDF, Word, texto) para preencher os factos automaticamente.'}
-              <input id="docs-geracao" type="file" accept=".pdf,.docx,.txt" multiple style={{ display: 'none' }}
+              <input id="docs-geracao" type="file" accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.tif,.tiff,.bmp,.webp" multiple style={{ display: 'none' }}
                 onChange={e => e.target.files && extrairParaCaso(e.target.files)} />
             </div>
           </div>
@@ -231,7 +231,7 @@ export default function PaginaDocumentos() {
               transition: 'all 0.15s',
             }}
           >
-            <input ref={inputRef} type="file" accept=".pdf,.docx,.txt" style={{ display: 'none' }}
+            <input ref={inputRef} type="file" accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.tif,.tiff,.bmp,.webp" style={{ display: 'none' }}
               onChange={e => { if (e.target.files?.[0]) setFicheiro(e.target.files[0]) }} />
             <i className="ti ti-upload" aria-hidden="true" style={{ fontSize: 28, color: 'var(--color-text-tertiary)', display: 'block', marginBottom: 8 }} />
             {ficheiro ? (
