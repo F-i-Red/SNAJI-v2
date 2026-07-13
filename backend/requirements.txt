@@ -24,5 +24,6 @@ httpx==0.27.2
 # OCR — leitura de texto em imagens (JPG, PNG…) nos campos de documentos
 # Nota: além destes pacotes, o Windows precisa do programa Tesseract OCR
 # (https://github.com/UB-Mannheim/tesseract/wiki) com o idioma Português.
+pypdf
 pytesseract
 Pillow
