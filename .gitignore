@@ -14,3 +14,5 @@ backend/app/analytics/eventos.jsonl
  
 # Segredos — a chave da API nunca pode ir para o GitHub
 .env
+
+backend/app/db/casos.json, backend/app/db/config.json, backend/app/db/processos.json, backend/app/analytics/eventos.jsonl e backend/app/rag/corpus/acordaos_backup_*.json.
