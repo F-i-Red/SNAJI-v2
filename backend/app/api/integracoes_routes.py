@@ -165,7 +165,7 @@ async def jurisprudencia_por_documento(
         if not f.filename:
             continue
         ext = f.filename.rsplit('.', 1)[-1].lower()
-        if ext not in ('pdf', 'docx', 'txt'):
+        if ext not in ('pdf', 'docx', 'txt', 'jpg', 'jpeg', 'png', 'tif', 'tiff', 'bmp', 'webp'):
             continue
         conteudo = await f.read()
         doc = _doc_proc.processar(f.filename, conteudo)

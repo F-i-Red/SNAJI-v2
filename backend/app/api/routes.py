@@ -102,8 +102,8 @@ async def upload_documento(
     if not ficheiro.filename:
         raise HTTPException(status_code=400, detail="Nome de ficheiro inválido")
     ext = ficheiro.filename.rsplit('.', 1)[-1].lower()
-    if ext not in ('pdf', 'docx', 'txt'):
-        raise HTTPException(status_code=400, detail="Formato não suportado. Use PDF, DOCX ou TXT.")
+    if ext not in ('pdf', 'docx', 'txt', 'jpg', 'jpeg', 'png', 'tif', 'tiff', 'bmp', 'webp'):
+        raise HTTPException(status_code=400, detail="Formato não suportado. Use PDF, DOCX, TXT ou imagem (JPG/PNG).")
 
     conteudo = await ficheiro.read()
     doc = _doc_processor.processar(ficheiro.filename, conteudo)
@@ -150,7 +150,7 @@ async def extrair_texto_documentos(
         if not f.filename:
             continue
         ext = f.filename.rsplit('.', 1)[-1].lower()
-        if ext not in ('pdf', 'docx', 'txt'):
+        if ext not in ('pdf', 'docx', 'txt', 'jpg', 'jpeg', 'png', 'tif', 'tiff', 'bmp', 'webp'):
             avisos_gerais.append(f"{f.filename}: formato não suportado (ignorado).")
             continue
         conteudo = await f.read()
@@ -188,7 +188,7 @@ async def compilar_dossie(
         if not f.filename:
             continue
         ext = f.filename.rsplit('.', 1)[-1].lower()
-        if ext not in ('pdf', 'docx', 'txt'):
+        if ext not in ('pdf', 'docx', 'txt', 'jpg', 'jpeg', 'png', 'tif', 'tiff', 'bmp', 'webp'):
             continue
         conteudo = await f.read()
         doc = _doc_processor.processar(f.filename, conteudo)
@@ -211,8 +211,8 @@ async def analisar_peca(
     if not ficheiro.filename:
         raise HTTPException(status_code=400, detail="Nome de ficheiro inválido")
     ext = ficheiro.filename.rsplit('.', 1)[-1].lower()
-    if ext not in ('pdf', 'docx', 'txt'):
-        raise HTTPException(status_code=400, detail="Formato não suportado. Use PDF, DOCX ou TXT.")
+    if ext not in ('pdf', 'docx', 'txt', 'jpg', 'jpeg', 'png', 'tif', 'tiff', 'bmp', 'webp'):
+        raise HTTPException(status_code=400, detail="Formato não suportado. Use PDF, DOCX, TXT ou imagem (JPG/PNG).")
     conteudo = await ficheiro.read()
     doc = _doc_processor.processar(ficheiro.filename, conteudo)
     analise = _analisador_pecas.analisar(doc.texto, ficheiro.filename, doc.num_paginas)
