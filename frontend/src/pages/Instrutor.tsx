@@ -437,7 +437,7 @@ export default function PaginaInstrutor() {
           >
             {aExtrair ? 'A ler os documentos…'
               : '📎 Tem documentos do caso? Arraste-os aqui (PDF, Word, texto) — o SNAJI lê-os e junta ao texto acima.'}
-            <input id="docs-instrutor" type="file" accept=".pdf,.docx,.txt" multiple style={{ display: 'none' }}
+            <input id="docs-instrutor" type="file" accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.tif,.tiff,.bmp,.webp" multiple style={{ display: 'none' }}
               onChange={e => e.target.files && extrairDocs(e.target.files)} />
           </div>
           {docsInfo && <div style={{ fontSize: 11.5, color: 'var(--color-text-tertiary)' }}>{docsInfo}</div>}
