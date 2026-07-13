@@ -101,7 +101,7 @@ export default function PaginaLogin() {
               Endereço electrónico
             </label>
             <input
-              type="email"
+              type="email" aria-label="Email"
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="utilizador@snaji.gov.pt"
@@ -119,7 +119,7 @@ export default function PaginaLogin() {
               Palavra-passe
             </label>
             <input
-              type="password"
+              type="password" aria-label="Palavra-passe"
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"

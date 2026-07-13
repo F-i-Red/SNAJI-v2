@@ -24,6 +24,7 @@ export default function PaginaContactos() {
   const [cfg, setCfg] = useState<Config | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [guardado, setGuardado] = useState(false)
+  const [corpus, setCorpus] = useState<any | null>(null)
   const [aGuardar, setAGuardar] = useState(false)
 
   const carregar = () => {
@@ -32,6 +33,7 @@ export default function PaginaContactos() {
       .catch(e => setErro(tratarErroAPI(e)))
   }
   useEffect(carregar, [])
+  useEffect(() => { api.get('/corpus/estado').then(r => setCorpus(r.data)).catch(() => {}) }, [])
 
   const guardar = async () => {
     if (!cfg) return
@@ -116,7 +118,24 @@ export default function PaginaContactos() {
         </div>
       )}
 
-      {cfg && ehAdmin && (
+      {corpus && (
+        <div style={cartao}>
+          <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-text-tertiary)', marginBottom: 8 }}>
+            Corpus legislativo — {corpus.total_diplomas} diplomas · {corpus.total_artigos} artigos
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 8 }}>
+            {Object.entries(corpus.diplomas).map(([sigla, d]: any) => (
+              <span key={sigla} title={`${d.nome} — ${d.artigos} artigos · carregado em ${d.carregado_em}`}
+                style={{ fontSize: 11, padding: '2px 8px', borderRadius: 10, background: 'var(--color-background-secondary)', color: 'var(--color-text-secondary)' }}>
+                {sigla}
+              </span>
+            ))}
+          </div>
+          <div style={{ fontSize: 11.5, lineHeight: 1.55, color: 'var(--color-text-tertiary)' }}>{corpus.aviso}</div>
+        </div>
+      )}
+
+            {cfg && ehAdmin && (
         <div style={{ ...cartao, display: 'flex', flexDirection: 'column', gap: 14 }}>
           {campoEdicao('Email de suporte', 'email_suporte', 'ex.: apoio@snaji.gov.pt')}
           {campoEdicao('Telefone de suporte', 'telefone_suporte', 'ex.: 213 000 000')}
