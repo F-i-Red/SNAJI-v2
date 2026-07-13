@@ -10,6 +10,7 @@ const NAV_POR_ROLE = {
     { path: '/casos', icon: 'ti-folder', label: 'Os meus casos' },
     { path: '/processos', icon: 'ti-eye', label: 'Acompanhar processos' },
     { path: '/consulta', icon: 'ti-message-question', label: 'Tirar uma dúvida' },
+    { path: '/contactos', icon: 'ti-lifebuoy', label: 'Contactos' },
   ],
   advogado: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
@@ -25,22 +26,26 @@ const NAV_POR_ROLE = {
     { path: '/audiencias', icon: 'ti-gavel', label: 'Audiências' },
     { path: '/documentos', icon: 'ti-file-invoice', label: 'Geração de peças' },
     { path: '/auditoria', icon: 'ti-shield-check', label: 'Auditoria' },
+    { path: '/contactos', icon: 'ti-lifebuoy', label: 'Contactos' },
   ],
   magistrado: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
     { path: '/pecas', icon: 'ti-file-search', label: 'Análise de peças' },
     { path: '/dossie', icon: 'ti-folders', label: 'Compilar dossiê' },
+    { path: '/cenarios', icon: 'ti-scale', label: 'Cenários de resolução' },
     { path: '/jurisprudencia', icon: 'ti-gavel', label: 'Jurisprudência' },
     { path: '/observatorio', icon: 'ti-chart-dots', label: 'Observatório' },
     { path: '/processos', icon: 'ti-scale', label: 'Processos em carteira' },
     { path: '/audiencias', icon: 'ti-gavel', label: 'Audiências' },
     { path: '/consulta', icon: 'ti-search', label: 'Pesquisa jurídica' },
     { path: '/auditoria', icon: 'ti-shield-lock', label: 'Auditoria forense' },
+    { path: '/contactos', icon: 'ti-lifebuoy', label: 'Contactos' },
   ],
   analista: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
     { path: '/observatorio', icon: 'ti-chart-dots', label: 'Observatório' },
     { path: '/auditoria', icon: 'ti-chart-bar', label: 'Métricas' },
+    { path: '/contactos', icon: 'ti-lifebuoy', label: 'Contactos' },
   ],
   admin: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
@@ -48,6 +53,7 @@ const NAV_POR_ROLE = {
     { path: '/utilizadores', icon: 'ti-users', label: 'Utilizadores' },
     { path: '/observatorio', icon: 'ti-chart-dots', label: 'Observatório' },
     { path: '/auditoria', icon: 'ti-shield', label: 'Auditoria' },
+    { path: '/contactos', icon: 'ti-lifebuoy', label: 'Contactos' },
   ],
 }
 
