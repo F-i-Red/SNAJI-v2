@@ -1,0 +1,62 @@
+{
+  "CC": {
+    "nome": "Código Civil",
+    "artigos": 2382,
+    "carregado_em": "2026-07",
+    "consolidado_em": null
+  },
+  "CIRE": {
+    "nome": "Código da Insolvência e da Recuperação de Empresas",
+    "artigos": 328,
+    "carregado_em": "2026-07",
+    "consolidado_em": null
+  },
+  "CP": {
+    "nome": "Código Penal",
+    "artigos": 429,
+    "carregado_em": "2026-07",
+    "consolidado_em": null
+  },
+  "CPA": {
+    "nome": "Código do Procedimento Administrativo",
+    "artigos": 203,
+    "carregado_em": "2026-07",
+    "consolidado_em": null
+  },
+  "CPC": {
+    "nome": "Código de Processo Civil",
+    "artigos": 1146,
+    "carregado_em": "2026-07",
+    "consolidado_em": null
+  },
+  "CPP": {
+    "nome": "Código de Processo Penal",
+    "artigos": 547,
+    "carregado_em": "2026-07",
+    "consolidado_em": null
+  },
+  "CRP": {
+    "nome": "Constituição da República Portuguesa",
+    "artigos": 296,
+    "carregado_em": "2026-07",
+    "consolidado_em": null
+  },
+  "CSC": {
+    "nome": "Código das Sociedades Comerciais",
+    "artigos": 641,
+    "carregado_em": "2026-07",
+    "consolidado_em": null
+  },
+  "CT": {
+    "nome": "Código do Trabalho",
+    "artigos": 601,
+    "carregado_em": "2026-07",
+    "consolidado_em": null
+  },
+  "LDC": {
+    "nome": "Lei de Defesa do Consumidor",
+    "artigos": 29,
+    "carregado_em": "2026-07",
+    "consolidado_em": null
+  }
+}
