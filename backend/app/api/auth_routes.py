@@ -39,6 +39,13 @@ class UtilizadorInfo(BaseModel):
     description="Autentica com email e password. Devolve um token JWT válido por 8 horas.",
 )
 async def login(dados: LoginRequest) -> TokenResponse:
+    espera = repositorio._verificar_travao(dados.email)
+    if espera > 0:
+        logger.warning("auth.travao.bloqueado", email=dados.email, espera=espera)
+        raise HTTPException(
+            status_code=429,
+            detail=f"Demasiadas tentativas falhadas. Aguarde {espera} segundos.",
+        )
     utilizador = repositorio.autenticar(dados.email, dados.password)
 
     if not utilizador:

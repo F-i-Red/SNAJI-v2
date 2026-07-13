@@ -248,6 +248,37 @@ async def listar_utilizadores_admin(
     }
 
 
+@router.get("/admin/auditoria/verificar", tags=["Administração"])
+async def verificar_auditoria(
+    utilizador: Utilizador = Depends(requer_permissao(Permissao.GERIR_UTILIZADORES)),
+):
+    """Verifica a cadeia de hash do registo analítico — prova de integridade."""
+    from app.analytics.registo import verificar_cadeia
+    return verificar_cadeia()
+
+
+@router.get("/corpus/estado", tags=["Configuração"])
+async def estado_corpus(utilizador: Utilizador = Depends(requer_login)):
+    """
+    Estado do corpus legislativo: diplomas carregados, nº de artigos, e as
+    datas de carregamento/consolidação. Honestidade temporal: as leis mudam,
+    e o sistema declara de quando é a sua fotografia.
+    """
+    import json as _json
+    from pathlib import Path as _Path
+    meta_f = _Path(__file__).parent.parent / "rag" / "corpus" / "diplomas_meta.json"
+    meta = _json.loads(meta_f.read_text(encoding="utf-8")) if meta_f.exists() else {}
+    total = sum(d.get("artigos", 0) for d in meta.values())
+    return {
+        "diplomas": meta,
+        "total_diplomas": len(meta),
+        "total_artigos": total,
+        "aviso": ("O corpus é uma fotografia da legislação à data de carregamento. "
+                  "Alterações legislativas posteriores podem não estar refletidas — "
+                  "confirmar sempre a redação vigente no Diário da República."),
+    }
+
+
 @router.get("/config", tags=["Configuração"])
 async def obter_config(utilizador: Utilizador = Depends(requer_login)):
     """Contactos institucionais (qualquer utilizador autenticado pode ler)."""
