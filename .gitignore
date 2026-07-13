@@ -16,3 +16,4 @@ backend/app/analytics/eventos.jsonl
 .env
 
 backend/app/db/casos.json, backend/app/db/config.json, backend/app/db/processos.json, backend/app/analytics/eventos.jsonl e backend/app/rag/corpus/acordaos_backup_*.json.
+backend/app/db/backups/ e backend/app/analytics/eventos_*.jsonl
