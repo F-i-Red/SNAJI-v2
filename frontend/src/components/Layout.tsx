@@ -49,7 +49,6 @@ const NAV_POR_ROLE = {
   ],
   admin: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
-    { path: '/configuracao', icon: 'ti-settings', label: 'Configuração' },
     { path: '/utilizadores', icon: 'ti-users', label: 'Utilizadores' },
     { path: '/observatorio', icon: 'ti-chart-dots', label: 'Observatório' },
     { path: '/auditoria', icon: 'ti-shield', label: 'Auditoria' },
