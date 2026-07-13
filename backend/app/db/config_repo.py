@@ -40,7 +40,8 @@ def _carregar() -> dict:
         return dict(_PADRAO)
     try:
         dados = json.loads(FICHEIRO_CONFIG.read_text(encoding="utf-8"))
-        # completa com padrões para chaves em falta (retrocompatível)
+        # completa com padrões para chaves em falta (retrocompatível);
+        # os carimbos atualizado_em/atualizado_por vêm dos dados gravados
         return {**_PADRAO, **dados}
     except Exception as exc:
         logger.warning("config.leitura_falhou", erro=str(exc)[:120])
@@ -55,11 +56,15 @@ def obter_config() -> dict:
 
 def guardar_config(novos: dict, utilizador_id: str) -> dict:
     """Atualiza a configuração (só admin). Ignora chaves desconhecidas."""
+    from datetime import datetime, timezone
     with _lock:
         atual = _carregar()
         for chave in _PADRAO:
             if chave in novos and novos[chave] is not None:
                 atual[chave] = str(novos[chave]).strip()
+        # carimbo do servidor: prova de quando/quem gravou (diagnóstico)
+        atual["atualizado_em"] = datetime.now(timezone.utc).isoformat()
+        atual["atualizado_por"] = utilizador_id
         # Gravação atómica (Windows-safe): escreve num temporário e substitui.
         tmp = FICHEIRO_CONFIG.with_suffix(".json.tmp")
         tmp.write_text(json.dumps(atual, ensure_ascii=False, indent=2), encoding="utf-8")
