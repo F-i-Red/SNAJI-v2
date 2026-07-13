@@ -73,6 +73,7 @@ export function documentoParaTexto(doc: DocumentoImprimivel): string {
     L.push('')
   }
   L.push(ASSINATURA_SNAJI)
+  L.push('Legislação verificada contra corpus carregado em 2026-07 — confirmar redação vigente no DRE.')
   const ct = contactosInstitucionais()
   if (ct) L.push(ct)
   return L.join('\n')
@@ -124,7 +125,7 @@ export function documentoParaHTML(doc: DocumentoImprimivel): string {
 ${doc.subtitulo ? `<div class="sub">${esc(doc.subtitulo)}</div>` : ''}
 ${meta ? `<div class="meta">${meta}</div>` : ''}
 ${seccoes}
-<div class="rodape">${doc.rodape ? esc(doc.rodape) + '<br>' : ''}${esc(ASSINATURA_SNAJI)}${contactosInstitucionais() ? '<br>' + esc(contactosInstitucionais()) : ''}</div>
+<div class="rodape">${doc.rodape ? esc(doc.rodape) + '<br>' : ''}${esc(ASSINATURA_SNAJI)}<br>Legislação verificada contra corpus carregado em 2026-07 — confirmar redação vigente no DRE.${contactosInstitucionais() ? '<br>' + esc(contactosInstitucionais()) : ''}</div>
 </body></html>`
 }
 
