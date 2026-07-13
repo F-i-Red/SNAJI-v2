@@ -67,7 +67,8 @@ class TestJurisprudencia:
         r = self.motor.pesquisar("despedimento")
         for a in r.acordaos:
             assert a.url
-            assert "dgsi.pt" in a.url or "tribunalconstitucional.pt" in a.url
+            assert ("dgsi.pt" in a.url or "tribunalconstitucional.pt" in a.url
+                    or "stj.pt" in a.url)
 
     def test_resultado_tem_tribunal(self):
         r = self.motor.pesquisar("despedimento")
