@@ -29,6 +29,7 @@ class TipoFicheiro(str, Enum):
     PDF  = "pdf"
     DOCX = "docx"
     TXT  = "txt"
+    IMAGEM = "imagem"
     DESCONHECIDO = "desconhecido"
 
 
@@ -49,6 +50,10 @@ def _detectar_tipo(nome: str, conteudo: bytes) -> TipoFicheiro:
         return TipoFicheiro.PDF
     if conteudo[:2] == b'PK' and ext == '.docx':
         return TipoFicheiro.DOCX
+    if ext in ('.jpg', '.jpeg', '.png', '.tif', '.tiff', '.bmp', '.webp'):
+        return TipoFicheiro.IMAGEM
+    if conteudo[:2] == b'\xff\xd8' or conteudo[:8] == b'\x89PNG\r\n\x1a\n':
+        return TipoFicheiro.IMAGEM
     if ext in ('.txt', '.md'):
         return TipoFicheiro.TXT
     return TipoFicheiro.DESCONHECIDO
@@ -88,6 +93,38 @@ def _extrair_docx(conteudo: bytes) -> tuple[str, int, list[str]]:
         return "", 0, ["python-docx não instalado — instalar com: pip install python-docx"]
     except Exception as e:
         return "", 0, [f"Erro ao processar DOCX: {e}"]
+
+
+def _extrair_imagem(conteudo: bytes) -> tuple[str, int, list[str]]:
+    """Lê o texto de uma imagem (JPG, PNG, TIFF…) por OCR (Tesseract).
+    Degradação graciosa: sem Tesseract instalado, instruções claras — nunca
+    um erro técnico opaco."""
+    try:
+        from PIL import Image
+        import pytesseract
+    except ImportError:
+        return "", 0, ["OCR indisponível — instalar com: pip install pytesseract Pillow"]
+    try:
+        img = Image.open(io.BytesIO(conteudo))
+        if max(img.size) > 3500:
+            img.thumbnail((3500, 3500))
+        try:
+            texto = pytesseract.image_to_string(img, lang="por+eng")
+        except pytesseract.TesseractError:
+            texto = pytesseract.image_to_string(img, lang="eng")
+        avisos = []
+        if not texto.strip():
+            avisos.append("A imagem não continha texto legível pelo OCR "
+                          "(verificar qualidade/orientação da fotografia).")
+        return texto, 1, avisos
+    except pytesseract.TesseractNotFoundError:
+        return "", 0, [
+            "O motor de OCR (Tesseract) não está instalado neste computador. "
+            "No Windows: instalar de https://github.com/UB-Mannheim/tesseract/wiki "
+            "e escolher o idioma Português (por) na instalação."
+        ]
+    except Exception as e:
+        return "", 0, [f"Erro ao ler a imagem: {e}"]
 
 
 def _limpar_texto(texto: str) -> str:
@@ -130,7 +167,9 @@ class ProcessadorDocumentos:
         avisos: list[str] = []
         num_paginas = 1
 
-        if tipo == TipoFicheiro.PDF:
+        if tipo == TipoFicheiro.IMAGEM:
+            texto, paginas, avisos = _extrair_imagem(conteudo)
+        elif tipo == TipoFicheiro.PDF:
             texto, num_paginas, avisos = _extrair_pdf(conteudo)
         elif tipo == TipoFicheiro.DOCX:
             texto, num_paginas, avisos = _extrair_docx(conteudo)
