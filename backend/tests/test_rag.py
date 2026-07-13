@@ -21,13 +21,13 @@ class TestRAGJuridico:
         assert diplomas[0] == "CT"
         assert diplomas.count("CT") >= 3
 
-    def test_search_protecao_de_dados_retorna_crp35(self):
-        """A proteção de dados no corpus atual assenta no art. 35.º da CRP
-        (utilização da informática). O texto integral do RGPD é pendência
-        documentada — quando entrar no corpus, este teste deve ser reforçado."""
+    def test_search_protecao_de_dados_retorna_rgpd(self):
+        """Com o RGPD no corpus (99 artigos), a pesquisa de proteção de dados
+        devolve as normas específicas do regulamento — o reforço que este
+        teste prometia quando o RGPD era pendência."""
         resultados = self.rag.search("dados pessoais consentimento tratamento")
         pares = [(x.diploma, x.artigo) for x in resultados]
-        assert ("CRP", "35") in pares
+        assert any(d == "RGPD" for d, _ in pares), f"esperava RGPD no topo, veio: {pares[:5]}"
 
     def test_search_scores_sao_positivos(self):
         resultados = self.rag.search("direito propriedade compropriedade")
