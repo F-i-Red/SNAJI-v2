@@ -53,6 +53,38 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+def _verificar_dependencias() -> None:
+    """Verifica ao arranque se as dependências do requirements.txt estão
+    instaladas. NUNCA instala nada (um servidor não instala pacotes sozinho —
+    segurança); apenas avisa no terminal, com o comando exato para resolver."""
+    em_falta, opcionais = [], []
+    try:
+        import pypdf  # noqa: F401  (leitura de PDF — essencial)
+    except ImportError:
+        em_falta.append("pypdf (leitura de PDF)")
+    try:
+        import pytesseract  # noqa: F401
+        from PIL import Image  # noqa: F401
+    except ImportError:
+        opcionais.append("pytesseract/Pillow (OCR de imagens)")
+    if em_falta or opcionais:
+        print("=" * 66)
+        if em_falta:
+            print("[SNAJI] DEPENDÊNCIAS EM FALTA (funcionalidades vão falhar):")
+            for d in em_falta:
+                print(f"        - {d}")
+        if opcionais:
+            print("[SNAJI] Dependências opcionais em falta:")
+            for d in opcionais:
+                print(f"        - {d}")
+        print("[SNAJI] Resolver com:  pip install -r requirements.txt")
+        print("        (ou executar o script preparar.bat na pasta backend)")
+        print("=" * 66)
+
+
+_verificar_dependencias()
+
+
 def _backup_diario() -> None:
     """Cópia diária dos dados persistidos (casos, processos, config).
     Corre no arranque: se o backup de hoje não existe, cria-o."""
