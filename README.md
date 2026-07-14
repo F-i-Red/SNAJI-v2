@@ -102,6 +102,7 @@ cp .env.example .env
 
 # Instalar dependências
 pip install -r requirements.txt
+pip install pypdf
 
 # Gerar corpus jurídico (já incluído, mas regenerar se necessário)
 python app/rag/corpus/processador.py
@@ -120,6 +121,7 @@ No CMD, dentro da pasta backend:
 1. py -3.12 -m venv .venv — força a versão python 3.12.10 que também é usada no SNAJI
 2. .venv\Scripts\activate.bat — deve aparecer (.venv) no início da linha
 3. pip install -r requirements.txt — atenção: isto descarrega ~2 GB (inclui os modelos de embeddings), demora vários minutos;
+3. pip install pypdf
 4. copy .env.example .env
 5. depois notepad .env — preenche ANTHROPIC_API_KEY= (a tua chave), JWT_SECRET= (uma frase longa qualquer inventada por ti) e DATABASE_URL=sqlite:///./snaji.db
 6. python -m uvicorn app.main:app --reload — dentro do venv, o python já funciona
