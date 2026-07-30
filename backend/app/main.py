@@ -106,6 +106,36 @@ def _backup_diario() -> None:
 
 _backup_diario()
 
+from fastapi.exceptions import RequestValidationError
+
+
+@app.exception_handler(RequestValidationError)
+async def validacao_em_portugues(request, exc):
+    """Traduz os erros de validação para português claro, com orientação.
+    O utilizador nunca deve ver mensagens técnicas em inglês."""
+    for erro in exc.errors():
+        tipo = erro.get("type", "")
+        campo = ".".join(str(p) for p in erro.get("loc", [])[1:]) or "pedido"
+        if tipo == "string_too_long":
+            limite = erro.get("ctx", {}).get("max_length", 0)
+            paginas = limite // 2600
+            return JSONResponse(status_code=422, content={"detail": (
+                f"O texto excede o limite de {limite:,} caracteres (cerca de "
+                f"{paginas} páginas A4). Para processos completos, use o "
+                "Compilar dossiê (que aceita vários documentos) ou divida a "
+                "análise por peças.").replace(",", " ")})
+        if tipo == "string_too_short":
+            minimo = erro.get("ctx", {}).get("min_length", 0)
+            return JSONResponse(status_code=422, content={"detail": (
+                f"O campo '{campo}' é demasiado curto — mínimo de {minimo} "
+                "caracteres. Descreva o caso com um pouco mais de detalhe.")})
+        if tipo == "missing":
+            return JSONResponse(status_code=422, content={"detail": (
+                f"Falta o campo obrigatório '{campo}' no pedido.")})
+    return JSONResponse(status_code=422, content={"detail": (
+        "Os dados enviados não são válidos. Verifique o formulário e tente de novo.")})
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(","),
