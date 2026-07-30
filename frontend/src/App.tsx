@@ -14,6 +14,7 @@ import PaginaDossie from './pages/Dossie'
 import PaginaUtilizadores from './pages/Utilizadores'
 import PaginaContactos from './pages/Contactos'
 import PaginaPrivacidade from './pages/Privacidade'
+import PaginaGlossario from './pages/Glossario'
 import PaginaProcessos from './pages/Processos'
 import PaginaDocumentos from './pages/Documentos'
 import PaginaAuditoria from './pages/Auditoria'
@@ -48,6 +49,7 @@ export default function App() {
           <Route path="utilizadores" element={<PaginaUtilizadores />} />
           <Route path="contactos" element={<PaginaContactos />} />
           <Route path="privacidade" element={<PaginaPrivacidade />} />
+          <Route path="glossario" element={<PaginaGlossario />} />
           <Route path="processos"  element={<PaginaProcessos />} />
           <Route path="documentos" element={<PaginaDocumentos />} />
           <Route path="audiencias" element={<PaginaAudiencias />} />
