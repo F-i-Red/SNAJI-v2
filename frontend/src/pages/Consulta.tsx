@@ -27,6 +27,7 @@ export default function PaginaConsulta() {
   const [aExtrair, setAExtrair] = useState(false)
   const [arrastar, setArrastar] = useState(false)
   const [docsAnexados, setDocsAnexados] = useState<string[]>([])
+  const [mapa, setMapa] = useState<any | null>(null)
   const [carregando, setCarregando] = useState(false)
   const [passoActual, setPassoActual] = useState(-1)
   const [resultado, setResultado] = useState<AnalysisResponse | null>(null)
@@ -62,6 +63,7 @@ export default function PaginaConsulta() {
     setCarregando(true)
     setErro(null)
     setResultado(null)
+    setMapa(null)
     setPassoActual(0)
 
     try {
@@ -70,6 +72,7 @@ export default function PaginaConsulta() {
       await delay(400); avancarPasso(2)
       await delay(300); avancarPasso(3)
 
+      api.post('/mapa-caso', { texto }).then(x => setMapa(x.data)).catch(() => setMapa(null))
       const res = await juridicalService.analisar({ texto, fontes: ['CRP', 'CT', 'CC', 'RGPD', 'CP', 'CPC'] })
 
       avancarPasso(4)
@@ -234,6 +237,31 @@ export default function PaginaConsulta() {
       )}
 
       {/* Resultado */}
+      {mapa && (mapa.valor_detetado || (mapa.alertas_prescricao && mapa.alertas_prescricao.length > 0)) && (
+        <div style={{ background: 'var(--color-background-primary)', border: '0.5px solid var(--color-border-tertiary)', borderLeft: '3px solid #0a2342', borderRadius: 'var(--border-radius-lg)', padding: '14px 16px' }}>
+          <div style={{ fontSize: 10.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#0a2342', marginBottom: 8 }}>
+            Mapa do caso
+          </div>
+          {mapa.valor_detetado && (
+            <div style={{ fontSize: 12.5, marginBottom: 6 }}>
+              <strong>Valor detetado:</strong> {Number(mapa.valor_detetado).toLocaleString('pt-PT')} € <span style={{ color: 'var(--color-text-tertiary)', fontSize: 11 }}>(CPC art. 296.º — confirmar)</span>
+            </div>
+          )}
+          {mapa.competencia && (
+            <div style={{ fontSize: 12.5, lineHeight: 1.6, marginBottom: 6 }}>{mapa.competencia.nota}</div>
+          )}
+          {mapa.recurso && (
+            <div style={{ fontSize: 12.5, lineHeight: 1.6, marginBottom: 6, color: 'var(--color-text-secondary)' }}>{mapa.recurso.nota}</div>
+          )}
+          {(mapa.alertas_prescricao || []).map((a: any, i: number) => (
+            <div key={i} style={{ fontSize: 12.5, lineHeight: 1.6, padding: '8px 10px', background: '#fdf6e3', borderRadius: 6, marginBottom: 4 }}>
+              ⚠ {a.alerta} <span style={{ fontSize: 11, color: 'var(--color-text-tertiary)' }}>({a.norma.replace('-', ' art. ')})</span>
+            </div>
+          ))}
+          <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginTop: 6 }}>{mapa.aviso}</div>
+        </div>
+      )}
+
       {resultado && (
         <div ref={resultadoRef} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
