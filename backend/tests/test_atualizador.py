@@ -95,3 +95,33 @@ class TestObjetoDaPeca:
         a = AnalisadorPecas()
         r = a.analisar("Apenas factos narrados, sem qualquer fórmula.", "x.txt", 1)
         assert r.objeto_provavel == ""
+
+
+
+class TestMapaDoCaso:
+    """O mapa prático do caso: valor, competência, recurso, prescrição."""
+
+    def test_valor_baixo_aponta_julgados_de_paz(self):
+        from app.reasoning.mapa_caso import mapear_caso
+        m = mapear_caso("O vizinho danificou o muro. Prejuízo de 2.300 euros em 2025.")
+        assert m["valor_detetado"] == 2300.0
+        assert m["competencia"]["julgado_de_paz_possivel"] is True
+        assert m["recurso"]["admite_recurso"] is False  # ≤ metade da alçada
+
+    def test_laboral_antigo_alerta_prescricao_ct337(self):
+        from app.reasoning.mapa_caso import mapear_caso
+        m = mapear_caso("Fui despedido em 2023 e a empresa deve-me salários de 3.500 €.")
+        assert any(a["norma"] == "CT-337" for a in m["alertas_prescricao"])
+
+    def test_valor_alto_exclui_julgados_de_paz(self):
+        from app.reasoning.mapa_caso import mapear_caso
+        m = mapear_caso("Acidente com danos de 45.000 euros ocorrido este ano.")
+        assert m["competencia"]["julgado_de_paz_possivel"] is False
+        assert m["recurso"]["admite_recurso"] is True
+
+    def test_sem_valor_nem_datas_nao_inventa(self):
+        from app.reasoning.mapa_caso import mapear_caso
+        m = mapear_caso("Tenho um problema com o meu senhorio e preciso de orientação.")
+        assert m["valor_detetado"] is None
+        assert m["competencia"] is None
+        assert m["alertas_prescricao"] == []
