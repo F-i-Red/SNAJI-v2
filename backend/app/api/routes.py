@@ -4,7 +4,7 @@ Rotas completas da API SNAJI — v1.
 from __future__ import annotations
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 import structlog
 
@@ -255,6 +255,21 @@ async def verificar_auditoria(
     """Verifica a cadeia de hash do registo analítico — prova de integridade."""
     from app.analytics.registo import verificar_cadeia
     return verificar_cadeia()
+
+
+class MapaCasoRequest(BaseModel):
+    texto: str = Field(..., min_length=20, max_length=200_000)
+
+
+@router.post("/mapa-caso", tags=["Análise"])
+async def mapa_do_caso(
+    dados: MapaCasoRequest,
+    utilizador: Utilizador = Depends(requer_login),
+):
+    """Mapa prático do caso: valor da causa, competência (julgados de paz?),
+    recurso (alçadas) e alertas de prescrição. Determinístico, sobre o corpus."""
+    from app.reasoning.mapa_caso import mapear_caso
+    return mapear_caso(dados.texto)
 
 
 @router.get("/corpus/estado", tags=["Configuração"])
