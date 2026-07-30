@@ -51,6 +51,7 @@ class DocumentoNoDossie:
     ordem: int
     num_paginas: int
     resumo: str
+    objeto_provavel: str = ""
     citacoes_validas: list[str] = field(default_factory=list)
     citacoes_invalidas: list[str] = field(default_factory=list)
     prazos: list[str] = field(default_factory=list)
@@ -63,6 +64,7 @@ class Dossie:
     todas_citacoes_validas: list[str] = field(default_factory=list)
     todas_citacoes_invalidas: list[str] = field(default_factory=list)
     avisos: list[str] = field(default_factory=list)
+    objeto_provavel: str = ""   # o objeto do processo (da peça inicial)
 
     def para_dict(self) -> dict:
         return {
@@ -76,6 +78,7 @@ class Dossie:
                     "ordem": d.ordem,
                     "num_paginas": d.num_paginas,
                     "resumo": d.resumo,
+                    "objeto_provavel": d.objeto_provavel,
                     "citacoes_validas": d.citacoes_validas,
                     "citacoes_invalidas": d.citacoes_invalidas,
                     "prazos": d.prazos,
@@ -86,6 +89,7 @@ class Dossie:
             "citacoes_invalidas_unicas": sorted(set(self.todas_citacoes_invalidas)),
             "total_citacoes_invalidas": len(set(self.todas_citacoes_invalidas)),
             "avisos": self.avisos,
+            "objeto_provavel": self.objeto_provavel,
         }
 
 
@@ -122,6 +126,7 @@ class CompiladorDossie:
                 ordem=ordem,
                 num_paginas=paginas,
                 resumo=analise.resumo,
+                objeto_provavel=analise.objeto_provavel,
                 citacoes_validas=validas,
                 citacoes_invalidas=invalidas,
                 prazos=analise.prazos_desencadeados,
@@ -129,6 +134,11 @@ class CompiladorDossie:
             dossie.total_paginas += paginas
             dossie.todas_citacoes_validas.extend(validas)
             dossie.todas_citacoes_invalidas.extend(invalidas)
+
+        # O objeto do processo: o pedido da peça mais inicial que o formule
+        com_objeto = [d for d in dossie.documentos if d.objeto_provavel]
+        if com_objeto:
+            dossie.objeto_provavel = min(com_objeto, key=lambda d: d.ordem).objeto_provavel
 
         # Ordenar pela marcha processual (ordem), mantendo estável por nome
         dossie.documentos.sort(key=lambda d: (d.ordem, d.nome_ficheiro))

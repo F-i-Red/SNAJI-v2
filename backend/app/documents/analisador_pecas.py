@@ -25,6 +25,7 @@ nunca depende dele.
 from __future__ import annotations
 
 import re
+import re as _re_mod
 from dataclasses import dataclass, field
 
 import structlog
@@ -104,6 +105,7 @@ class AnalisePeca:
     seccoes: list[SeccaoDetetada] = field(default_factory=list)
     prazos_desencadeados: list[str] = field(default_factory=list)
     resumo: str = ""
+    objeto_provavel: str = ""   # pedido identificado na peça (CPC-596/LJP-60)
     avisos: list[str] = field(default_factory=list)
 
     @property
@@ -120,6 +122,7 @@ class AnalisePeca:
             "num_paginas": self.num_paginas,
             "num_caracteres": self.num_caracteres,
             "tipo_provavel": self.tipo_provavel,
+            "objeto_provavel": self.objeto_provavel,
             "resumo": self.resumo,
             "total_citacoes": len(self.citacoes),
             "citacoes_validas": [
@@ -152,6 +155,43 @@ class AnalisadorPecas:
         self._validador = ValidadorCitacoes()
         self._llm = llm_client
 
+    # Fórmulas que anunciam o pedido — a formulação do objeto do litígio
+    _PADRAO_PEDIDO = _re_mod.compile(
+        r"(?:nestes\s+termos.{0,120}?)?"
+        r"(?:requer(?:-se)?|pede(?:-se)?|termina\s+pedindo|conclui\s+pedindo)"
+        r"\s*(?:a\s+v\.?\s*ex\.?[ªa]?\.?)?\s*,?\s*(?:que\s+)?",
+        _re_mod.IGNORECASE | _re_mod.DOTALL,
+    )
+    _ABREVIATURAS = [
+        ("V.", "V\x00"), ("Ex.", "Ex\x00"), ("art.", "art\x00"),
+        ("arts.", "arts\x00"), ("n.º", "n\x00º"), ("Sr.", "Sr\x00"),
+        ("Dr.", "Dr\x00"), ("Ld.", "Ld\x00"), ("Prof.", "Prof\x00"),
+    ]
+
+    def _extrair_objeto(self, texto: str) -> str:
+        """Identifica o objeto provável da peça — a frase do pedido.
+        Determinístico: localiza a ÚLTIMA fórmula consagrada ('nestes termos…
+        requer… que', 'termina pedindo') e devolve o que se pede, cortado na
+        primeira frase completa. É APOIO à identificação exigida pelo
+        CPC-596/LJP-60 — o profissional confirma sempre."""
+        ocorrencias = list(self._PADRAO_PEDIDO.finditer(texto))
+        if not ocorrencias:
+            return ""
+        resto = texto[ocorrencias[-1].end():][:500]
+        # proteger abreviaturas para o corte de frase não partir nelas
+        for original, marcador in self._ABREVIATURAS:
+            resto = resto.replace(original, marcador)
+        m_fim = _re_mod.search(r"[.;]\s+(?=[A-ZÀ-Ú])|[.;]\s*$|\n\s*\n", resto)
+        objeto = resto[: m_fim.start()] if m_fim else resto[:300]
+        for original, marcador in self._ABREVIATURAS:
+            objeto = objeto.replace(marcador, original)
+        objeto = _re_mod.sub(r"\s+", " ", objeto).strip(" ,;:.")
+        if len(objeto) < 15:
+            return ""
+        if len(objeto) > 300:
+            objeto = objeto[:300].rstrip() + "…"
+        return objeto[0].upper() + objeto[1:]
+
     def analisar(self, texto: str, nome_ficheiro: str = "",
                  num_paginas: int = 0) -> AnalisePeca:
         texto = texto or ""
@@ -161,6 +201,7 @@ class AnalisadorPecas:
             num_caracteres=len(texto),
             tipo_provavel=self._detetar_tipo(texto),
         )
+        analise.objeto_provavel = self._extrair_objeto(texto)
         if not texto.strip():
             analise.avisos.append("O documento não continha texto legível (pode ser um PDF digitalizado sem OCR).")
             return analise
