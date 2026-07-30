@@ -10,7 +10,7 @@
 [![React](https://img.shields.io/badge/React-18+-61DAFB?style=flat&logo=react&logoColor=black)](https://reactjs.org)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat&logo=docker&logoColor=white)](https://docker.com)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat)](LICENSE)
-[![Tests](https://img.shields.io/badge/Testes-196%20passing-brightgreen?style=flat)](backend/tests)
+[![Tests](https://img.shields.io/badge/Testes-202%20passing-brightgreen?style=flat)](backend/tests)
 
 ---
 
@@ -58,14 +58,19 @@ Quatro perfis diferenciados com permissões específicas:
 
 | Perfil        | Acesso                                                |
 | ------------- | ----------------------------------------------------- |
-| Cidadão       | Consulta jurídica, acompanhamento do próprio processo |
-| Advogado      | Gestão de clientes, processos, documentos             |
-| Magistrado    | Supervisão, decisão, audiências                       |
-| Administrador | Gestão total do sistema                               |
+| Cidadão       | Descrever o caso, cenários, acompanhamento do próprio processo |
+| Advogado      | Peças, dossiês, processos, cenários, observatório     |
+| Magistrado    | Supervisão, audiências, dossiês, cenários             |
+| Analista      | Observatório da justiça, métricas, relatórios         |
+| Administrador | Gestão técnica (contactos, utilizadores, auditoria) — sem atos jurídicos |
 
 ### 📚 Jurisprudência e Legislação
 
 Integração com normas do Diário da República Eletrónico e **atualizador automático de acórdãos do STJ** (testado contra fixtures reais de stj.pt, sem dependência da rede). Pesquisa híbrida (BM25 + semântica) sobre o corpus jurídico português.
+
+### 🧰 Ferramentas de peças e orientação prática
+
+Verificador de peças (citações validadas contra o corpus, estrutura, prazos, **objeto do litígio** identificado — CPC 596.º), compilador de dossiê (vários documentos ordenados pela marcha processual), **mapa do caso** (valor da causa → julgados de paz? recurso? alertas de prescrição) e **glossário jurídico** em linguagem simples para todos os perfis.
 
 ### 🔒 Segurança e Soberania
 
@@ -109,7 +114,7 @@ Integração com normas do Diário da República Eletrónico e **atualizador aut
 
 ## Testes
 
-**196 testes automatizados — todos aprovados** (unitários + integração), executáveis sem chave de API (modo stub):
+**202 testes automatizados — todos aprovados** (unitários + integração), executáveis sem chave de API (modo stub):
 
 | Ficheiro                 | Testes | Âmbito                                          |
 | ------------------------ | ------ | ----------------------------------------------- |
@@ -122,8 +127,8 @@ Integração com normas do Diário da República Eletrónico e **atualizador aut
 | `test_workflow.py`       | 19     | Prazos legais e estados processuais             |
 | `test_rag.py`            | 12     | Motor RAG e validação de citações               |
 | `test_casos.py`          | 6      | Persistência e isolamento de casos              |
-| `test_atualizador.py`    | 5      | Atualizador de acórdãos STJ (fixtures reais)    |
-| **Total**                | **196**|                                                 |
+| `test_atualizador.py`    | 11     | Atualizador STJ, objeto da peça, mapa do caso   |
+| **Total**                | **202**|                                                 |
 
 ```bash
 cd backend
@@ -154,7 +159,6 @@ cp .env.example .env
 
 # Instalar dependências
 pip install -r requirements.txt
-pip install pypdf
 
 # Gerar corpus jurídico (já incluído, mas regenerar se necessário)
 python app/rag/corpus/processador.py
@@ -172,11 +176,10 @@ Estado do sistema: `http://localhost:8000/health`
 ```
 1. py -3.12 -m venv .venv — força a versão python 3.12 usada no SNAJI
 2. .venv\Scripts\activate.bat — deve aparecer (.venv) no início da linha
-3. pip install -r requirements.txt — atenção: descarrega ~2 GB (inclui os modelos de embeddings), demora vários minutos
-4. pip install pypdf
-5. copy .env.example .env
+3. pip install -r requirements.txt
+4. copy .env.example .env
 6. notepad .env — preenche ANTHROPIC_API_KEY= (a tua chave), JWT_SECRET= (uma frase longa qualquer) e DATABASE_URL=sqlite:///./snaji.db
-7. python -m uvicorn app.main:app --reload
+6. python -m uvicorn app.main:app --reload
 ```
 
 > **Nota sobre o `.env`**: a configuração rejeita variáveis não reconhecidas. Se o arranque falhar com `Configuração inválida … extra_forbidden`, remove do `.env` as linhas não suportadas (ex.: `ALLOWED_ORIGINS`).
@@ -238,7 +241,7 @@ CMD_REDIRECT_URI=http://localhost:8000/api/v1/auth/cmd/callback
 CMD_AMBIENTE=sandbox
 ```
 
-> **Sem ANTHROPIC_API_KEY**: o sistema funciona em modo stub — RAG, workflow, audiências, classificador e os 196 testes funcionam todos. O motor LLM produz respostas genéricas baseadas nas normas do corpus, sem análise semântica completa.
+> **Sem ANTHROPIC_API_KEY**: o sistema funciona em modo stub — RAG, workflow, audiências, classificador e os 202 testes funcionam todos. O motor LLM produz respostas genéricas baseadas nas normas do corpus, sem análise semântica completa.
 
 ---
 
@@ -249,12 +252,12 @@ snaji/
 ├── backend/
 │   ├── app/
 │   │   ├── agents/           # Agentes de IA especializados (Juiz, Acusação, Defesa, Perito)
-│   │   ├── analytics/        # Registo e análise de eventos de utilização
+│   │   ├── analytics/        # Registo de eventos com cadeia de hash (anti-adulteração) + observatório
 │   │   ├── api/              # Rotas FastAPI (auth, análise, workflow, audiências, integrações)
 │   │   ├── audiencias/       # Motor de audiências multi-agente
 │   │   ├── core/             # Configuração e utilitários centrais
-│   │   ├── db/               # Repositórios (casos, processos; memória → PostgreSQL)
-│   │   ├── documents/        # Processamento PDF/Word (+ OCR)
+│   │   ├── db/               # Repositórios JSON persistentes (casos, processos, config) + backups diários
+│   │   ├── documents/        # Processamento PDF/Word/imagens (OCR), verificador de peças, compilador de dossiê
 │   │   ├── generation/       # Geração de petições, contestações, recursos
 │   │   ├── integrations/     # DRE, CMD, Jurisprudência
 │   │   ├── notifications/    # Alertas de prazos
@@ -262,15 +265,17 @@ snaji/
 │   │   ├── processes/        # Repositório de processos jurídicos
 │   │   ├── rag/              # Motor BM25 + corpus 6.770 artigos reais
 │   │   │   └── corpus/       # CC, CPC, CSC, CT, CPP, CP, CIRE, CRP, CPA, RGPD, LJP, LDC + acórdãos STJ
-│   │   ├── reasoning/        # Pipeline de raciocínio, classificador jurídico, motor de cenários, agente instrutor
+│   │   ├── reasoning/        # Pipeline de raciocínio, classificador, cenários, agente instrutor, mapa do caso
 │   │   ├── security/         # JWT, RBAC, Argon2, dependências FastAPI
 │   │   └── workflow/         # Prazos legais automáticos (CPC/CPP/CT)
-│   ├── ferramentas/          # Atualizador de acórdãos STJ
-│   └── tests/                # 196 testes (unit + integração)
+│   ├── ferramentas/          # Atualizador automático de acórdãos STJ (administração)
+│   └── tests/                # 202 testes (unit + integração)
 │
 └── frontend/
     └── src/
-        ├── pages/            # Dashboard, Consulta, Processos, Audiências, Documentos, Auditoria
+        ├── pages/            # Dashboard, Instrutor, Consulta, Cenários, Peças, Dossiê, Processos,
+        │                     #   Audiências, Jurisprudência, Observatório, Glossário, Contactos,
+        │                     #   Privacidade, Utilizadores, Auditoria
         ├── components/       # Layout, sidebar adaptativa por perfil
         ├── auth/             # Store Zustand + gestão de sessão
         ├── services/         # Cliente Axios com interceptores JWT
@@ -299,6 +304,11 @@ POST /api/v1/analysis            → Analisar caso com RAG + LLM
 GET  /api/v1/fontes              → Listar diplomas disponíveis
 POST /api/v1/documentos/upload   → Upload PDF/Word + análise
 POST /api/v1/gerar-documento     → Gerar petição/contestação/recurso
+POST /api/v1/pecas/analisar      → Verificar peça (citações, estrutura, objeto)
+POST /api/v1/dossie/compilar     → Compilar dossiê (vários documentos ordenados)
+POST /api/v1/mapa-caso           → Mapa do caso (valor, competência, prescrição)
+POST /api/v1/cenarios            → Cenários de resolução (três lentes)
+GET  /api/v1/corpus/estado       → Diplomas carregados e datas
 ```
 
 ### Processos
