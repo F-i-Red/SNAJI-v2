@@ -75,3 +75,23 @@ class TestExtratorAcordaos:
         lixo = 'Acórdão do Supremo Tribunal de Justiça n.º 1/2020 «curto»'
         acs = extrair_acordaos_de_pagina(lixo, "https://www.stj.pt/x/", NORMAS_VALIDAS)
         assert acs == []
+
+
+class TestObjetoDaPeca:
+    """O extrator do objeto (o pedido formulado — CPC-596/LJP-60)."""
+
+    def test_peticao_com_formula_consagrada(self):
+        from app.documents.analisador_pecas import AnalisadorPecas
+        a = AnalisadorPecas()
+        r = a.analisar(
+            "Nestes termos, requer a V. Ex.ª que a ação seja julgada procedente "
+            "e o Réu condenado no pagamento de 4.800 euros. Junta documentos.",
+            "p.txt", 1)
+        assert "julgada procedente" in r.objeto_provavel
+        assert "4.800 euros" in r.objeto_provavel
+
+    def test_sem_pedido_devolve_vazio(self):
+        from app.documents.analisador_pecas import AnalisadorPecas
+        a = AnalisadorPecas()
+        r = a.analisar("Apenas factos narrados, sem qualquer fórmula.", "x.txt", 1)
+        assert r.objeto_provavel == ""
