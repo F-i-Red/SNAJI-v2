@@ -10,6 +10,7 @@ const NAV_POR_ROLE = {
     { path: '/casos', icon: 'ti-folder', label: 'Os meus casos' },
     { path: '/processos', icon: 'ti-eye', label: 'Acompanhar processos' },
     { path: '/consulta', icon: 'ti-message-question', label: 'Tirar uma dúvida' },
+    { path: '/glossario', icon: 'ti-book-2', label: 'Termos de direito' },
     { path: '/contactos', icon: 'ti-lifebuoy', label: 'Contactos' },
   ],
   advogado: [
@@ -26,6 +27,7 @@ const NAV_POR_ROLE = {
     { path: '/audiencias', icon: 'ti-gavel', label: 'Audiências' },
     { path: '/documentos', icon: 'ti-file-invoice', label: 'Geração de peças' },
     { path: '/auditoria', icon: 'ti-shield-check', label: 'Auditoria' },
+    { path: '/glossario', icon: 'ti-book-2', label: 'Termos de direito' },
     { path: '/contactos', icon: 'ti-lifebuoy', label: 'Contactos' },
   ],
   magistrado: [
@@ -39,12 +41,14 @@ const NAV_POR_ROLE = {
     { path: '/audiencias', icon: 'ti-gavel', label: 'Audiências' },
     { path: '/consulta', icon: 'ti-search', label: 'Pesquisa jurídica' },
     { path: '/auditoria', icon: 'ti-shield-lock', label: 'Auditoria forense' },
+    { path: '/glossario', icon: 'ti-book-2', label: 'Termos de direito' },
     { path: '/contactos', icon: 'ti-lifebuoy', label: 'Contactos' },
   ],
   analista: [
     { path: '/dashboard', icon: 'ti-home', label: 'Dashboard' },
     { path: '/observatorio', icon: 'ti-chart-dots', label: 'Observatório' },
     { path: '/auditoria', icon: 'ti-chart-bar', label: 'Métricas' },
+    { path: '/glossario', icon: 'ti-book-2', label: 'Termos de direito' },
     { path: '/contactos', icon: 'ti-lifebuoy', label: 'Contactos' },
   ],
   admin: [
@@ -52,6 +56,7 @@ const NAV_POR_ROLE = {
     { path: '/utilizadores', icon: 'ti-users', label: 'Utilizadores' },
     { path: '/observatorio', icon: 'ti-chart-dots', label: 'Observatório' },
     { path: '/auditoria', icon: 'ti-shield', label: 'Auditoria' },
+    { path: '/glossario', icon: 'ti-book-2', label: 'Termos de direito' },
     { path: '/contactos', icon: 'ti-lifebuoy', label: 'Contactos' },
   ],
 }
