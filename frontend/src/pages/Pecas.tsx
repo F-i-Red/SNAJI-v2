@@ -18,6 +18,7 @@ interface Analise {
   num_paginas: number
   num_caracteres: number
   tipo_provavel: string
+  objeto_provavel?: string
   resumo: string
   total_citacoes: number
   citacoes_validas: Citacao[]
@@ -78,6 +79,7 @@ export default function PaginaPecas() {
     return {
       titulo: `Análise da peça: ${analise.nome_ficheiro}`,
       subtitulo: `${analise.tipo_provavel} · ${analise.num_paginas} páginas`,
+      meta: analise.objeto_provavel ? [`Objeto provável: ${analise.objeto_provavel}`] : undefined,
       meta: [`Analisado pelo SNAJI em ${new Date().toLocaleDateString('pt-PT')}`],
       seccoes: [
         { titulo: 'Resumo', paragrafos: [analise.resumo] },
@@ -156,6 +158,13 @@ export default function PaginaPecas() {
           <div style={{ ...cartao, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: 200 }}>
               <div style={{ fontSize: 15, fontWeight: 500 }}>{analise.tipo_provavel}</div>
+              {analise.objeto_provavel && (
+                <div style={{ marginTop: 6, fontSize: 12.5, lineHeight: 1.55 }}>
+                  <span style={{ fontSize: 10.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#0a2342' }}>Objeto provável </span>
+                  <span style={{ color: 'var(--color-text-secondary)' }}>{analise.objeto_provavel}</span>
+                  <span style={{ fontSize: 11, color: 'var(--color-text-tertiary)' }}> — identificação automática do pedido (CPC art. 596.º); confirmar.</span>
+                </div>
+              )}
               <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>
                 {analise.nome_ficheiro} · {analise.num_paginas} páginas · {analise.total_citacoes} citações
               </div>

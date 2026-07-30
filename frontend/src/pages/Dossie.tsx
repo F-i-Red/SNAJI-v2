@@ -17,12 +17,14 @@ interface DocDossie {
   ordem: number
   num_paginas: number
   resumo: string
+  objeto_provavel?: string
   citacoes_validas: string[]
   citacoes_invalidas: string[]
   prazos: string[]
 }
 interface Dossie {
   num_documentos: number
+  objeto_provavel?: string
   total_paginas: number
   documentos: DocDossie[]
   citacoes_validas_unicas: string[]
@@ -62,7 +64,10 @@ export default function PaginaDossie() {
     return {
       titulo: 'Dossiê do processo',
       subtitulo: `${dossie.num_documentos} documentos · ${dossie.total_paginas} páginas`,
-      meta: [`Compilado pelo SNAJI em ${new Date().toLocaleDateString('pt-PT')}`],
+      meta: [
+        ...(dossie.objeto_provavel ? [`Objeto provável: ${dossie.objeto_provavel}`] : []),
+        `Compilado pelo SNAJI em ${new Date().toLocaleDateString('pt-PT')}`,
+      ],
       seccoes: [
         ...dossie.documentos.map((d, i) => ({
           titulo: `${i + 1}. ${d.papel} — ${d.tipo}`,
@@ -134,7 +139,19 @@ export default function PaginaDossie() {
             </div>
           </div>
 
-          {dossie.avisos.map((a, i) => (
+          {dossie.objeto_provavel && (
+            <div style={{ ...cartao, borderLeft: '3px solid #0a2342' }}>
+              <div style={{ fontSize: 10.5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#0a2342', marginBottom: 3 }}>
+                Objeto provável do processo
+              </div>
+              <div style={{ fontSize: 13.5, lineHeight: 1.6 }}>{dossie.objeto_provavel}</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginTop: 4 }}>
+                Identificado automaticamente a partir do pedido da peça inicial (CPC art. 596.º / LJP art. 60.º) — o profissional confirma.
+              </div>
+            </div>
+          )}
+
+                    {dossie.avisos.map((a, i) => (
             <div key={i} style={{ ...cartao, borderLeft: '3px solid #c4960a', fontSize: 13 }}>⚠ {a}</div>
           ))}
 
