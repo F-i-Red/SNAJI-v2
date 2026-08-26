@@ -94,7 +94,16 @@ class TestFontes:
         token = login("cidadao@snaji.gov.pt", "Cidad2024!")
         r = client.get("/api/v1/fontes", headers=headers(token))
         assert r.status_code == 200
-        assert r.json()["total_artigos"] == 246
+        dados = r.json()
+        # O total deve reflectir o corpus real, não um valor fixo
+        from app.rag.motor import RAGJuridico
+        assert dados["total_artigos"] == RAGJuridico().total_artigos
+        # A soma por diploma tem de bater certo com o total
+        assert sum(f["artigos"] for f in dados["fontes"]) == dados["total_artigos"]
+        # Todos os 12 diplomas presentes
+        codigos = {f["codigo"] for f in dados["fontes"]}
+        assert {"CC", "CPC", "CSC", "CT", "CPP", "CP",
+                "CIRE", "CRP", "CPA", "RGPD", "LJP", "LDC"} <= codigos
 
     def test_listar_fontes_sem_token(self):
         r = client.get("/api/v1/fontes")
