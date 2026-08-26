@@ -43,7 +43,8 @@ app = FastAPI(
     version="5.3.0",
     description=(
         "Motor jurídico português completo. "
-        "RAG (246 artigos reais), autenticação RBAC + CMD, "
+        "RAG sobre corpus integral de 12 diplomas portugueses, "
+        "autenticação RBAC + CMD, "
         "workflow processual com prazos legais, audiências multi-agente, "
         "integração DRE e jurisprudência. "
         "Inclui o AgenteInstrutor: instrução do caso por perguntas "
