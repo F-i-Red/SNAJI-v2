@@ -79,8 +79,10 @@ export default function PaginaPecas() {
     return {
       titulo: `Análise da peça: ${analise.nome_ficheiro}`,
       subtitulo: `${analise.tipo_provavel} · ${analise.num_paginas} páginas`,
-      meta: analise.objeto_provavel ? [`Objeto provável: ${analise.objeto_provavel}`] : undefined,
-      meta: [`Analisado pelo SNAJI em ${new Date().toLocaleDateString('pt-PT')}`],
+      meta: [
+        ...(analise.objeto_provavel ? [`Objeto provável: ${analise.objeto_provavel}`] : []),
+        `Analisado pelo SNAJI em ${new Date().toLocaleDateString('pt-PT')}`,
+      ],
       seccoes: [
         { titulo: 'Resumo', paragrafos: [analise.resumo] },
         ...(analise.citacoes_invalidas.length ? [{
