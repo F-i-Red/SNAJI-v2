@@ -78,16 +78,28 @@ async def analyse_case(
 
 @router.get("/fontes", tags=["Análise"])
 async def listar_fontes(_: Utilizador = Depends(requer_login)):
+    from app.rag.motor import RAGJuridico
+    rag = RAGJuridico()
+    contagem: dict[str, int] = {}
+    for art in rag.artigos:
+        diploma = art.get("diploma", "?")
+        contagem[diploma] = contagem.get(diploma, 0) + 1
+    nomes = {
+        "CC": "Código Civil", "CPC": "Código de Processo Civil",
+        "CSC": "Código das Sociedades Comerciais", "CT": "Código do Trabalho",
+        "CPP": "Código de Processo Penal", "CP": "Código Penal",
+        "CIRE": "Código da Insolvência e da Recuperação de Empresas",
+        "CRP": "Constituição da República Portuguesa",
+        "CPA": "Código do Procedimento Administrativo",
+        "RGPD": "Regulamento Geral sobre a Proteção de Dados",
+        "LJP": "Lei dos Julgados de Paz", "LDC": "Lei de Defesa do Consumidor",
+    }
     return {
         "fontes": [
-            {"codigo": "CRP",  "nome": "Constituição da República Portuguesa", "artigos": 55},
-            {"codigo": "CT",   "nome": "Código do Trabalho", "artigos": 33},
-            {"codigo": "CC",   "nome": "Código Civil", "artigos": 58},
-            {"codigo": "RGPD", "nome": "RGPD", "artigos": 20},
-            {"codigo": "CP",   "nome": "Código Penal", "artigos": 45},
-            {"codigo": "CPC",  "nome": "Código de Processo Civil e Penal", "artigos": 35},
+            {"codigo": cod, "nome": nomes.get(cod, cod), "artigos": n}
+            for cod, n in sorted(contagem.items(), key=lambda x: -x[1])
         ],
-        "total_artigos": 246,
+        "total_artigos": rag.total_artigos,
     }
 
 
