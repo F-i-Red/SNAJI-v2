@@ -1,6 +1,6 @@
 """
 Motor RAG jurídico real.
-BM25 sobre 166 artigos reais de 4 diplomas portugueses.
+BM25 sobre o corpus integral de legislação portuguesa (12 diplomas).
 Corpus construído a partir de fontes oficiais (parlamento.pt, pgdlisboa.pt, eur-lex.europa.eu).
 """
 import json
@@ -42,7 +42,15 @@ ALIAS_DIPLOMA = {
     "crp": "CRP", "constituição": "CRP", "constituicao": "CRP",
     "ct": "CT", "código do trabalho": "CT", "codigo do trabalho": "CT",
     "cc": "CC", "código civil": "CC", "codigo civil": "CC",
-    "rgpd": "RGPD", "protecção de dados": "RGPD",
+    "rgpd": "RGPD", "protecção de dados": "RGPD", "proteção de dados": "RGPD",
+    "cp": "CP", "código penal": "CP", "codigo penal": "CP",
+    "cpc": "CPC", "código de processo civil": "CPC",
+    "cpp": "CPP", "código de processo penal": "CPP",
+    "csc": "CSC", "código das sociedades comerciais": "CSC",
+    "cire": "CIRE", "código da insolvência": "CIRE",
+    "cpa": "CPA", "código do procedimento administrativo": "CPA",
+    "ljp": "LJP", "lei dos julgados de paz": "LJP",
+    "ldc": "LDC", "lei de defesa do consumidor": "LDC",
 }
 
 # Normas válidas para anti-alucinação (preenchido dinamicamente)
@@ -100,6 +108,11 @@ class RAGJuridico:
     def total_artigos(self) -> int:
         return len(self._chunks)
 
+    @property
+    def artigos(self) -> list[dict]:
+        """Acesso público (só leitura) aos artigos do corpus."""
+        return self._chunks
+
 
 class ValidadorCitacoes:
     """Anti-alucinação determinístico baseado no corpus real."""
@@ -107,17 +120,34 @@ class ValidadorCitacoes:
     PADRAO = re.compile(
         r"[Aa]rt(?:igo)?\.?\s*(\d+[A-Z]?)\.?[°º]?\s*"
         r"(?:do|da|n\.?[°º]?)?\s*"
-        r"(CRP|Constituição|Código do Trabalho|CT|Código Civil|CC|RGPD|"
-        r"Código Penal|CP|Código de Processo Civil|CPC)",
+        r"(Constituição da República Portuguesa|Constituição|"
+        r"Código de Processo Civil|Código de Processo Penal|"
+        r"Código das Sociedades Comerciais|"
+        r"Código da Insolvência e da Recuperação de Empresas|"
+        r"Código do Procedimento Administrativo|"
+        r"Código do Trabalho|Código Civil|Código Penal|"
+        r"Regulamento Geral sobre a Prote[cç]?ção de Dados|"
+        r"Lei dos Julgados de Paz|Lei de Defesa do Consumidor|"
+        r"CIRE|RGPD|CPP|CPC|CPA|CSC|CRP|LJP|LDC|CC|CP|CT)\b",
         re.IGNORECASE | re.UNICODE,
     )
     MAPA = {
         "crp": "CRP", "constituição": "CRP",
+        "constituição da república portuguesa": "CRP",
         "código do trabalho": "CT", "ct": "CT",
         "código civil": "CC", "cc": "CC",
         "rgpd": "RGPD",
+        "regulamento geral sobre a proteção de dados": "RGPD",
+        "regulamento geral sobre a protecção de dados": "RGPD",
         "código penal": "CP", "cp": "CP",
         "código de processo civil": "CPC", "cpc": "CPC",
+        "código de processo penal": "CPP", "cpp": "CPP",
+        "código das sociedades comerciais": "CSC", "csc": "CSC",
+        "código da insolvência e da recuperação de empresas": "CIRE",
+        "cire": "CIRE",
+        "código do procedimento administrativo": "CPA", "cpa": "CPA",
+        "lei dos julgados de paz": "LJP", "ljp": "LJP",
+        "lei de defesa do consumidor": "LDC", "ldc": "LDC",
     }
 
     def validar(self, diploma: str, artigo: str) -> bool:
