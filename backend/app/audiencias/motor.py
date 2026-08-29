@@ -810,8 +810,9 @@ class MotorAudiencias:
         mensagens = [{"role": "user", "content": prompt}]
         partes: list[str] = []
         for i in range(self.MAX_CONTINUACOES + 1):
+            from app.core.llm import obter_modelo
             msg = self._llm.messages.create(
-                model=self.MODELO, max_tokens=self.MAX_TOKENS,
+                model=obter_modelo(self.MODELO), max_tokens=self.MAX_TOKENS,
                 system=system, messages=mensagens,
             )
             texto = "".join(b.text for b in msg.content if getattr(b, "text", None))
