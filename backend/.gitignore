@@ -1,0 +1,4 @@
+
+# Cache de embeddings (recalculável, não versionar)
+app/rag/corpus/embeddings.npy
+app/rag/corpus/embeddings.sha256
