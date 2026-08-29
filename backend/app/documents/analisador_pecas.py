@@ -298,8 +298,9 @@ class AnalisadorPecas:
     def _resumir_llm(self, texto: str) -> str:
         # Envia até ~12k caracteres (o essencial de peças longas cabe no início/fim)
         amostra = texto[:9000] + "\n\n[...]\n\n" + texto[-3000:] if len(texto) > 12000 else texto
+        from app.core.llm import obter_modelo
         msg = self._llm.messages.create(
-            model="claude-sonnet-4-6",
+            model=obter_modelo(),
             max_tokens=600,
             system=("És um jurista português. Resume a peça processual em 4-6 frases "
                     "objetivas: que tipo de peça é, o que pede/decide, os factos centrais "
