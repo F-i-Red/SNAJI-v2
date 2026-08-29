@@ -244,20 +244,38 @@ export default function PaginaCenarios() {
   const docImprimivel = (): DocumentoImprimivel | null => {
     if (!resultado) return null
     const seccoes = [
-      { titulo: 'Síntese', paragrafos: [registoTecnico ? resultado.sintese_tecnica : resultado.sintese_cidada] },
-      ...(resultado.convergencia ? [{ titulo: 'Convergência', paragrafos: ['As três abordagens interpretativas convergem no mesmo sentido.'] }] : []),
-      ...resultado.cenarios.map(cn => ({
-        titulo: `${cn.titulo} — solidez ${NOME_SOLIDEZ[cn.solidez]}`,
-        paragrafos: [registoTecnico ? cn.descricao_tecnica : cn.descricao_cidada].filter(Boolean) as string[],
-        itens: cn.fundamentacao_normas.map(n => n.replace('-', ' art. ')),
-      })),
+      ...resultado.cenarios.map(cn => {
+        const riscos = registoTecnico ? cn.riscos : cn.riscos_cidadao
+        return {
+          titulo: `Lente ${NOME_LENTE[cn.lente]} — solidez ${NOME_SOLIDEZ[cn.solidez]}`,
+          paragrafos: [
+            registoTecnico ? cn.lente_descricao_tecnica : cn.lente_descricao_cidada,
+            `${cn.titulo} — ${cn.sentido}`,
+            registoTecnico ? cn.solucao_tecnica : cn.solucao_cidada,
+            riscos ? `Riscos e contra-argumentos: ${riscos}` : '',
+          ].filter(Boolean) as string[],
+          itens: cn.fundamentacao_normas.map(n => `Norma validada no corpus: ${n.replace('-', ' art. ')}`),
+        }
+      }),
+      {
+        titulo: 'Síntese comparativa',
+        paragrafos: [
+          registoTecnico ? resultado.sintese_tecnica : resultado.sintese_cidada,
+          resultado.convergencia
+            ? 'As três abordagens interpretativas convergem no mesmo sentido — indicador de caso juridicamente claro.'
+            : 'As abordagens divergem no desfecho — caso com zonas de incerteza jurídica.',
+        ],
+      },
     ]
     return {
       titulo: 'Cenários de resolução',
-      subtitulo: location.state?.contraditorio ? 'Análise do contraditório (perspetiva da parte contrária)' : undefined,
-      meta: [`Gerado pelo SNAJI em ${new Date().toLocaleDateString('pt-PT')}`],
+      subtitulo: location.state?.contraditorio ? 'Análise do contraditório (perspetiva da parte contrária)' : 'O mesmo caso analisado por três abordagens da prática judiciária',
+      meta: [
+        `Gerado pelo SNAJI em ${new Date().toLocaleDateString('pt-PT')}`,
+        registoTecnico ? 'Registo técnico' : 'Linguagem clara',
+      ],
       seccoes,
-      rodape: 'Apoio à decisão gerado pelo SNAJI — sem valor oficial. Não substitui aconselhamento jurídico profissional.',
+      rodape: resultado.ressalva || 'Apoio à decisão gerado pelo SNAJI — sem valor oficial. Não substitui aconselhamento jurídico profissional.',
     }
   }
 
