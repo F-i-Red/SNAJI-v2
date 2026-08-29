@@ -59,19 +59,8 @@ def get_agente() -> AgenteInstrutor:
     """
     global _agente
     if _agente is None:
-        llm = None
-        from app.api.routes import _obter_api_key
-        api_key = _obter_api_key()
-        if api_key:
-            try:
-                import anthropic
-                llm = anthropic.Anthropic(api_key=api_key)
-                logger.info("instrutor.llm.ativo")
-            except Exception as exc:  # pacote em falta ou chave inválida
-                logger.warning("instrutor.llm.indisponivel", erro=str(exc))
-        else:
-            logger.info("instrutor.llm.stub", motivo="ANTHROPIC_API_KEY ausente")
-        _agente = AgenteInstrutor(llm_client=llm)
+        from app.core.llm import criar_llm
+        _agente = AgenteInstrutor(llm_client=criar_llm("instrutor"))
     return _agente
 
 

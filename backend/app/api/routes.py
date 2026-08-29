@@ -43,42 +43,12 @@ _doc_processor = ProcessadorDocumentos()
 _gerador = GeradorDocumentos()
 
 
-def _obter_api_key() -> str:
-    """
-    Lê a ANTHROPIC_API_KEY primeiro das settings (que carregam o .env)
-    e só depois do ambiente do sistema. O placeholder do .env.example
-    ('sk-ant-...') é tratado como ausência de chave.
-    """
-    api_key = ""
-    try:
-        from app.core.config import get_settings
-        api_key = (get_settings().anthropic_api_key or "").strip()
-    except Exception:
-        api_key = ""
-    if not api_key:
-        api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
-    if api_key == "sk-ant-...":  # placeholder por preencher
-        api_key = ""
-    return api_key
+from app.core.llm import obter_api_key as _obter_api_key, criar_llm as _criar_llm_central
 
 
 def _criar_llm():
-    """
-    Cria o cliente LLM se houver ANTHROPIC_API_KEY (no .env ou no ambiente)
-    e o pacote 'anthropic' disponível; caso contrário devolve None (modo stub).
-    """
-    api_key = _obter_api_key()
-    if not api_key:
-        logger.info("routes.llm.stub", motivo="ANTHROPIC_API_KEY ausente")
-        return None
-    try:
-        import anthropic
-        cliente = anthropic.Anthropic(api_key=api_key)
-        logger.info("routes.llm.ativo")
-        return cliente
-    except Exception as exc:  # pacote em falta ou chave inválida
-        logger.warning("routes.llm.indisponivel", erro=str(exc))
-        return None
+    """Cliente LLM partilhado das rotas principais (ver app/core/llm.py)."""
+    return _criar_llm_central("routes")
 
 
 _llm_partilhado = _criar_llm()

@@ -38,17 +38,8 @@ def get_motor() -> MotorCenarios:
     """Motor único; usa LLM se ANTHROPIC_API_KEY existir, stub caso contrário."""
     global _motor
     if _motor is None:
-        llm = None
-        from app.api.routes import _obter_api_key
-        api_key = _obter_api_key()
-        if api_key:
-            try:
-                import anthropic
-                llm = anthropic.Anthropic(api_key=api_key)
-                logger.info("cenarios.llm.ativo")
-            except Exception as exc:
-                logger.warning("cenarios.llm.indisponivel", erro=str(exc))
-        _motor = MotorCenarios(llm_client=llm)
+        from app.core.llm import criar_llm
+        _motor = MotorCenarios(llm_client=criar_llm("cenarios"))
     return _motor
 
 
