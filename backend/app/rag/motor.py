@@ -144,13 +144,14 @@ ALIAS_DIPLOMA = {
 # Normas válidas para anti-alucinação (preenchido dinamicamente)
 NORMAS_VALIDAS: dict[str, set[str]] = {}
 
-# Peso do BM25 na pesquisa híbrida (o restante vai para os embeddings).
-# 0.4 = 40% correspondência de palavras, 60% correspondência de significado.
-# Ajustável em .env com SNAJI_PESO_BM25.
+# Peso do BM25 na fusão híbrida (o restante vai para os embeddings).
+# 0.6 = 60% posição no BM25, 40% posição no semântico. O BM25 é, para já,
+# o sinal mais fiável na maioria dos casos; medir com
+# ferramentas/afinar_recuperacao.py antes de alterar.
 try:
-    _PESO_BM25 = float(os.getenv("SNAJI_PESO_BM25", "0.4"))
+    _PESO_BM25 = float(os.getenv("SNAJI_PESO_BM25", "0.6"))
 except ValueError:
-    _PESO_BM25 = 0.4
+    _PESO_BM25 = 0.6
 
 
 class RAGJuridico:
@@ -177,9 +178,10 @@ class RAGJuridico:
         # Índice semântico (opcional): calcula-se uma vez e fica em cache.
         # Se não estiver disponível, a pesquisa continua só com BM25.
         try:
-            from app.rag.semantico import indice_semantico
+            from app.rag.semantico import indice_semantico, texto_para_vector
             indice_semantico.preparar([
-                f"{c['epigrase']}. {c['texto']}" for c in self._chunks
+                texto_para_vector(c.get("epigrase", ""), c.get("texto", ""))
+                for c in self._chunks
             ])
         except Exception:
             pass

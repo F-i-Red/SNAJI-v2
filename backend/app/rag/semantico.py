@@ -41,6 +41,25 @@ _FICH_IMPRESSAO = _DIR_CACHE / "embeddings.sha256"
 # suficiente para correr em CPU num portátil comum (~470 MB).
 _MODELO_OMISSAO = "intfloat/multilingual-e5-small"
 
+# Quantos caracteres do artigo entram no vector. Textos longos diluem o
+# significado (o vector fica uma média de tudo); a epígrafe e o início do
+# artigo concentram o essencial. Ajustável com SNAJI_EMB_MAX_CARACTERES.
+try:
+    _MAX_CARACTERES = int(os.getenv("SNAJI_EMB_MAX_CARACTERES", "700"))
+except ValueError:
+    _MAX_CARACTERES = 700
+
+
+def texto_para_vector(epigrase: str, texto: str) -> str:
+    """
+    Representação do artigo para efeitos de embedding.
+    A epígrafe é repetida por ser o resumo temático mais fiável.
+    """
+    corpo = (texto or "").strip()
+    if _MAX_CARACTERES > 0:
+        corpo = corpo[:_MAX_CARACTERES]
+    return f"{epigrase}. {epigrase}. {corpo}"
+
 
 def _activo() -> bool:
     return os.getenv("SNAJI_EMBEDDINGS", "1").strip().lower() not in ("0", "false", "nao", "não")
@@ -54,6 +73,7 @@ def _impressao(textos: list[str], modelo: str) -> str:
     """Identifica corpus + modelo, para invalidar a cache quando mudam."""
     h = hashlib.sha256()
     h.update(modelo.encode("utf-8"))
+    h.update(str(_MAX_CARACTERES).encode("utf-8"))
     h.update(str(len(textos)).encode("utf-8"))
     for t in textos[::37]:  # amostragem: suficiente para detectar alterações
         h.update(t[:200].encode("utf-8", "ignore"))
