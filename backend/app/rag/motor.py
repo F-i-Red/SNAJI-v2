@@ -153,6 +153,12 @@ try:
 except ValueError:
     _PESO_BM25 = 0.6
 
+# Reescrita da pergunta em linguagem jurídica pela LLM antes da pesquisa.
+# Custa uma chamada curta por análise; desactivável com SNAJI_REESCRITA=0.
+_REESCRITA_ACTIVA = os.getenv("SNAJI_REESCRITA", "1").strip().lower() not in (
+    "0", "false", "nao", "não",
+)
+
 
 class RAGJuridico:
     """BM25 sobre corpus jurídico real. Sem dados hardcoded."""
@@ -214,6 +220,16 @@ class RAGJuridico:
         )
 
     def search(self, query: str, top_k: int = 6, diploma: str | None = None) -> list[Chunk]:
+        # Reescrita da pergunta em linguagem jurídica (se houver LLM).
+        # É aqui que se atravessa a distância entre 'estou despedida' e
+        # 'cessação do contrato de trabalho'. Sem LLM, segue o texto original.
+        if _REESCRITA_ACTIVA:
+            try:
+                from app.rag.reescrita import reescrever
+                query = reescrever(query)
+            except Exception:
+                pass
+
         tokens = _normalizar(query, expandir=True)
         scores = self._bm25.get_scores(tokens)
 
