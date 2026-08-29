@@ -72,6 +72,22 @@ const NOME_SOLIDEZ: Record<CenarioAPI['solidez'], string> = {
   baixa: 'Solidez baixa',
 }
 
+/** O sentido vem do motor sem acentos e em minúsculas — apresenta-se legível. */
+function NOME_SENTIDO(sentido: string): string {
+  const mapa: Record<string, string> = {
+    procedente: 'procedente',
+    improcedente: 'improcedente',
+    condenacao: 'condenação',
+    absolvicao: 'absolvição',
+    misto: 'misto',
+    indeterminado: 'indeterminado',
+    incerto: 'incerto',
+    inviavel: 'inviável',
+  }
+  const chave = sentido.trim().toLowerCase()
+  return mapa[chave] ?? sentido
+}
+
 
 const NOME_ETAPA: Record<string, string> = {
   entrada: 'Receção do caso',
@@ -246,15 +262,16 @@ export default function PaginaCenarios() {
     const seccoes = [
       ...resultado.cenarios.map(cn => {
         const riscos = registoTecnico ? cn.riscos : cn.riscos_cidadao
+        const normas = cn.fundamentacao_normas.map(n => n.replace('-', ' art. ')).join('; ')
         return {
-          titulo: `Lente ${NOME_LENTE[cn.lente]} — solidez ${NOME_SOLIDEZ[cn.solidez]}`,
+          titulo: `Lente ${NOME_LENTE[cn.lente]} — ${NOME_SOLIDEZ[cn.solidez].toLowerCase()}`,
           paragrafos: [
             registoTecnico ? cn.lente_descricao_tecnica : cn.lente_descricao_cidada,
-            `${cn.titulo} — ${cn.sentido}`,
+            `${cn.titulo} — desfecho ${NOME_SENTIDO(cn.sentido)}`,
             registoTecnico ? cn.solucao_tecnica : cn.solucao_cidada,
             riscos ? `Riscos e contra-argumentos: ${riscos}` : '',
+            normas ? `Normas validadas no corpus: ${normas}` : '',
           ].filter(Boolean) as string[],
-          itens: cn.fundamentacao_normas.map(n => `Norma validada no corpus: ${n.replace('-', ' art. ')}`),
         }
       }),
       {
