@@ -6,7 +6,7 @@ from pydantic import Field
 class Settings(BaseSettings):
     # LLM
     anthropic_api_key: str = Field(..., description="Chave API Anthropic — obrigatória")
-    anthropic_model: str = "claude-sonnet-4-20250514"
+    anthropic_model: str = "claude-sonnet-5"
 
     # Segurança JWT — RS256 em produção
     jwt_secret: str = Field(..., description="Secret JWT — nunca hardcoded")
@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        # Ignora variáveis do .env que não pertencem a esta classe.
+        # O .env é partilhado por componentes que lêem directamente do
+        # ambiente (recuperação semântica, reescrita, afinação), e sem isto
+        # qualquer variável nova impede o arranque do servidor.
+        extra = "ignore"
 
 
 def get_settings() -> Settings:
