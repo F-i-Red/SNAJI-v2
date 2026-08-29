@@ -84,43 +84,55 @@ def main() -> None:
     rag = RAGJuridico()
     try:
         from app.rag.semantico import indice_semantico
-        modo = "HÍBRIDO (BM25 + embeddings)" if indice_semantico.disponivel else "só BM25"
+        tem_semantico = indice_semantico.disponivel
     except Exception:
-        modo = "só BM25"
+        tem_semantico = False
 
     print()
-    print("=" * 74)
-    print(f"  Qualidade da recuperação — modo: {modo}   (top-{K})")
-    print("=" * 74)
+    print("=" * 78)
+    print(f"  Diagnóstico da recuperação de normas   (top-{K})")
+    print(f"  Embeddings: {'disponíveis' if tem_semantico else 'INDISPONÍVEIS — só BM25'}")
+    print("=" * 78)
+    print("  Cada caso é testado com os três motores, para se ver qual falha:")
+    print("    BM25      → correspondência de palavras")
+    print("    SEMÂNTICO → correspondência de significado (embeddings)")
+    print("    HÍBRIDO   → fusão dos dois (é o que o SNAJI usa)")
 
-    total_encontrados = 0
+    totais = {"BM25": 0, "SEMÂNTICO": 0, "HÍBRIDO": 0}
     total_esperados = 0
 
     for caso in CASOS:
-        obtidos = [f"{c.diploma}-{c.artigo}" for c in rag.search(caso["texto"], top_k=K)]
-        acertos = [e for e in caso["esperados"] if e in obtidos]
-        total_encontrados += len(acertos)
-        total_esperados += len(caso["esperados"])
-
+        esperados = caso["esperados"]
+        total_esperados += len(esperados)
         print()
         print(f"▸ {caso['nome']}")
-        print(f"  recuperados : {', '.join(obtidos)}")
-        print(f"  esperados   : {', '.join(caso['esperados'])}")
-        print(f"  acertos     : {len(acertos)}/{len(caso['esperados'])}"
-              f"  {'✓ ' + ', '.join(acertos) if acertos else '— nenhum'}")
-        em_falta = [e for e in caso["esperados"] if e not in obtidos]
-        if em_falta:
-            print(f"  em falta    : {', '.join(em_falta)}")
+        print(f"  esperados : {', '.join(esperados)}")
+
+        motores = [
+            ("BM25", rag.search_bm25(caso["texto"], top_k=K)),
+            ("SEMÂNTICO", rag.search_semantico(caso["texto"], top_k=K)),
+            ("HÍBRIDO", rag.search(caso["texto"], top_k=K)),
+        ]
+        for nome, res in motores:
+            if res is None:
+                print(f"  {nome:10}: (indisponível)")
+                continue
+            obtidos = [f"{c.diploma}-{c.artigo}" for c in res]
+            acertos = [e for e in esperados if e in obtidos]
+            totais[nome] += len(acertos)
+            marca = "✓" if acertos else " "
+            print(f"  {nome:10}: {len(acertos)}/{len(esperados)} {marca}  {', '.join(obtidos)}")
 
     print()
-    print("-" * 74)
-    pct = (100.0 * total_encontrados / total_esperados) if total_esperados else 0.0
-    print(f"  TOTAL: {total_encontrados}/{total_esperados} artigos de referência recuperados ({pct:.0f}%)")
-    print("-" * 74)
+    print("-" * 78)
+    for nome in ("BM25", "SEMÂNTICO", "HÍBRIDO"):
+        n = totais[nome]
+        pct = (100.0 * n / total_esperados) if total_esperados else 0.0
+        print(f"  {nome:10}: {n:2}/{total_esperados} artigos de referência ({pct:.0f}%)")
+    print("-" * 78)
     print()
-    print("  Compare os dois modos para ver o efeito dos embeddings:")
-    print("    python ferramentas/testar_recuperacao.py --sem-embeddings")
-    print("    python ferramentas/testar_recuperacao.py")
+    print("  Como ler: se SEMÂNTICO acerta e HÍBRIDO não, o problema é a fusão.")
+    print("  Se SEMÂNTICO também falha, o problema é o modelo ou o corpus.")
     print()
 
 
