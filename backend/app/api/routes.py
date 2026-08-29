@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 from typing import Optional
+import os
 import structlog
 
 from app.core.schemas import AnalysisRequest, AnalysisResponse
@@ -40,9 +41,32 @@ def _nome_utilizador(uid: str) -> str:
 _orchestrator: JuridicalOrchestrator | None = None
 _doc_processor = ProcessadorDocumentos()
 _gerador = GeradorDocumentos()
-_reasoning = ReasoningPipeline(llm_client=None)
-_analisador_pecas = AnalisadorPecas(llm_client=None)
-_compilador_dossie = CompiladorDossie(llm_client=None)
+
+
+def _criar_llm():
+    """
+    Cria o cliente LLM se ANTHROPIC_API_KEY estiver definida e o pacote
+    'anthropic' disponível; caso contrário devolve None (modo stub).
+    Mesmo padrão usado em instrutor_routes.py e cenarios_routes.py.
+    """
+    api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    if not api_key:
+        logger.info("routes.llm.stub", motivo="ANTHROPIC_API_KEY ausente")
+        return None
+    try:
+        import anthropic
+        cliente = anthropic.Anthropic(api_key=api_key)
+        logger.info("routes.llm.ativo")
+        return cliente
+    except Exception as exc:  # pacote em falta ou chave inválida
+        logger.warning("routes.llm.indisponivel", erro=str(exc))
+        return None
+
+
+_llm_partilhado = _criar_llm()
+_reasoning = ReasoningPipeline(llm_client=_llm_partilhado)
+_analisador_pecas = AnalisadorPecas(llm_client=_llm_partilhado)
+_compilador_dossie = CompiladorDossie(llm_client=_llm_partilhado)
 
 
 def get_orchestrator() -> JuridicalOrchestrator:
