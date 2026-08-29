@@ -72,21 +72,7 @@ const NOME_SOLIDEZ: Record<CenarioAPI['solidez'], string> = {
   baixa: 'Solidez baixa',
 }
 
-/** O sentido vem do motor sem acentos e em minúsculas — apresenta-se legível. */
-function NOME_SENTIDO(sentido: string): string {
-  const mapa: Record<string, string> = {
-    procedente: 'procedente',
-    improcedente: 'improcedente',
-    condenacao: 'condenação',
-    absolvicao: 'absolvição',
-    misto: 'misto',
-    indeterminado: 'indeterminado',
-    incerto: 'incerto',
-    inviavel: 'inviável',
-  }
-  const chave = sentido.trim().toLowerCase()
-  return mapa[chave] ?? sentido
-}
+/** Mantém o ecrã e a impressão coerentes na forma de nomear o desfecho. */
 
 
 const NOME_ETAPA: Record<string, string> = {
@@ -267,7 +253,7 @@ export default function PaginaCenarios() {
           titulo: `Lente ${NOME_LENTE[cn.lente]} — ${NOME_SOLIDEZ[cn.solidez].toLowerCase()}`,
           paragrafos: [
             registoTecnico ? cn.lente_descricao_tecnica : cn.lente_descricao_cidada,
-            `${cn.titulo} — desfecho ${NOME_SENTIDO(cn.sentido)}`,
+            `${cn.titulo} — desfecho ${NOME_SENTIDO[cn.sentido] ?? cn.sentido}`,
             registoTecnico ? cn.solucao_tecnica : cn.solucao_cidada,
             riscos ? `Riscos e contra-argumentos: ${riscos}` : '',
             normas ? `Normas validadas no corpus: ${normas}` : '',
