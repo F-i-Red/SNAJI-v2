@@ -1040,5 +1040,6 @@ Profere a SENTENÇA final, separando matéria de facto e matéria de direito. Re
         return a
 
 
-# Instância partilhada
-motor_audiencias = MotorAudiencias(llm_client=None)
+# Instância partilhada — usa LLM se ANTHROPIC_API_KEY estiver configurada
+from app.core.llm import criar_llm as _criar_llm
+motor_audiencias = MotorAudiencias(llm_client=_criar_llm("audiencias"))
