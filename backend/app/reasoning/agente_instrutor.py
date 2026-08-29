@@ -379,7 +379,7 @@ class AgenteInstrutor:
         llm_client=None,
         max_perguntas: int = 7,
         limiar_confianca: float = 0.85,
-        modelo: str = "claude-sonnet-4-20250514",
+        modelo: str | None = None,
         max_tokens: int = 4000,
         max_continuacoes: int = 4,
     ):
@@ -387,7 +387,8 @@ class AgenteInstrutor:
         self._classificador = ClassificadorJuridico(llm_client=llm_client)
         self.max_perguntas = max_perguntas
         self.limiar_confianca = limiar_confianca
-        self.modelo = modelo
+        from app.core.llm import obter_modelo
+        self.modelo = modelo or obter_modelo()
         self.max_tokens = max_tokens
         self.max_continuacoes = max_continuacoes
         logger.info("instrutor.init", via_llm=(llm_client is not None))

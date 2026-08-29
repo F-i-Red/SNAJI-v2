@@ -290,8 +290,9 @@ class ClassificadorJuridico:
 
     def _classificar_via_llm(self, texto: str) -> ClassificacaoJuridica:
         prompt = _PROMPT_CLASSIFICACAO.format(caso=texto)
+        from app.core.llm import obter_modelo
         msg = self._llm.messages.create(
-            model="claude-sonnet-4-20250514",
+            model=obter_modelo(),
             max_tokens=800,
             system=_SYSTEM_CLASSIFICADOR,
             messages=[{"role": "user", "content": prompt}],
