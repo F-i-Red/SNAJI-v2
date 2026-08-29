@@ -31,10 +31,97 @@ def _carregar_corpus() -> list[dict]:
     return json.loads(caminho.read_text(encoding="utf-8"))
 
 
-def _normalizar(texto: str) -> list[str]:
+def _stem(tok: str) -> str:
+    """
+    Radical aproximado (stemmer leve para português).
+
+    Sem isto, a linguagem do cidadão nunca encontra a linguagem da lei:
+    'despedida' não casa com 'despedimento', 'grávida' não casa com
+    'gravidez'. As regras removem sufixos flexionais e derivacionais
+    frequentes, preservando um radical mínimo de 4 caracteres.
+    """
+    if len(tok) <= 4:
+        return tok
+    for suf in (
+        "mentos", "mento", "coes", "cao", "idades", "idade", "izacao",
+        "amentos", "amento", "adores", "ador", "antes", "ante",
+        "aveis", "avel", "veis", "eis", "oes", "aes",
+        "issimo", "issima", "ismos", "ismo",
+        "adas", "ada", "idas", "ida", "ados", "ado", "idos", "ido",
+        "ares", "ar", "eres", "er", "ires", "ir",
+        "amos", "emos", "imos", "aram", "eram", "iram",
+        "ando", "endo", "indo", "ez", "es", "as", "os", "a", "o", "e",
+    ):
+        if tok.endswith(suf) and len(tok) - len(suf) >= 4:
+            return tok[: -len(suf)]
+    return tok
+
+
+# Palavras vazias — em narrativas longas do cidadão, dominam a contagem
+# e afogam os termos que realmente discriminam o caso.
+_STOPWORDS = {
+    "a", "ao", "aos", "as", "com", "como", "da", "das", "de", "do", "dos",
+    "e", "em", "entre", "essa", "esse", "esta", "este", "eu", "foi", "ha",
+    "isso", "isto", "ja", "la", "lhe", "lhes", "mas", "me", "meu", "minha",
+    "muito", "na", "nao", "nas", "no", "nos", "num", "numa", "o", "os",
+    "ou", "para", "pela", "pelo", "por", "que", "quando", "se", "sem",
+    "ser", "seu", "sua", "tem", "ter", "um", "uma", "vou", "ainda", "ate",
+    "depois", "disse", "estou", "fui", "onde", "porque", "qual", "quer",
+    "sobre", "so", "tudo", "ver", "vez", "mim", "nem", "mesmo", "outro",
+}
+
+# Linguagem comum → linguagem legal. Expande a pergunta (nunca o corpus),
+# para que a forma como as pessoas falam encontre a forma como a lei escreve.
+_EXPANSOES = {
+    "despedida": "despedimento cessacao contrato",
+    "despedido": "despedimento cessacao contrato",
+    "despediram": "despedimento cessacao",
+    "despedir": "despedimento",
+    "gravida": "gravidez parentalidade maternidade",
+    "gravidez": "parentalidade maternidade",
+    "patrao": "empregador entidade empregadora",
+    "chefe": "empregador superior hierarquico",
+    "senhorio": "locador arrendamento",
+    "inquilino": "arrendatario locatario",
+    "renda": "arrendamento locacao actualizacao",
+    "casa": "habitacao locado imovel",
+    "despejo": "resolucao desocupacao arrendamento",
+    "salario": "retribuicao",
+    "ordenado": "retribuicao",
+    "empurrou": "ofensa integridade fisica agressao",
+    "bateu": "ofensa integridade fisica agressao",
+    "agrediu": "ofensa integridade fisica",
+    "roubou": "furto roubo subtracao",
+    "queixa": "denuncia participacao procedimento criminal",
+    "indemnizacao": "responsabilidade civil danos reparacao",
+    "filhos": "menores responsabilidades parentais",
+    "divida": "obrigacao cumprimento credito",
+}
+
+
+def _normalizar(texto: str, expandir: bool = False) -> list[str]:
     texto = unicodedata.normalize("NFKD", texto)
     texto = texto.encode("ascii", "ignore").decode("ascii").lower()
-    return texto.split()
+    texto = re.sub(r"[^a-z0-9\s]", " ", texto)
+    brutos = texto.split()
+
+    if expandir:  # só do lado da pergunta
+        extra: list[str] = []
+        for t in brutos:
+            termos = _EXPANSOES.get(t)
+            if termos:
+                extra.extend(termos.split())
+        brutos = brutos + extra
+
+    tokens: list[str] = []
+    for t in brutos:
+        if t in _STOPWORDS or len(t) < 2:
+            continue
+        tokens.append(t)
+        radical = _stem(t)
+        if radical != t:
+            tokens.append(radical)  # indexa termo e radical
+    return tokens
 
 
 # Mapeamento de aliases para o código do diploma
@@ -65,15 +152,21 @@ class RAGJuridico:
         # Preenche normas válidas para o validador
         for c in self._chunks:
             NORMAS_VALIDAS.setdefault(c["diploma"], set()).add(c["artigo"])
-        # Indexa: texto + epígrafe + diploma para melhor recall
+        # Indexa: texto + epígrafe + diploma para melhor recall.
+        # A epígrafe entra com peso 3: é o resumo temático do artigo
+        # ('Protecção em caso de despedimento') e por isso o sinal mais
+        # fiável do assunto, ao contrário do texto longo, que dilui.
         textos = [
-            _normalizar(f"{c['epigrase']} {c['texto']} {c['diploma']}")
+            _normalizar(
+                f"{c['epigrase']} {c['epigrase']} {c['epigrase']} "
+                f"{c['texto']} {c['diploma']}"
+            )
             for c in self._chunks
         ]
         self._bm25 = BM25Okapi(textos)
 
     def search(self, query: str, top_k: int = 6, diploma: str | None = None) -> list[Chunk]:
-        tokens = _normalizar(query)
+        tokens = _normalizar(query, expandir=True)
         scores = self._bm25.get_scores(tokens)
         indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
 
