@@ -39,7 +39,8 @@ def get_motor() -> MotorCenarios:
     global _motor
     if _motor is None:
         llm = None
-        api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+        from app.api.routes import _obter_api_key
+        api_key = _obter_api_key()
         if api_key:
             try:
                 import anthropic

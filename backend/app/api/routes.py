@@ -43,13 +43,31 @@ _doc_processor = ProcessadorDocumentos()
 _gerador = GeradorDocumentos()
 
 
+def _obter_api_key() -> str:
+    """
+    Lê a ANTHROPIC_API_KEY primeiro das settings (que carregam o .env)
+    e só depois do ambiente do sistema. O placeholder do .env.example
+    ('sk-ant-...') é tratado como ausência de chave.
+    """
+    api_key = ""
+    try:
+        from app.core.config import get_settings
+        api_key = (get_settings().anthropic_api_key or "").strip()
+    except Exception:
+        api_key = ""
+    if not api_key:
+        api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    if api_key == "sk-ant-...":  # placeholder por preencher
+        api_key = ""
+    return api_key
+
+
 def _criar_llm():
     """
-    Cria o cliente LLM se ANTHROPIC_API_KEY estiver definida e o pacote
-    'anthropic' disponível; caso contrário devolve None (modo stub).
-    Mesmo padrão usado em instrutor_routes.py e cenarios_routes.py.
+    Cria o cliente LLM se houver ANTHROPIC_API_KEY (no .env ou no ambiente)
+    e o pacote 'anthropic' disponível; caso contrário devolve None (modo stub).
     """
-    api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    api_key = _obter_api_key()
     if not api_key:
         logger.info("routes.llm.stub", motivo="ANTHROPIC_API_KEY ausente")
         return None
