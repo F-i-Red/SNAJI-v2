@@ -359,13 +359,9 @@ class ReasoningPipeline:
             caso=texto,
         )
         log.info("reasoning.llm.call")
-        try:
-            from app.core.config import get_settings
-            _modelo = get_settings().anthropic_model
-        except Exception:
-            _modelo = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-20250514")
+        from app.core.llm import obter_modelo
         msg = self._llm.messages.create(
-            model=_modelo,
+            model=obter_modelo(),
             max_tokens=2500,
             system=_SYSTEM,
             messages=[{"role": "user", "content": prompt}],

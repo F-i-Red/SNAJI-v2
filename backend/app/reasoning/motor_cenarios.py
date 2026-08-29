@@ -517,5 +517,6 @@ class MotorCenarios:
             return json.loads(m.group())
 
 
-# Instância partilhada
-motor_cenarios = MotorCenarios(llm_client=None)
+# Instância partilhada — usa LLM se ANTHROPIC_API_KEY estiver configurada
+from app.core.llm import criar_llm as _criar_llm
+motor_cenarios = MotorCenarios(llm_client=_criar_llm("cenarios"))
