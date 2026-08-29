@@ -261,9 +261,9 @@ export default function PaginaCenarios() {
         titulo: 'Síntese comparativa',
         paragrafos: [
           registoTecnico ? resultado.sintese_tecnica : resultado.sintese_cidada,
-          resultado.convergencia
-            ? 'As três abordagens interpretativas convergem no mesmo sentido — indicador de caso juridicamente claro.'
-            : 'As abordagens divergem no desfecho — caso com zonas de incerteza jurídica.',
+          ...(resultado.convergencia
+            ? ['As três abordagens interpretativas convergem no mesmo sentido — indicador de caso juridicamente claro.']
+            : []),
         ],
       },
     ]
