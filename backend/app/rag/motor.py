@@ -4,6 +4,7 @@ BM25 sobre o corpus integral de legislação portuguesa (12 diplomas).
 Corpus construído a partir de fontes oficiais (parlamento.pt, pgdlisboa.pt, eur-lex.europa.eu).
 """
 import json
+import os
 import re
 import unicodedata
 from pathlib import Path
@@ -143,6 +144,14 @@ ALIAS_DIPLOMA = {
 # Normas válidas para anti-alucinação (preenchido dinamicamente)
 NORMAS_VALIDAS: dict[str, set[str]] = {}
 
+# Peso do BM25 na pesquisa híbrida (o restante vai para os embeddings).
+# 0.4 = 40% correspondência de palavras, 60% correspondência de significado.
+# Ajustável em .env com SNAJI_PESO_BM25.
+try:
+    _PESO_BM25 = float(os.getenv("SNAJI_PESO_BM25", "0.4"))
+except ValueError:
+    _PESO_BM25 = 0.4
+
 
 class RAGJuridico:
     """BM25 sobre corpus jurídico real. Sem dados hardcoded."""
@@ -165,9 +174,37 @@ class RAGJuridico:
         ]
         self._bm25 = BM25Okapi(textos)
 
+        # Índice semântico (opcional): calcula-se uma vez e fica em cache.
+        # Se não estiver disponível, a pesquisa continua só com BM25.
+        try:
+            from app.rag.semantico import indice_semantico
+            indice_semantico.preparar([
+                f"{c['epigrase']}. {c['texto']}" for c in self._chunks
+            ])
+        except Exception:
+            pass
+
     def search(self, query: str, top_k: int = 6, diploma: str | None = None) -> list[Chunk]:
         tokens = _normalizar(query, expandir=True)
         scores = self._bm25.get_scores(tokens)
+
+        # Recuperação híbrida: BM25 (palavras) + embeddings (significado).
+        # O BM25 é preciso quando o utilizador cita termos legais exactos;
+        # os embeddings encontram o artigo certo quando a pergunta está
+        # escrita em linguagem comum ('estou despedida' → 'cessação do
+        # contrato'). Se os embeddings não estiverem disponíveis, mantém-se
+        # o comportamento anterior, apenas com BM25.
+        try:
+            from app.rag.semantico import indice_semantico
+            semelhancas = indice_semantico.similaridades(query)
+        except Exception:  # nunca comprometer a pesquisa
+            semelhancas = None
+
+        if semelhancas is not None and len(semelhancas) == len(scores):
+            maximo = float(scores.max()) or 1.0
+            bm25_norm = scores / maximo
+            scores = (_PESO_BM25 * bm25_norm) + ((1.0 - _PESO_BM25) * semelhancas)
+
         indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
 
         resultados = []
