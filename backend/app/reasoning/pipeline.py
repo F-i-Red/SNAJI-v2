@@ -24,6 +24,7 @@ ALTERAÇÃO PRINCIPAL (v2):
 
 from __future__ import annotations
 import json
+import os
 import re
 import uuid
 from dataclasses import dataclass, field
@@ -359,7 +360,7 @@ class ReasoningPipeline:
         )
         log.info("reasoning.llm.call")
         msg = self._llm.messages.create(
-            model="claude-sonnet-4-20250514",
+            model=os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-20250514"),
             max_tokens=2500,
             system=_SYSTEM,
             messages=[{"role": "user", "content": prompt}],
