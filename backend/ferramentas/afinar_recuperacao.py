@@ -48,11 +48,20 @@ def main() -> None:
         print("\n  Embeddings indisponíveis — nada para afinar.\n")
         return
 
-    # Pré-calcula os dois sinais por caso (a parte cara faz-se uma só vez)
+    # Pré-calcula os dois sinais por caso (a parte cara faz-se uma só vez).
+    # A pergunta passa primeiro pela reescrita jurídica, para a afinação
+    # ser feita sobre o mesmo texto que o sistema usa em produção.
+    try:
+        from app.rag.reescrita import reescrever
+    except Exception:
+        def reescrever(t, llm=None):  # type: ignore
+            return t
+
     sinais = []
     for caso in CASOS:
-        bm = rag._bm25.get_scores(_normalizar(caso["texto"], expandir=True))
-        sem = indice_semantico.similaridades(caso["texto"])
+        texto = reescrever(caso["texto"])
+        bm = rag._bm25.get_scores(_normalizar(texto, expandir=True))
+        sem = indice_semantico.similaridades(texto)
         sinais.append((posicoes(bm), posicoes(sem), set(caso["esperados"])))
 
     total_esperados = sum(len(c["esperados"]) for c in CASOS)
