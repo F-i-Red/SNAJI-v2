@@ -184,16 +184,45 @@ class RAGJuridico:
         except Exception:
             pass
 
+    def search_bm25(self, query: str, top_k: int = 6) -> list[Chunk]:
+        """Pesquisa apenas por palavras (BM25). Usada em diagnóstico."""
+        tokens = _normalizar(query, expandir=True)
+        scores = self._bm25.get_scores(tokens)
+        ordem = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
+        return [self._como_chunk(i, float(scores[i])) for i in ordem[:top_k]]
+
+    def search_semantico(self, query: str, top_k: int = 6) -> list[Chunk] | None:
+        """Pesquisa apenas por significado (embeddings). None se indisponível."""
+        try:
+            from app.rag.semantico import indice_semantico
+            sims = indice_semantico.similaridades(query)
+        except Exception:
+            return None
+        if sims is None:
+            return None
+        ordem = sorted(range(len(sims)), key=lambda i: sims[i], reverse=True)
+        return [self._como_chunk(i, float(sims[i])) for i in ordem[:top_k]]
+
+    def _como_chunk(self, i: int, score: float) -> Chunk:
+        c = self._chunks[i]
+        return Chunk(
+            diploma=c["diploma"], artigo=c["artigo"],
+            epigrase=c.get("epigrase", ""), texto=c["texto"],
+            fonte=c.get("fonte", ""), score=round(score, 4),
+        )
+
     def search(self, query: str, top_k: int = 6, diploma: str | None = None) -> list[Chunk]:
         tokens = _normalizar(query, expandir=True)
         scores = self._bm25.get_scores(tokens)
 
-        # Recuperação híbrida: BM25 (palavras) + embeddings (significado).
-        # O BM25 é preciso quando o utilizador cita termos legais exactos;
-        # os embeddings encontram o artigo certo quando a pergunta está
-        # escrita em linguagem comum ('estou despedida' → 'cessação do
-        # contrato'). Se os embeddings não estiverem disponíveis, mantém-se
-        # o comportamento anterior, apenas com BM25.
+        # Recuperação híbrida por fusão de posições (Reciprocal Rank Fusion).
+        #
+        # Não se somam pontuações: as do BM25 espalham-se por uma escala
+        # ampla, enquanto as semelhanças de embeddings se concentram numa
+        # faixa estreita. Somá-las faz o sinal semântico comportar-se como
+        # uma constante e a ordenação fica igual à do BM25 sozinho.
+        # A RRF combina apenas as *posições* em cada lista, sendo por isso
+        # imune às diferenças de escala.
         try:
             from app.rag.semantico import indice_semantico
             semelhancas = indice_semantico.similaridades(query)
@@ -201,9 +230,16 @@ class RAGJuridico:
             semelhancas = None
 
         if semelhancas is not None and len(semelhancas) == len(scores):
-            maximo = float(scores.max()) or 1.0
-            bm25_norm = scores / maximo
-            scores = (_PESO_BM25 * bm25_norm) + ((1.0 - _PESO_BM25) * semelhancas)
+            import numpy as _np
+            K_RRF = 60.0  # amortece o peso das primeiras posições
+            pos_bm25 = _np.empty(len(scores), dtype=_np.int32)
+            pos_bm25[_np.argsort(-scores, kind="stable")] = _np.arange(len(scores))
+            pos_sem = _np.empty(len(semelhancas), dtype=_np.int32)
+            pos_sem[_np.argsort(-semelhancas, kind="stable")] = _np.arange(len(semelhancas))
+            scores = (
+                _PESO_BM25 / (K_RRF + pos_bm25 + 1)
+                + (1.0 - _PESO_BM25) / (K_RRF + pos_sem + 1)
+            )
 
         indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
 
