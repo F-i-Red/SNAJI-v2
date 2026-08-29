@@ -245,7 +245,14 @@ export default function PaginaCenarios() {
 
   const docImprimivel = (): DocumentoImprimivel | null => {
     if (!resultado) return null
+    const caso = (texto ?? '').trim()
     const seccoes = [
+      ...(caso
+        ? [{
+            titulo: 'Caso analisado',
+            paragrafos: caso.split(/\n{2,}/).map(p => p.replace(/\s*\n\s*/g, ' ').trim()).filter(Boolean),
+          }]
+        : []),
       ...resultado.cenarios.map(cn => {
         const riscos = registoTecnico ? cn.riscos : cn.riscos_cidadao
         const normas = cn.fundamentacao_normas.map(n => n.replace('-', ' art. ')).join('; ')
@@ -253,7 +260,7 @@ export default function PaginaCenarios() {
           titulo: `Lente ${NOME_LENTE[cn.lente]} — ${NOME_SOLIDEZ[cn.solidez].toLowerCase()}`,
           paragrafos: [
             registoTecnico ? cn.lente_descricao_tecnica : cn.lente_descricao_cidada,
-            `${cn.titulo} — desfecho ${NOME_SENTIDO[cn.sentido] ?? cn.sentido}`,
+            `${cn.titulo} — ${NOME_SENTIDO[cn.sentido] ?? cn.sentido}`,
             registoTecnico ? cn.solucao_tecnica : cn.solucao_cidada,
             riscos ? `Riscos e contra-argumentos: ${riscos}` : '',
             normas ? `Normas validadas no corpus: ${normas}` : '',
