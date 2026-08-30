@@ -74,6 +74,46 @@ def _limpar(bruto: str) -> str:
     return "; ".join(partes[:28])
 
 
+# Alguns modelos aceitam o parâmetro de temperatura e outros já o recusam
+# ("temperature is deprecated for this model"). Detecta-se uma vez, na
+# primeira chamada, e memoriza-se — evita repetir um pedido inválido a cada
+# análise e mantém o determinismo onde ele é possível.
+_TEMPERATURA_SUPORTADA: bool | None = None
+
+
+def _criar_mensagem(llm, conteudo: str):
+    """
+    Chama o modelo pedindo determinismo quando o modelo o permitir.
+
+    A reescrita é uma tradução técnica, não um exercício criativo: convém que
+    o mesmo caso produza sempre os mesmos termos de pesquisa. Num sistema de
+    justiça isso não é só qualidade — é auditabilidade.
+    """
+    global _TEMPERATURA_SUPORTADA
+    from app.core.llm import obter_modelo
+
+    base = dict(
+        model=obter_modelo(),
+        max_tokens=400,
+        system=_SYSTEM,
+        messages=[{"role": "user", "content": conteudo}],
+    )
+
+    if _TEMPERATURA_SUPORTADA is not False:
+        try:
+            msg = llm.messages.create(temperature=0, **base)
+            _TEMPERATURA_SUPORTADA = True
+            return msg
+        except Exception as exc:
+            if "temperature" not in str(exc).lower():
+                raise
+            _TEMPERATURA_SUPORTADA = False
+            logger.info("rag.reescrita.sem_temperatura",
+                        motivo="modelo não aceita o parâmetro; segue sem ele")
+
+    return llm.messages.create(**base)
+
+
 def reescrever(texto: str, llm=None) -> str:
     """
     Devolve o texto original enriquecido com termos jurídicos.
@@ -99,18 +139,7 @@ def reescrever(texto: str, llm=None) -> str:
         from app.core.llm import obter_modelo
         from app.core.privacidade import pseudonimizar
         texto_seguro, _ = pseudonimizar(texto[:6000])
-        msg = llm.messages.create(
-            model=obter_modelo(),
-            max_tokens=400,
-            # Temperatura 0: a reescrita é uma tradução técnica, não um
-            # exercício criativo. Sem isto, o mesmo caso produzia termos
-            # diferentes a cada execução e a qualidade da pesquisa oscilava —
-            # observou-se um caso de direito do consumo a variar entre 4/5 e
-            # 0/5 só por causa da variação dos termos gerados.
-            temperature=0,
-            system=_SYSTEM,
-            messages=[{"role": "user", "content": texto_seguro}],
-        )
+        msg = _criar_mensagem(llm, texto_seguro)
         bruto = "".join(b.text for b in msg.content if getattr(b, "text", None))
         termos = _limpar(bruto)
         if not termos:
