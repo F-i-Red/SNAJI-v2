@@ -219,6 +219,24 @@ class RAGJuridico:
             fonte=c.get("fonte", ""), score=round(score, 4),
         )
 
+    def _citados_explicitamente(self, query: str) -> list[int]:
+        """
+        Artigos que o utilizador nomeou na pergunta.
+
+        Quando alguém escreve "o artigo 1077.º do Código Civil", esse artigo
+        tem de aparecer — não pode depender de o BM25 o classificar bem. São
+        colocados à cabeça dos resultados.
+        """
+        validas, _ = ValidadorCitacoes().extrair_e_validar(query)
+        indices: list[int] = []
+        for v in validas:
+            for i, c in enumerate(self._chunks):
+                if c["diploma"] == v["diploma"] and c["artigo"] == v["artigo"]:
+                    if i not in indices:
+                        indices.append(i)
+                    break
+        return indices
+
     def search(self, query: str, top_k: int = 6, diploma: str | None = None) -> list[Chunk]:
         # Reescrita da pergunta em linguagem jurídica (se houver LLM).
         # É aqui que se atravessa a distância entre 'estou despedida' e
@@ -260,6 +278,11 @@ class RAGJuridico:
             )
 
         indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
+
+        # Artigos nomeados pelo utilizador entram à frente, sem depender do BM25
+        citados = self._citados_explicitamente(query)
+        if citados:
+            indices = citados + [i for i in indices if i not in citados]
 
         resultados = []
         for i in indices:
