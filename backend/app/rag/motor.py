@@ -193,14 +193,34 @@ class RAGJuridico:
             pass
 
     def search_bm25(self, query: str, top_k: int = 6) -> list[Chunk]:
-        """Pesquisa apenas por palavras (BM25). Usada em diagnóstico."""
+        """
+        Pesquisa apenas por palavras (BM25). Usada em diagnóstico.
+        Aplica a mesma reescrita jurídica que a pesquisa normal, para que a
+        comparação entre motores isole o método de correspondência e não a
+        preparação da pergunta.
+        """
+        if _REESCRITA_ACTIVA:
+            try:
+                from app.rag.reescrita import reescrever
+                query = reescrever(query)
+            except Exception:
+                pass
         tokens = _normalizar(query, expandir=True)
         scores = self._bm25.get_scores(tokens)
         ordem = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
         return [self._como_chunk(i, float(scores[i])) for i in ordem[:top_k]]
 
     def search_semantico(self, query: str, top_k: int = 6) -> list[Chunk] | None:
-        """Pesquisa apenas por significado (embeddings). None se indisponível."""
+        """
+        Pesquisa apenas por significado (embeddings). None se indisponível.
+        Também aplica a reescrita, pela mesma razão de comparabilidade.
+        """
+        if _REESCRITA_ACTIVA:
+            try:
+                from app.rag.reescrita import reescrever
+                query = reescrever(query)
+            except Exception:
+                pass
         try:
             from app.rag.semantico import indice_semantico
             sims = indice_semantico.similaridades(query)
