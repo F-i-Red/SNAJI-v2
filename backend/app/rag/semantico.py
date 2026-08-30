@@ -62,7 +62,16 @@ def texto_para_vector(epigrase: str, texto: str) -> str:
 
 
 def _activo() -> bool:
-    return os.getenv("SNAJI_EMBEDDINGS", "1").strip().lower() not in ("0", "false", "nao", "não")
+    """
+    Desligado por omissão.
+
+    Medição (ferramentas/testar_recuperacao.py, top-15, com reescrita jurídica):
+    BM25 sozinho 68%, híbrido com embeddings 55%. O modelo pequeno multilingue
+    não distingue bem terminologia jurídica portuguesa e degrada a ordenação.
+    Fica disponível para quem queira experimentar outro modelo — activa-se com
+    SNAJI_EMBEDDINGS=1 — mas não é o comportamento por omissão.
+    """
+    return os.getenv("SNAJI_EMBEDDINGS", "0").strip().lower() not in ("0", "false", "nao", "não")
 
 
 def _nome_modelo() -> str:
