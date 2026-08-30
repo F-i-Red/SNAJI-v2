@@ -126,7 +126,9 @@ class JuridicalOrchestrator:
                     system=SYSTEM_PROMPT,
                     messages=mensagens,
                 )
-                pedaco = message.content[0].text
+                pedaco = "".join(
+                    b.text for b in message.content if getattr(b, "text", None)
+                )
                 partes.append(pedaco)
                 tokens_in += message.usage.input_tokens
                 tokens_out += message.usage.output_tokens
