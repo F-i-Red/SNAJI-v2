@@ -123,9 +123,9 @@ def ataque_de_volume(token: str) -> None:
     print(f"\n{AMARELO}▸ Sobrecarga por repetição (o goblin faz spam){FIM}")
 
     # Rota pesada: cada pedido custa tokens. É a que tem de ser travada.
-    print(f"    {CINZA}(16 análises reais — pode demorar vários minutos){FIM}")
+    print(f"    {CINZA}(até 14 análises; pára assim que o limite disparar){FIM}")
     codigos = []
-    for i in range(16):
+    for i in range(14):
         try:
             r = httpx.post(f"{BASE}/analysis",
                            json={"texto": "Fui despedida verbalmente sem processo disciplinar."},
@@ -133,7 +133,9 @@ def ataque_de_volume(token: str) -> None:
             codigos.append(r.status_code)
         except Exception:
             codigos.append(0)
-        print(f"\r    {CINZA}análise {i + 1}/16 → {codigos[-1]}{' ' * 12}{FIM}", end="", flush=True)
+        print(f"\r    {CINZA}análise {i + 1} → {codigos[-1]}{' ' * 14}{FIM}", end="", flush=True)
+        if codigos[-1] == 429:
+            break
     print("\r" + " " * 60 + "\r", end="")
     if 429 in codigos:
         registar("OK", f"Análises em cadeia travadas à {codigos.index(429) + 1}.ª",
@@ -315,7 +317,7 @@ def main() -> None:
     print(f"  🧌  O GOBLIN — teste adversarial do SNAJI")
     print(f"      {'sem chamadas ao modelo' if SEM_LLM else 'bateria completa (consome API)'}")
     if not SEM_LLM:
-        print(f"  {CINZA}Duração estimada: 15 a 25 minutos. Deixe correr.{FIM}")
+        print(f"  {CINZA}Duração estimada: 12 a 18 minutos (inclui pausa de 5 min).{FIM}")
     print(f"{AMARELO}{'=' * 72}{FIM}")
 
     token = entrar("cidadao@snaji.gov.pt", "Cidad2024!")
@@ -324,10 +326,14 @@ def main() -> None:
         sys.exit(1)
 
     ataques_de_entrada(token)
-    ataque_de_volume(token)
+    # Os ataques ao modelo vêm primeiro: se a sobrecarga corresse antes,
+    # apanhariam 429 e não testariam nada.
     if not SEM_LLM:
         ataques_ao_modelo(token)
         ataque_privacidade(token)
+        print(f"\n  {CINZA}Pausa de 5 min para a janela do limitador reabrir…{FIM}")
+        time.sleep(300)
+    ataque_de_volume(token)
 
     print(f"\n{AMARELO}{'=' * 72}{FIM}")
     ok = sum(1 for e, _, _ in resultados if e == "OK")
