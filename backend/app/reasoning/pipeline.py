@@ -366,14 +366,29 @@ class ReasoningPipeline:
         )
         log.info("reasoning.llm.call")
         from app.core.llm import obter_modelo
-        msg = self._llm.messages.create(
-            model=obter_modelo(),
-            max_tokens=2500,
-            system=_SYSTEM,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        raw = repor(msg.content[0].text, _mapa)
-        tokens = msg.usage.input_tokens + msg.usage.output_tokens
+        # Continua a geração se a resposta for cortada: um JSON truncado
+        # fazia a análise cair silenciosamente para o modo de contingência.
+        mensagens = [{"role": "user", "content": prompt}]
+        partes: list[str] = []
+        tokens = 0
+        for tentativa in range(4):
+            msg = self._llm.messages.create(
+                model=obter_modelo(),
+                max_tokens=4000,
+                system=_SYSTEM,
+                messages=mensagens,
+            )
+            pedaco = msg.content[0].text
+            partes.append(pedaco)
+            tokens += msg.usage.input_tokens + msg.usage.output_tokens
+            if getattr(msg, "stop_reason", "end_turn") != "max_tokens":
+                break
+            log.info("reasoning.llm.continuacao", parte=tentativa + 1)
+            mensagens = mensagens + [
+                {"role": "assistant", "content": pedaco},
+                {"role": "user", "content": "Continua exactamente de onde paraste."},
+            ]
+        raw = repor("".join(partes), _mapa)
         try:
             dados = json.loads(raw)
         except json.JSONDecodeError:
