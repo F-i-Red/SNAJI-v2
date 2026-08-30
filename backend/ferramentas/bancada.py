@@ -28,7 +28,7 @@ CASOS = [
             "ilicitude do despedimento; processo disciplinar; nota de culpa; "
             "protecção da parentalidade; trabalhadora grávida; "
             "apreciação judicial do despedimento; efeitos da ilicitude; "
-            "despedimento por extinção do posto de trabalho; despedimento colectivo"
+            "despedimento por extinção do posto de trabalho; despedimento colectivo; NORMAS: artigo 338.º CT; artigo 351.º CT; artigo 381.º CT; artigo 63.º CT; artigo 387.º CT"
         ),
         "esperados": ["CT-63", "CT-338", "CT-351", "CT-381", "CT-387", "CT-389", "CT-367"],
     },
@@ -45,7 +45,7 @@ CASOS = [
             "arrendamento urbano para habitação; actualização da renda; "
             "coeficiente de actualização anual; comunicação da actualização de renda; "
             "requisitos formais da comunicação; resolução do contrato de arrendamento; "
-            "denúncia pelo senhorio; oposição à renovação; despejo"
+            "denúncia pelo senhorio; oposição à renovação; despejo; NORMAS: artigo 1077.º CC; artigo 1083.º CC; artigo 1101.º CC; artigo 1110.º CC"
         ),
         "esperados": ["CC-1077", "CC-1083", "CC-1069", "CC-1101", "CC-1110"],
     },
@@ -62,7 +62,7 @@ CASOS = [
             "ofensa à integridade física simples; ofensa à integridade física por "
             "negligência; direito de queixa; procedimento criminal dependente de queixa; "
             "princípio de adesão; pedido de indemnização civil em processo penal; "
-            "responsabilidade civil extracontratual; obrigação de indemnizar"
+            "responsabilidade civil extracontratual; obrigação de indemnizar; NORMAS: artigo 143.º CP; artigo 148.º CP; artigo 71.º CPP; artigo 483.º CC"
         ),
         "esperados": ["CP-143", "CP-148", "CPP-71", "CPP-72", "CC-483"],
     },
@@ -77,7 +77,7 @@ CASOS = [
             "contrato de compra e venda de bens de consumo; garantia legal de conformidade; "
             "falta de conformidade do bem; presunção de anterioridade do defeito; "
             "direitos do consumidor; reparação ou substituição da coisa; "
-            "venda de coisa defeituosa; direito à qualidade dos bens e serviços"
+            "venda de coisa defeituosa; direito à qualidade dos bens e serviços; NORMAS: artigo 3.º LDC; artigo 4.º LDC; artigo 9.º LDC; artigo 913.º CC; artigo 914.º CC"
         ),
         "esperados": ["LDC-3", "LDC-4", "LDC-9", "CC-913", "CC-914"],
     },
