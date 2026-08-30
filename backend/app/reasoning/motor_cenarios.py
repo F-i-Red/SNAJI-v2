@@ -344,10 +344,16 @@ class MotorCenarios:
     # ── Geração LLM ─────────────────────────────────────────────────────
 
     def _gerar_llm(self, caso: str, normas_txt: str) -> tuple[list[Cenario], str]:
+        # Identificadores pessoais nunca saem em claro para o serviço externo.
+        from app.core.privacidade import pseudonimizar, repor, resumo
+        caso_seguro, mapa = pseudonimizar(caso)
+        if mapa:
+            logger.info("privacidade.pseudonimizado", tipos=resumo(mapa))
         raw = self._chamar_llm_completo(
             _SYSTEM_CENARIOS,
-            _PROMPT_CENARIOS.format(caso=caso, normas=normas_txt),
+            _PROMPT_CENARIOS.format(caso=caso_seguro, normas=normas_txt),
         )
+        raw = repor(raw, mapa)
         dados = self._extrair_json(raw)
         cenarios: list[Cenario] = []
         for item in dados.get("cenarios", []):

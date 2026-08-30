@@ -353,10 +353,16 @@ class ReasoningPipeline:
 
     def _chamar_llm(self, texto: str, classificacao_prompt: str, normas_prompt: str, log) -> dict:
         """Chama o LLM com o prompt estruturado."""
+        # Identificadores pessoais são substituídos por marcadores antes de
+        # o texto sair para o serviço externo, e repostos na resposta.
+        from app.core.privacidade import pseudonimizar, repor, resumo
+        texto_seguro, _mapa = pseudonimizar(texto)
+        if _mapa:
+            log.info("privacidade.pseudonimizado", tipos=resumo(_mapa))
         prompt = _PROMPT_ANALISE.format(
             classificacao_resumo=classificacao_prompt,
             normas_rag=normas_prompt,
-            caso=texto,
+            caso=texto_seguro,
         )
         log.info("reasoning.llm.call")
         from app.core.llm import obter_modelo
@@ -366,7 +372,7 @@ class ReasoningPipeline:
             system=_SYSTEM,
             messages=[{"role": "user", "content": prompt}],
         )
-        raw = msg.content[0].text
+        raw = repor(msg.content[0].text, _mapa)
         tokens = msg.usage.input_tokens + msg.usage.output_tokens
         try:
             dados = json.loads(raw)
