@@ -70,6 +70,40 @@ class ProvaTextoRequest(BaseModel):
     conteudo_texto: str
 
 
+# ── Autorização ──────────────────────────────────────────────────────────────
+
+def _audiencia_autorizada(aid: str, utilizador: Utilizador):
+    """
+    Obtém a audiência garantindo que o utilizador tem direito a vê-la.
+
+    Sem esta verificação, qualquer utilizador autenticado que conhecesse ou
+    adivinhasse um identificador acedia ao conteúdo integral de audiências
+    alheias — intervenções, provas e decisão. É a falha de autorização ao
+    nível do objecto (OWASP API1), a mais comum em APIs deste tipo.
+
+    Regra, alinhada com a que já se aplica aos processos: o criador acede
+    sempre; magistrados e advogados acedem no exercício das suas funções;
+    os restantes recebem 404 (e não 403, para não confirmar a existência
+    do identificador a quem não deve conhecê-lo).
+    """
+    try:
+        a = motor_audiencias.obter_audiencia(aid)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    papel = str(getattr(utilizador.role, "value", utilizador.role)).lower()
+    if papel in ("magistrado", "advogado", "admin", "administrador"):
+        return a
+    if str(getattr(a, "criada_por", "")) == str(utilizador.id):
+        return a
+
+    logger.warning(
+        "audiencias.acesso_negado",
+        audiencia=aid, utilizador=str(utilizador.id), papel=papel,
+    )
+    raise HTTPException(status_code=404, detail="Audiência não encontrada.")
+
+
 # ── Endpoints ────────────────────────────────────────────────────────────────
 
 @router.post("")
@@ -112,7 +146,7 @@ async def listar_audiencias(utilizador: Utilizador = Depends(requer_login)):
 async def ver_audiencia(aid: str, utilizador: Utilizador = Depends(requer_login)):
     """Detalhe completo de uma audiência com todas as intervenções e provas."""
     try:
-        a = motor_audiencias.obter_audiencia(aid)
+        a = _audiencia_autorizada(aid, utilizador)
         return _serializar_audiencia(a)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -125,7 +159,7 @@ async def estado_fases(aid: str, utilizador: Utilizador = Depends(requer_login))
     e o que acontecerá em cada fase futura.
     """
     try:
-        a = motor_audiencias.obter_audiencia(aid)
+        a = _audiencia_autorizada(aid, utilizador)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -161,6 +195,7 @@ async def submeter_intervencao(
     Submete uma intervenção humana numa audiência.
     O conteúdo é escrito pelo utilizador — não gerado por IA.
     """
+    _audiencia_autorizada(aid, utilizador)
     try:
         iv, orientacao = motor_audiencias.processar_intervencao(
             audiencia_id=aid,
@@ -177,7 +212,7 @@ async def submeter_intervencao(
             "timestamp": iv.timestamp.isoformat(),
             "orientacao_proximo_passo": orientacao,
             "papel_sugerido": motor_audiencias.papel_sugerido(
-                motor_audiencias.obter_audiencia(aid)),
+                _audiencia_autorizada(aid, utilizador)),
         }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -193,6 +228,7 @@ async def gerar_intervencao_ia(
     Gera automaticamente uma intervenção para um papel usando IA.
     Útil para simular a parte contrária ou treinar.
     """
+    _audiencia_autorizada(aid, utilizador)
     try:
         iv = motor_audiencias.gerar_intervencao_automatica(aid, dados.papel)
         return {
@@ -214,6 +250,7 @@ async def apresentar_prova_texto(
     utilizador: Utilizador = Depends(requer_login),
 ):
     """Apresenta uma prova em formato texto (testemunho, descrição, etc.)."""
+    _audiencia_autorizada(aid, utilizador)
     try:
         prova = motor_audiencias.apresentar_prova(
             audiencia_id=aid,
@@ -245,6 +282,7 @@ async def apresentar_prova_ficheiro(
     Apresenta uma prova como ficheiro (PDF, imagem, vídeo descrito em texto).
     O sistema extrai o texto do ficheiro para análise jurídica.
     """
+    _audiencia_autorizada(aid, utilizador)
     try:
         papel_enum = PapelAgente(papel)
     except ValueError:
@@ -284,6 +322,7 @@ async def proferir_decisao(aid: str, utilizador: Utilizador = Depends(requer_log
     O juiz profere a decisão final.
     Só possível na fase de Decisão, após todas as partes terem falado.
     """
+    _audiencia_autorizada(aid, utilizador)
     try:
         decisao = motor_audiencias.proferir_decisao(aid)
         return {
@@ -478,7 +517,7 @@ Selo: <code>{d['selo']}</code> · {d['total_atos']} atos · {d['total_atas']} at
 async def obter_ata(aid: str, utilizador: Utilizador = Depends(requer_login)) -> dict:
     """Ata consolidada da sessão (dados estruturados)."""
     try:
-        a = motor_audiencias.obter_audiencia(aid)
+        a = _audiencia_autorizada(aid, utilizador)
         return motor_audiencias.ata_consolidada(a)
     except (ValueError, KeyError):
         raise HTTPException(status_code=404, detail="Audiência não encontrada")
@@ -488,7 +527,7 @@ async def obter_ata(aid: str, utilizador: Utilizador = Depends(requer_login)) ->
 async def ata_markdown(aid: str, utilizador: Utilizador = Depends(requer_login)):
     """Ata em Markdown (copiar/arquivar)."""
     try:
-        a = motor_audiencias.obter_audiencia(aid)
+        a = _audiencia_autorizada(aid, utilizador)
         return _ata_markdown(motor_audiencias.ata_consolidada(a))
     except (ValueError, KeyError):
         raise HTTPException(status_code=404, detail="Audiência não encontrada")
@@ -498,7 +537,7 @@ async def ata_markdown(aid: str, utilizador: Utilizador = Depends(requer_login))
 async def ata_txt(aid: str, utilizador: Utilizador = Depends(requer_login)):
     """Ata em texto simples (.txt) — arquivo universal, sem marcação."""
     try:
-        a = motor_audiencias.obter_audiencia(aid)
+        a = _audiencia_autorizada(aid, utilizador)
         return _ata_txt(motor_audiencias.ata_consolidada(a))
     except (ValueError, KeyError):
         raise HTTPException(status_code=404, detail="Audiência não encontrada")
@@ -508,7 +547,7 @@ async def ata_txt(aid: str, utilizador: Utilizador = Depends(requer_login)):
 async def ata_html(aid: str, utilizador: Utilizador = Depends(requer_login)):
     """Ata em HTML (imprimir/guardar PDF pelo navegador)."""
     try:
-        a = motor_audiencias.obter_audiencia(aid)
+        a = _audiencia_autorizada(aid, utilizador)
         return _ata_html(motor_audiencias.ata_consolidada(a))
     except (ValueError, KeyError):
         raise HTTPException(status_code=404, detail="Audiência não encontrada")
