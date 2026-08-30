@@ -83,11 +83,13 @@ def reescrever(texto: str, llm=None) -> str:
 
     try:
         from app.core.llm import obter_modelo
+        from app.core.privacidade import pseudonimizar
+        texto_seguro, _ = pseudonimizar(texto[:6000])
         msg = llm.messages.create(
             model=obter_modelo(),
             max_tokens=300,
             system=_SYSTEM,
-            messages=[{"role": "user", "content": texto[:6000]}],
+            messages=[{"role": "user", "content": texto_seguro}],
         )
         bruto = "".join(b.text for b in msg.content if getattr(b, "text", None))
         termos = _limpar(bruto)
