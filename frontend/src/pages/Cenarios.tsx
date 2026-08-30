@@ -365,6 +365,25 @@ export default function PaginaCenarios() {
             {docsAnexados.length} documento(s) anexado(s): {docsAnexados.join(', ')}
           </div>
         )}
+        <div style={{
+          display: 'flex', gap: 8, alignItems: 'flex-start',
+          fontSize: 11.5, lineHeight: 1.5,
+          color: 'var(--color-text-tertiary)',
+          background: 'var(--color-background-secondary)',
+          border: '1px solid var(--color-border-default)',
+          borderRadius: 6, padding: '8px 10px',
+        }}>
+          <span aria-hidden="true">🔒</span>
+          <span>
+            <strong>Como são tratados os seus dados.</strong> O texto que escrever é
+            analisado por um modelo de inteligência artificial executado por um
+            fornecedor externo. Antes do envio, o SNAJI substitui automaticamente
+            identificadores como NIF, telefone, email, IBAN, matrícula e código
+            postal por marcadores — mas <strong>nomes e outros detalhes que escreva
+            não são removidos</strong>. Não inclua informação que não queira ver
+            processada fora do sistema.
+          </span>
+        </div>
         <div>
           <button style={botaoPrimario} disabled={carregando || texto.trim().length < 20}
                   onClick={() => gerar()}>
