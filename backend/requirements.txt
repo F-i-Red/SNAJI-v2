@@ -7,8 +7,15 @@ passlib[bcrypt]==1.7.4
 argon2-cffi==25.1.0
 httpx==0.27.2
 rank-bm25==0.2.2
-sentence-transformers==3.1.1
+# Recuperação semântica (embeddings) — OPCIONAL e desactivada por omissão.
+# Medição interna: BM25 sozinho obtém melhor cobertura de normas do que o
+# híbrido com este modelo. Instalar apenas para experimentar outro modelo.
+# Atenção: arrasta o torch (~2 GB de descarga).
+# sentence-transformers==3.1.1
 anthropic==0.34.2
+# PostgreSQL — só necessário em produção (em desenvolvimento usa-se SQLite).
+# No Windows sem PostgreSQL instalado, deixar comentado.
+# psycopg2-binary==2.9.10
 sqlalchemy==2.0.35
 alembic==1.13.3
 pgvector==0.3.5
@@ -19,10 +26,7 @@ structlog==24.4.0
 python-multipart==0.0.12
 pytest==8.3.3
 pytest-asyncio==0.24.0
-
-# PostgreSQL — só necessário em produção (em desenvolvimento usa-se SQLite).
-# No Windows sem PostgreSQL instalado, deixar comentado.
-# psycopg2-binary==2.9.10
+httpx==0.27.2
 
 # OCR — leitura de texto em imagens (JPG, PNG…) nos campos de documentos
 # Nota: além destes pacotes, o Windows precisa do programa Tesseract OCR
