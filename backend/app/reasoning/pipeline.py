@@ -378,7 +378,9 @@ class ReasoningPipeline:
                 system=_SYSTEM,
                 messages=mensagens,
             )
-            pedaco = msg.content[0].text
+            pedaco = "".join(
+                b.text for b in msg.content if getattr(b, "text", None)
+            )
             partes.append(pedaco)
             tokens += msg.usage.input_tokens + msg.usage.output_tokens
             if getattr(msg, "stop_reason", "end_turn") != "max_tokens":
