@@ -10,7 +10,7 @@
 [![React](https://img.shields.io/badge/React-18+-61DAFB?style=flat&logo=react&logoColor=black)](https://reactjs.org)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat&logo=docker&logoColor=white)](https://docker.com)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat)](LICENSE)
-[![Tests](https://img.shields.io/badge/Testes-202%20passing-brightgreen?style=flat)](backend/tests)
+[![Tests](https://img.shields.io/badge/Testes-206%20passing-brightgreen?style=flat)](backend/tests)
 
 ---
 
@@ -54,7 +54,7 @@ Simulação de audiências judiciais com múltiplos agentes: juiz, acusação, d
 
 ### 👤 Controlo de Acesso por Perfil (RBAC)
 
-Quatro perfis diferenciados com permissões específicas:
+Cinco perfis diferenciados com permissões específicas:
 
 | Perfil        | Acesso                                                |
 | ------------- | ----------------------------------------------------- |
@@ -112,9 +112,40 @@ Verificador de peças (citações validadas contra o corpus, estrutura, prazos, 
 - **64 acórdãos do STJ** com pesquisa BM25
 - Anti-alucinação determinístico — citações validadas contra o corpus
 
+## Qualidade da recuperação de normas
+
+O sistema mede-se a si próprio. A ferramenta `ferramentas/testar_recuperacao.py`
+submete casos de referência e verifica quantos dos artigos que um jurista
+escolheria aparecem nas 15 normas entregues ao modelo.
+
+| Configuração | Cobertura |
+| ------------ | --------- |
+| Ponto de partida (BM25, 8 normas, sem reescrita) | 32% |
+| + reescrita da pergunta em linguagem jurídica | 50% |
+| + 15 normas entregues e embeddings desactivados | 68% |
+| + sugestão de normas prováveis *(configuração actual)* | **73%** |
+
+Quatro técnicas foram ensaiadas e **descartadas** por não produzirem ganho
+medível: redução de consulta por termos raros, diversificação de resultados,
+pesquisa múltipla por temas e expansão por artigos vizinhos. Os embeddings
+foram implementados, medidos e desactivados pela mesma razão.
+
+**O que este número não é:** não é a taxa de acerto das respostas jurídicas. É
+uma métrica interna deliberadamente severa — a lista de referência foi
+construída pelo autor e não validada por jurista, e artigos juridicamente
+correctos contam como falha se não constarem dela. Serve para comparar versões
+do sistema, não para descrever a qualidade do produto.
+
+```bash
+python ferramentas/testar_recuperacao.py    # cobertura por caso e por motor
+python ferramentas/afinar_recuperacao.py    # afinação dos pesos
+python ferramentas/bancada.py               # comparação reprodutível
+python ferramentas/goblin.py                # bateria adversarial
+```
+
 ## Testes
 
-**202 testes automatizados — todos aprovados** (unitários + integração), executáveis sem chave de API (modo stub):
+**206 testes automatizados — todos aprovados** (unitários + integração), executáveis sem chave de API (modo stub):
 
 | Ficheiro                 | Testes | Âmbito                                          |
 | ------------------------ | ------ | ----------------------------------------------- |
@@ -241,7 +272,7 @@ CMD_REDIRECT_URI=http://localhost:8000/api/v1/auth/cmd/callback
 CMD_AMBIENTE=sandbox
 ```
 
-> **Sem ANTHROPIC_API_KEY**: o sistema funciona em modo stub — RAG, workflow, audiências, classificador e os 202 testes funcionam todos. O motor LLM produz respostas genéricas baseadas nas normas do corpus, sem análise semântica completa.
+> **Sem ANTHROPIC_API_KEY**: o sistema funciona em modo stub — RAG, workflow, audiências, classificador e os 206 testes funcionam todos. O motor LLM produz respostas genéricas baseadas nas normas do corpus, sem análise semântica completa.
 
 ---
 
@@ -269,7 +300,7 @@ snaji/
 │   │   ├── security/         # JWT, RBAC, Argon2, dependências FastAPI
 │   │   └── workflow/         # Prazos legais automáticos (CPC/CPP/CT)
 │   ├── ferramentas/          # Atualizador automático de acórdãos STJ (administração)
-│   └── tests/                # 202 testes (unit + integração)
+│   └── tests/                # 206 testes (unit + integração)
 │
 └── frontend/
     └── src/
@@ -369,14 +400,14 @@ del package-lock.json
 
 ## Roadmap
 
-- [ ] Vector store híbrido (BM25 + embeddings `bge-m3`)
+- [x] ~~Vector store híbrido (BM25 + embeddings)~~ — implementado, medido e **desactivado**: piorava a recuperação (73% sem, 55% com). Código mantido, activável com `SNAJI_EMBEDDINGS=1`
 - [ ] Geração de PDF processual com cabeçalho de tribunal
 - [ ] Modo colaboração (advogado + cliente em simultâneo)
 - [ ] Análise comparativa de acórdãos semelhantes
 - [ ] Exportação de dossiê completo (processo + documentos + decisão)
 - [ ] Integração com CITIUS / SISAAE
 - [ ] Dark mode
-- [ ] Embeddings semânticos com pgvector (complementar ao BM25)
+- [ ] Reavaliar embeddings com modelo maior (bge-m3) e corpus jurídico específico
 - [ ] Sincronização automática DRE (scraping ou API AMA)
 - [ ] Modo offline/soberano com modelo local
 - [ ] App mobile (React Native)
