@@ -137,6 +137,33 @@ async def validacao_em_portugues(request, exc):
         "Os dados enviados não são válidos. Verifique o formulário e tente de novo.")})
 
 
+@app.middleware("http")
+async def cabecalhos_de_seguranca(request, call_next):
+    """
+    Cabeçalhos de segurança em todas as respostas.
+
+    Protegem contra classes de ataque que não dependem de falhas no código:
+    incorporação do sistema num site fraudulento para captura de credenciais
+    (clickjacking), execução de conteúdo injectado, e fuga do endereço das
+    páginas internas para terceiros através do cabeçalho de referência.
+    """
+    resposta = await call_next(request)
+    resposta.headers["X-Frame-Options"] = "DENY"
+    resposta.headers["X-Content-Type-Options"] = "nosniff"
+    resposta.headers["Referrer-Policy"] = "no-referrer"
+    resposta.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    resposta.headers["Content-Security-Policy"] = (
+        "default-src 'self'; frame-ancestors 'none'; base-uri 'self'; "
+        "form-action 'self'; object-src 'none'"
+    )
+    # HSTS só faz sentido sobre HTTPS; em produção .gov é obrigatório.
+    if os.getenv("SNAJI_HTTPS", "0").strip() == "1":
+        resposta.headers["Strict-Transport-Security"] = (
+            "max-age=31536000; includeSubDomains"
+        )
+    return resposta
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(","),
