@@ -137,6 +137,11 @@ async def validacao_em_portugues(request, exc):
         "Os dados enviados não são válidos. Verifique o formulário e tente de novo.")})
 
 
+from app.core.limites import limitar_pedidos
+
+app.middleware("http")(limitar_pedidos)
+
+
 @app.middleware("http")
 async def cabecalhos_de_seguranca(request, call_next):
     """
