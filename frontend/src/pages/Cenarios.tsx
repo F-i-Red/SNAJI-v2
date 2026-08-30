@@ -41,8 +41,14 @@ interface EtapaPercurso {
   dados: Record<string, unknown>
 }
 
+interface LenteOmitidaAPI {
+  lente: CenarioAPI['lente']
+  motivo: string
+}
+
 interface CenariosAPI {
   cenarios: CenarioAPI[]
+  lentes_omitidas?: LenteOmitidaAPI[]
   convergencia: boolean
   sintese_tecnica: string
   sintese_cidada: string
@@ -267,6 +273,16 @@ export default function PaginaCenarios() {
           ].filter(Boolean) as string[],
         }
       }),
+      ...((resultado.lentes_omitidas?.length ?? 0) > 0
+        ? [{
+            titulo: 'Abordagens sem solução sustentável neste caso',
+            paragrafos: [
+              ...resultado.lentes_omitidas!.map(o => `Lente ${NOME_LENTE[o.lente]} — ${o.motivo}`),
+              'Estas abordagens não foram apresentadas como cenário por não sustentarem uma '
+              + 'solução juridicamente defensável — e não por falha do sistema.',
+            ],
+          }]
+        : []),
       {
         titulo: 'Síntese comparativa',
         paragrafos: [
@@ -439,6 +455,28 @@ export default function PaginaCenarios() {
           }}>
             {resultado.cenarios.map(c => <CartaoCenario key={c.lente} c={c} />)}
           </div>
+
+          {/* Lentes que se abstiveram */}
+          {(resultado.lentes_omitidas?.length ?? 0) > 0 && (
+            <div style={{ ...cartao, fontSize: 12.5, lineHeight: 1.6, borderStyle: 'dashed' }}>
+              <strong style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-text-tertiary)' }}>
+                Abordagens sem solução sustentável neste caso
+              </strong>
+              <div style={{ marginTop: 6, color: 'var(--color-text-secondary)' }}>
+                {resultado.lentes_omitidas!.map(o => (
+                  <div key={o.lente} style={{ marginBottom: 6 }}>
+                    <span style={{ fontWeight: 600 }}>Lente {NOME_LENTE[o.lente]}</span>
+                    {' — '}
+                    <span>{o.motivo}</span>
+                  </div>
+                ))}
+                <div style={{ fontSize: 11.5, color: 'var(--color-text-tertiary)', marginTop: 8 }}>
+                  Estas abordagens não foram apresentadas como cenário por não sustentarem
+                  uma solução juridicamente defensável — e não por falha do sistema.
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Síntese */}
           {(registoTecnico ? resultado.sintese_tecnica : resultado.sintese_cidada) && (
