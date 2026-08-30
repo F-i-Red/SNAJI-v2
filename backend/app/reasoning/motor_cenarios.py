@@ -145,6 +145,11 @@ Analisas o caso por TRÊS lentes interpretativas e devolves EXCLUSIVAMENTE JSON 
 REGRAS INVIOLÁVEIS:
 - Só marcas "viavel": true quando a lente produz uma solução juridicamente sustentável.
 - Citas APENAS artigos que constem das normas fornecidas — nunca inventes citações.
+- As normas fornecidas são uma SELECÇÃO feita para este caso, não a totalidade da
+  legislação disponível. Se precisares de uma norma que não te foi entregue, escreve
+  "não consta das normas seleccionadas para esta análise" — NUNCA "não consta do
+  corpus" nem "não existe", porque o corpus é muito mais vasto do que esta selecção
+  e afirmá-lo seria falso.
 - "solidez" é qualitativa: "elevada", "media" ou "baixa". Nunca uses percentagens.
 - Linguagem informativa, nunca prescritiva: descreves o que "tipicamente sucede",
   nunca dizes o que a pessoa "deve fazer".
@@ -154,7 +159,8 @@ REGRAS INVIOLÁVEIS:
 _PROMPT_CENARIOS = """CASO:
 {caso}
 
-NORMAS RELEVANTES DO CORPUS PORTUGUÊS (cita apenas destas):
+NORMAS SELECCIONADAS PARA ESTE CASO (cita apenas destas; são uma selecção da
+legislação portuguesa, não a totalidade):
 {normas}
 
 Analisa o caso pelas três lentes e devolve:
