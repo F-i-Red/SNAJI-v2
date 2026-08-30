@@ -111,16 +111,35 @@ class JuridicalOrchestrator:
         modelo_usado = self._settings.anthropic_model
         try:
             log.info("llm.call.start", model=self._settings.anthropic_model)
-            message = self._client.messages.create(
-                model=self._settings.anthropic_model,
-                max_tokens=2000,
-                system=SYSTEM_PROMPT,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            resposta_raw = message.content[0].text
-            tokens_in = message.usage.input_tokens
-            tokens_out = message.usage.output_tokens
-            log.info("llm.call.done", tokens_in=tokens_in, tokens_out=tokens_out)
+            # Uma análise fundamentada excede facilmente 2000 tokens. Se a
+            # resposta for cortada a meio, o JSON fica incompleto e a análise
+            # degradava-se em silêncio para o modo de contingência. Damos
+            # espaço suficiente e, se ainda assim for cortada, continuamos a
+            # geração — mesma técnica já usada nos motores de cenários e de
+            # audiências.
+            mensagens = [{"role": "user", "content": prompt}]
+            partes: list[str] = []
+            for tentativa in range(4):
+                message = self._client.messages.create(
+                    model=self._settings.anthropic_model,
+                    max_tokens=4000,
+                    system=SYSTEM_PROMPT,
+                    messages=mensagens,
+                )
+                pedaco = message.content[0].text
+                partes.append(pedaco)
+                tokens_in += message.usage.input_tokens
+                tokens_out += message.usage.output_tokens
+                if getattr(message, "stop_reason", "end_turn") != "max_tokens":
+                    break
+                log.info("llm.continuacao", parte=tentativa + 1)
+                mensagens = mensagens + [
+                    {"role": "assistant", "content": pedaco},
+                    {"role": "user", "content": "Continua exactamente de onde paraste."},
+                ]
+            resposta_raw = "".join(partes)
+            log.info("llm.call.done", tokens_in=tokens_in, tokens_out=tokens_out,
+                     partes=len(partes))
             try:
                 dados = json.loads(resposta_raw)
             except json.JSONDecodeError:
