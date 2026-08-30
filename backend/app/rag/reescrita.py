@@ -32,7 +32,9 @@ _SYSTEM = (
     "e devolves APENAS os termos técnicos do direito português que servem "
     "para pesquisar a legislação aplicável.\n"
     "Regras estritas:\n"
-    "- Devolve entre 8 e 20 termos ou expressões curtas, separados por ponto e vírgula.\n"
+    "- Devolve entre 10 e 20 termos ou expressões curtas, separados por ponto e vírgula.\n"
+    "- Escreve em minúsculas, sem numeração e sem marcadores.\n"
+    "- Inclui sempre o nome do regime ou área em causa (ex.: 'direitos do consumidor', 'protecção da parentalidade'), além dos conceitos técnicos.\n"
     "- Usa a terminologia dos códigos portugueses (ex.: 'cessação do contrato de "
     "trabalho', 'ilicitude do despedimento', 'protecção da parentalidade').\n"
     "- Inclui os institutos processuais relevantes (ex.: 'pedido de indemnização "
@@ -59,7 +61,15 @@ def _limpar(bruto: str) -> str:
     """Aceita apenas uma lista de termos; descarta divagações do modelo."""
     texto = bruto.strip()
     texto = re.sub(r"^(termos|resposta|pesquisa)\s*:\s*", "", texto, flags=re.I)
-    partes = [p.strip(" .;\n\t-–—") for p in re.split(r"[;\n]", texto)]
+    brutos = [p.strip(" .;\n\t-–—") for p in re.split(r"[;\n]", texto)]
+    partes: list[str] = []
+    for b in brutos:
+        if len(b) <= 90:
+            partes.append(b)
+        else:
+            # Antes descartava-se a linha inteira, perdendo todos os termos
+            # quando o modelo devolvia tudo seguido. Agora divide-se.
+            partes.extend(x.strip() for x in b.split(","))
     partes = [p for p in partes if 2 < len(p) <= 90]
     return "; ".join(partes[:28])
 
@@ -91,7 +101,13 @@ def reescrever(texto: str, llm=None) -> str:
         texto_seguro, _ = pseudonimizar(texto[:6000])
         msg = llm.messages.create(
             model=obter_modelo(),
-            max_tokens=300,
+            max_tokens=400,
+            # Temperatura 0: a reescrita é uma tradução técnica, não um
+            # exercício criativo. Sem isto, o mesmo caso produzia termos
+            # diferentes a cada execução e a qualidade da pesquisa oscilava —
+            # observou-se um caso de direito do consumo a variar entre 4/5 e
+            # 0/5 só por causa da variação dos termos gerados.
+            temperature=0,
             system=_SYSTEM,
             messages=[{"role": "user", "content": texto_seguro}],
         )
