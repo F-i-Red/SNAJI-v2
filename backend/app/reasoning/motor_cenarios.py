@@ -112,6 +112,11 @@ class ResultadoCenarios:
     sintese_tecnica: str
     sintese_cidada: str
     normas_rejeitadas_total: list[str]
+    # Lentes que se declararam sem solução sustentável neste caso. Não são
+    # apresentadas como cenário, mas são declaradas: uma lente que
+    # simplesmente desaparecia levantava a dúvida de ter falhado, quando na
+    # verdade se absteve por não ter fundamento honesto a oferecer.
+    lentes_omitidas: list[dict] = field(default_factory=list)
     ressalva: str = RESSALVA_CENARIOS
     via_llm: bool = False
     percurso: list[dict] = field(default_factory=list)   # explicabilidade (V8.1)
@@ -120,6 +125,7 @@ class ResultadoCenarios:
     def para_dict(self) -> dict:
         return {
             "cenarios": [c.para_dict() for c in self.cenarios],
+            "lentes_omitidas": self.lentes_omitidas,
             "convergencia": self.convergencia,
             "sintese_tecnica": self.sintese_tecnica,
             "sintese_cidada": self.sintese_cidada,
@@ -285,6 +291,16 @@ class MotorCenarios:
 
         # 2) Regra da viabilidade: apenas cenários viáveis são apresentados
         viaveis = [c for c in cenarios if c.viavel]
+        omitidas = [
+            {
+                "lente": c.lente.value,
+                "motivo": (c.riscos or "").strip() or (
+                    "Esta abordagem não sustenta uma solução juridicamente "
+                    "defensável com as normas disponíveis para este caso."
+                ),
+            }
+            for c in cenarios if not c.viavel
+        ]
         if not viaveis:
             viaveis = cenarios[:1]  # nunca devolver vazio: mostra a leitura menos frágil
             if viaveis:
@@ -330,6 +346,7 @@ class MotorCenarios:
             sintese_tecnica=sintese_tec,
             sintese_cidada=sintese_cid,
             normas_rejeitadas_total=sorted(set(rejeitadas_total)),
+            lentes_omitidas=omitidas,
             via_llm=via_llm,
             percurso=percurso,
             perspetiva="contraparte" if contraditorio else "propria",
