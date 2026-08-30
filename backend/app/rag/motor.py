@@ -155,6 +155,13 @@ except ValueError:
 
 # Reescrita da pergunta em linguagem jurídica pela LLM antes da pesquisa.
 # Custa uma chamada curta por análise; desactivável com SNAJI_REESCRITA=0.
+# Máximo de artigos que entram por citação directa, para não ocuparem todos
+# os lugares disponíveis à custa dos que a pesquisa encontrou.
+try:
+    _MAX_CITADOS = int(os.getenv("SNAJI_MAX_CITADOS", "8"))
+except ValueError:
+    _MAX_CITADOS = 8
+
 _REESCRITA_ACTIVA = os.getenv("SNAJI_REESCRITA", "1").strip().lower() not in (
     "0", "false", "nao", "não",
 )
@@ -299,8 +306,15 @@ class RAGJuridico:
 
         indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
 
-        # Artigos nomeados pelo utilizador entram à frente, sem depender do BM25
-        citados = self._citados_explicitamente(query)
+        # Artigos nomeados na pergunta — pelo utilizador ou sugeridos pela
+        # reescrita — entram à frente, sem depender da pontuação do BM25.
+        #
+        # Segurança: só entram artigos que EXISTEM no corpus. Uma sugestão
+        # inventada não encontra correspondência e é simplesmente ignorada,
+        # sem qualquer efeito na resposta. O limite evita que uma lista longa
+        # de sugestões ocupe todos os lugares e afaste o que a pesquisa
+        # encontrou por mérito próprio.
+        citados = self._citados_explicitamente(query)[:_MAX_CITADOS]
         if citados:
             indices = citados + [i for i in indices if i not in citados]
 

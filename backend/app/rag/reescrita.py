@@ -37,8 +37,14 @@ _SYSTEM = (
     "trabalho', 'ilicitude do despedimento', 'protecção da parentalidade').\n"
     "- Inclui os institutos processuais relevantes (ex.: 'pedido de indemnização "
     "civil em processo penal').\n"
-    "- NÃO cites artigos nem diplomas. NÃO inventes factos. NÃO expliques nada.\n"
-    "- Responde só com a lista, sem preâmbulo."
+    "- NÃO inventes factos. NÃO expliques nada. NÃO analises o caso.\n"
+    "- Responde só com as listas pedidas, sem preâmbulo.\n"
+    "\n"
+    "Depois da lista de termos, numa segunda linha iniciada por 'NORMAS:', indica "
+    "até 8 artigos da legislação portuguesa que um jurista esperaria consultar "
+    "neste caso, no formato 'artigo N.º SIGLA' (ex.: artigo 483.º CC; artigo 71.º CPP).\n"
+    "Estas indicações servem apenas para orientar a pesquisa: são verificadas "
+    "contra o corpus e descartadas se não existirem. Na dúvida, indica na mesma."
 )
 
 _MAX_CACHE = 256
@@ -53,11 +59,9 @@ def _limpar(bruto: str) -> str:
     """Aceita apenas uma lista de termos; descarta divagações do modelo."""
     texto = bruto.strip()
     texto = re.sub(r"^(termos|resposta|pesquisa)\s*:\s*", "", texto, flags=re.I)
-    # Remove eventuais referências a artigos, que aqui não são desejadas
-    texto = re.sub(r"\bart(?:igo)?s?\.?\s*\d+[.ºo°]*\b", " ", texto, flags=re.I)
     partes = [p.strip(" .;\n\t-–—") for p in re.split(r"[;\n]", texto)]
     partes = [p for p in partes if 2 < len(p) <= 90]
-    return "; ".join(partes[:20])
+    return "; ".join(partes[:28])
 
 
 def reescrever(texto: str, llm=None) -> str:
