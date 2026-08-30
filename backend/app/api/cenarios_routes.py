@@ -70,8 +70,15 @@ class CenarioOut(BaseModel):
     normas_rejeitadas: list[str]
 
 
+class LenteOmitidaOut(BaseModel):
+    lente: str
+    motivo: str
+
+
 class CenariosResponse(BaseModel):
     cenarios: list[CenarioOut]
+    # Lentes que se abstiveram por não terem solução sustentável neste caso.
+    lentes_omitidas: list[LenteOmitidaOut] = []
     convergencia: bool
     sintese_tecnica: str
     sintese_cidada: str
@@ -129,6 +136,7 @@ async def gerar_cenarios(
             fundamentacao_normas=c["fundamentacao_normas"],
             normas_rejeitadas=c["normas_rejeitadas"],
         ) for c in d["cenarios"]],
+        lentes_omitidas=[LenteOmitidaOut(**o) for o in d.get("lentes_omitidas", [])],
         convergencia=d["convergencia"],
         sintese_tecnica=d["sintese_tecnica"],
         sintese_cidada=d["sintese_cidada"],
