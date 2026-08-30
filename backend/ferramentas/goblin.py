@@ -123,8 +123,9 @@ def ataque_de_volume(token: str) -> None:
     print(f"\n{AMARELO}▸ Sobrecarga por repetição (o goblin faz spam){FIM}")
 
     # Rota pesada: cada pedido custa tokens. É a que tem de ser travada.
+    print(f"    {CINZA}(16 análises reais — pode demorar vários minutos){FIM}")
     codigos = []
-    for _ in range(16):
+    for i in range(16):
         try:
             r = httpx.post(f"{BASE}/analysis",
                            json={"texto": "Fui despedida verbalmente sem processo disciplinar."},
@@ -132,6 +133,8 @@ def ataque_de_volume(token: str) -> None:
             codigos.append(r.status_code)
         except Exception:
             codigos.append(0)
+        print(f"\r    {CINZA}análise {i + 1}/16 → {codigos[-1]}{' ' * 12}{FIM}", end="", flush=True)
+    print("\r" + " " * 60 + "\r", end="")
     if 429 in codigos:
         registar("OK", f"Análises em cadeia travadas à {codigos.index(429) + 1}.ª",
                  "Protege a chave da API e o servidor contra abuso.")
@@ -252,13 +255,17 @@ ATAQUES_LLM = [
 
 def ataques_ao_modelo(token: str) -> None:
     print(f"\n{AMARELO}▸ Manipulação do modelo (o goblin mente e provoca){FIM}")
-    for a in ATAQUES_LLM:
+    total = len(ATAQUES_LLM)
+    for n, a in enumerate(ATAQUES_LLM, 1):
+        print(f"\r    {CINZA}ataque {n}/{total}: {a['nome'][:40]}…{' ' * 10}{FIM}", end="", flush=True)
         try:
             r = analisar(token, a["texto"])
         except Exception as e:
+            print("\r" + " " * 70 + "\r", end="")
             registar("ATENÇÃO", a["nome"], f"Erro de rede: {str(e)[:80]}")
             continue
 
+        print("\r" + " " * 70 + "\r", end="")
         if r.status_code != 200:
             registar("OK", f"{a['nome']} → rejeitado ({r.status_code})")
             continue
@@ -307,6 +314,8 @@ def main() -> None:
     print(f"\n{AMARELO}{'=' * 72}{FIM}")
     print(f"  🧌  O GOBLIN — teste adversarial do SNAJI")
     print(f"      {'sem chamadas ao modelo' if SEM_LLM else 'bateria completa (consome API)'}")
+    if not SEM_LLM:
+        print(f"  {CINZA}Duração estimada: 15 a 25 minutos. Deixe correr.{FIM}")
     print(f"{AMARELO}{'=' * 72}{FIM}")
 
     token = entrar("cidadao@snaji.gov.pt", "Cidad2024!")
