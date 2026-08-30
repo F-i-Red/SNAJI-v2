@@ -16,6 +16,8 @@ from __future__ import annotations
 import time
 from collections import defaultdict, deque
 
+import os
+
 import structlog
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -54,7 +56,18 @@ def _identidade(request: Request) -> str:
     return "ip:" + (request.client.host if request.client else "desconhecido")
 
 
+def _desligado() -> bool:
+    """
+    Permite desligar o limitador em testes controlados (SNAJI_LIMITES=0).
+    Nunca deve ser usado em produção — existe para que a bateria adversarial
+    consiga exercitar as defesas do modelo sem ser travada pelo limitador.
+    """
+    return os.getenv("SNAJI_LIMITES", "1").strip().lower() in ("0", "false", "nao", "não")
+
+
 async def limitar_pedidos(request: Request, call_next):
+    if _desligado():
+        return await call_next(request)
     caminho = request.url.path
     if caminho in ("/health", "/docs", "/openapi.json") or request.method == "OPTIONS":
         return await call_next(request)
