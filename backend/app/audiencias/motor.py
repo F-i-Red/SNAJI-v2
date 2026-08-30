@@ -835,7 +835,9 @@ class MotorAudiencias:
         prompt = f"""CONTEXTO DA AUDIÊNCIA:
 {contexto}
 
-NORMAS RELEVANTES DO CORPUS JURÍDICO PORTUGUÊS:
+NORMAS SELECCIONADAS PARA ESTE CASO (selecção da legislação portuguesa, não a
+totalidade; se precisares de norma não entregue, diz "não consta das normas
+seleccionadas para esta análise", nunca "não existe"):
 {normas_txt}
 
 FASE ACTUAL: {DESCRICAO_FASES.get(a.fase_actual, a.fase_actual.value)}
