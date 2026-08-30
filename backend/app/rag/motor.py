@@ -158,9 +158,15 @@ except ValueError:
 # Máximo de artigos que entram por citação directa, para não ocuparem todos
 # os lugares disponíveis à custa dos que a pesquisa encontrou.
 try:
-    _MAX_CITADOS = int(os.getenv("SNAJI_MAX_CITADOS", "8"))
+    _MAX_CITADOS = int(os.getenv("SNAJI_MAX_CITADOS", "6"))
 except ValueError:
-    _MAX_CITADOS = 8
+    _MAX_CITADOS = 6
+
+# Lugares garantidos aos resultados da pesquisa, antes das citações sugeridas.
+try:
+    _RESERVA_BM25 = int(os.getenv("SNAJI_RESERVA_BM25", "6"))
+except ValueError:
+    _RESERVA_BM25 = 6
 
 _REESCRITA_ACTIVA = os.getenv("SNAJI_REESCRITA", "1").strip().lower() not in (
     "0", "false", "nao", "não",
@@ -275,7 +281,13 @@ class RAGJuridico:
             except Exception:
                 pass
 
-        tokens = _normalizar(query, expandir=True)
+        # A linha de normas sugeridas serve apenas para ir buscar artigos
+        # directamente. Não entra na pesquisa por palavras: os números e as
+        # siglas ("892 CC 1510 CC") deslocavam a pontuação e afastavam
+        # resultados bons — chegou a fazer cair um caso de 4/5 para 1/5.
+        query_lexical = re.split(r"\bNORMAS\s*:", query, maxsplit=1, flags=re.I)[0]
+
+        tokens = _normalizar(query_lexical, expandir=True)
         scores = self._bm25.get_scores(tokens)
 
         # Recuperação híbrida por fusão de posições (Reciprocal Rank Fusion).
@@ -288,7 +300,7 @@ class RAGJuridico:
         # imune às diferenças de escala.
         try:
             from app.rag.semantico import indice_semantico
-            semelhancas = indice_semantico.similaridades(query)
+            semelhancas = indice_semantico.similaridades(query_lexical)
         except Exception:  # nunca comprometer a pesquisa
             semelhancas = None
 
@@ -316,7 +328,15 @@ class RAGJuridico:
         # encontrou por mérito próprio.
         citados = self._citados_explicitamente(query)[:_MAX_CITADOS]
         if citados:
-            indices = citados + [i for i in indices if i not in citados]
+            # Os primeiros lugares ficam reservados ao que a pesquisa
+            # encontrou por mérito próprio. Sem esta reserva, uma lista de
+            # sugestões fracas expulsa resultados bons — observado num caso
+            # de direito do consumo, em que as sugestões afastaram os
+            # artigos da Lei de Defesa do Consumidor correctamente
+            # recuperados pelo BM25.
+            reserva = [i for i in indices[:_RESERVA_BM25] if i not in citados]
+            resto = [i for i in indices if i not in citados and i not in reserva]
+            indices = reserva + citados + resto
 
         resultados = []
         for i in indices:
