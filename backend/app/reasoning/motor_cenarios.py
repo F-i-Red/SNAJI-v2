@@ -214,7 +214,9 @@ class MotorCenarios:
 
     # ── API pública ─────────────────────────────────────────────────────
 
-    def gerar(self, texto_caso: str, top_k_normas: int = 8,
+    # 15 normas em vez de 8: medido em ferramentas/bancada.py, a cobertura de
+    # normas de referência sobe de 50% para 77% sem alterar o motor de busca.
+    def gerar(self, texto_caso: str, top_k_normas: int = 15,
               contraditorio: bool = False) -> ResultadoCenarios:
         """
         Gera os cenários de resolução para um caso (texto livre ou Ficha

@@ -292,7 +292,8 @@ class ReasoningPipeline:
         )
 
         # Etapa 2: RAG ponderado por área
-        chunks = _rag_ponderado(self._rag, texto, classificacao, top_k=8)
+        # 15 em vez de 8 — ver nota em motor_cenarios.gerar
+        chunks = _rag_ponderado(self._rag, texto, classificacao, top_k=15)
         log.info("reasoning.rag.done", chunks=len(chunks))
 
         normas_prompt = _formatar_normas_para_prompt(chunks)
