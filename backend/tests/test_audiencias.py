@@ -329,3 +329,66 @@ class TestAudienciasAPI:
         assert r2.status_code == 200
         assert r2.json()["prova_id"]
         assert r2.json()["hash_integridade"]
+
+
+class TestAutorizacaoAudiencias:
+    """
+    Regressão de segurança: uma audiência não pode ser acedida nem alterada
+    por um utilizador que não seja o criador nem tenha função que o
+    justifique (OWASP API1 — falha de autorização ao nível do objecto).
+    """
+
+    def _criar_como_advogado(self) -> str:
+        token = login("advogado@snaji.gov.pt", "Advog2024!")
+        r = client.post("/api/v1/audiencias", json={
+            "descricao_caso": "Caso reservado — teste de autorização",
+            "tipo_processo": "penal",
+            "tipo_audiencia": "julgamento",
+            "papel_criador": "acusacao",
+        }, headers=h(token))
+        assert r.status_code == 200
+        return r.json()["id"]
+
+    def test_cidadao_nao_ve_audiencia_alheia(self):
+        aid = self._criar_como_advogado()
+        alheio = login("cidadao@snaji.gov.pt", "Cidad2024!")
+        for rota in (f"/api/v1/audiencias/{aid}",
+                     f"/api/v1/audiencias/{aid}/fases",
+                     f"/api/v1/audiencias/{aid}/ata"):
+            r = client.get(rota, headers=h(alheio))
+            assert r.status_code == 404, f"{rota} devolveu {r.status_code}"
+
+    def test_cidadao_nao_altera_audiencia_alheia(self):
+        aid = self._criar_como_advogado()
+        alheio = login("cidadao@snaji.gov.pt", "Cidad2024!")
+
+        r = client.post(f"/api/v1/audiencias/{aid}/intervencao", json={
+            "papel": "juiz", "conteudo": "Intervenção indevida de terceiro.",
+            "tipo": "abertura",
+        }, headers=h(alheio))
+        assert r.status_code == 404
+
+        r = client.post(f"/api/v1/audiencias/{aid}/prova-texto", json={
+            "papel": "acusacao", "tipo_prova": "documento",
+            "descricao": "Prova indevida", "conteudo_texto": "Conteúdo de terceiro.",
+        }, headers=h(alheio))
+        assert r.status_code == 404
+
+        r = client.post(f"/api/v1/audiencias/{aid}/decidir", headers=h(alheio))
+        assert r.status_code == 404
+
+    def test_criador_continua_a_aceder(self):
+        token = login("advogado@snaji.gov.pt", "Advog2024!")
+        r = client.post("/api/v1/audiencias", json={
+            "descricao_caso": "Caso próprio — acesso legítimo",
+            "tipo_processo": "civil",
+            "tipo_audiencia": "julgamento",
+            "papel_criador": "acusacao",
+        }, headers=h(token))
+        aid = r.json()["id"]
+        assert client.get(f"/api/v1/audiencias/{aid}", headers=h(token)).status_code == 200
+
+    def test_magistrado_acede_no_exercicio_de_funcoes(self):
+        aid = self._criar_como_advogado()
+        magistrado = login("magistrado@snaji.gov.pt", "Magis2024!")
+        assert client.get(f"/api/v1/audiencias/{aid}", headers=h(magistrado)).status_code == 200
