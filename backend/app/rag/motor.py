@@ -156,11 +156,15 @@ except ValueError:
 # Reescrita da pergunta em linguagem jurídica pela LLM antes da pesquisa.
 # Custa uma chamada curta por análise; desactivável com SNAJI_REESCRITA=0.
 # Máximo de artigos que entram por citação directa, para não ocuparem todos
-# os lugares disponíveis à custa dos que a pesquisa encontrou.
+# os lugares disponíveis à custa dos que a pesquisa encontrou. O limite é por
+# reescrita: com quatro ângulos a sugerirem normas de diplomas diferentes,
+# um tecto fixo de 6 cortava metade das sugestões válidas — num caso laboral
+# com vertente penal e civil, ficavam de fora o Código Penal, o Código Civil
+# e a Constituição, ainda que correctamente sugeridos.
 try:
-    _MAX_CITADOS = int(os.getenv("SNAJI_MAX_CITADOS", "6"))
+    _MAX_CITADOS_POR_REESCRITA = int(os.getenv("SNAJI_MAX_CITADOS", "4"))
 except ValueError:
-    _MAX_CITADOS = 6
+    _MAX_CITADOS_POR_REESCRITA = 4
 
 # Lugares garantidos aos resultados da pesquisa, antes das citações sugeridas.
 try:
@@ -361,7 +365,10 @@ class RAGJuridico:
             for i in self._citados_explicitamente(c):
                 if i not in citados:
                     citados.append(i)
-        citados = citados[:_MAX_CITADOS]
+        # O tecto acompanha o número de perspectivas, mas nunca ultrapassa
+        # dois terços dos lugares: a pesquisa tem de manter voz própria.
+        tecto = min(_MAX_CITADOS_POR_REESCRITA * len(consultas), (top_k * 2) // 3)
+        citados = citados[:tecto]
         if citados:
             # Os primeiros lugares ficam reservados ao que a pesquisa
             # encontrou por mérito próprio. Sem esta reserva, uma lista de
