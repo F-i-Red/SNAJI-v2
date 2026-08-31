@@ -28,21 +28,29 @@ import re
 # Ordem importa: os padrões mais específicos primeiro, para o IBAN não ser
 # consumido pelo padrão de números longos, etc.
 _PADROES: list[tuple[str, re.Pattern]] = [
+    # A ordem é significativa. Os padrões ancorados numa palavra-chave
+    # ("NIF 213456789", "nasci em 03/07/1988") vêm primeiro: sem isso, o
+    # padrão genérico de telefone apanhava números de contribuinte iniciados
+    # por 2, e o padrão de IBAN — tolerante a espaços — engolia datas.
+    # [^\d]{0,20} permite quebras de linha entre a palavra-chave e o valor:
+    # em texto colado de documentos, "nascida\nem 03/07/1988" é comum.
+    ("NIF", re.compile(
+        r"\b(?:nif|niss|contribuinte)[^\d]{0,20}(\d{9})\b", re.I)),
+    ("NUM_UTENTE", re.compile(
+        r"\butente[^\d]{0,20}(\d{9})\b", re.I)),
+    ("DATA_NASCIMENTO", re.compile(
+        r"\b(?:nasci|nascid[oa]|data\s+de\s+nascimento)[^\d]{0,20}"
+        r"(\d{1,2}[/-]\d{1,2}[/-]\d{4})\b", re.I)),
     ("EMAIL", re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.]{2,}\b")),
     ("IBAN", re.compile(r"\bPT50[\s-]?(?:\d[\s-]?){21}\b", re.I)),
-    ("MATRICULA", re.compile(r"\b(?:[A-Z]{2}-\d{2}-[A-Z]{2}|\d{2}-[A-Z]{2}-\d{2}|[A-Z]{2}-\d{2}-\d{2})\b")),
+    ("MATRICULA", re.compile(
+        r"\b(?:[A-Z]{2}-\d{2}-[A-Z]{2}|\d{2}-[A-Z]{2}-\d{2}|[A-Z]{2}-\d{2}-\d{2})\b")),
     ("CODIGO_POSTAL", re.compile(r"\b\d{4}-\d{3}\b")),
     ("CARTAO_CIDADAO", re.compile(r"\b\d{8}\s?\d?\s?[A-Z]{2}\d\b")),
-    ("TELEFONE", re.compile(r"(?<!\d)(?:\+351[\s-]?)?[92][1236]\d[\s-]?\d{3}[\s-]?\d{3}(?!\d)")),
-    # O separador é qualquer coisa sem dígitos ("é", ":", " do ", etc.).
-    ("DATA_NASCIMENTO", re.compile(
-        r"\b(?:nasci|nascid[oa]|data\s+de\s+nascimento)[^\d\n]{0,20}"
-        r"(\d{1,2}[/-]\d{1,2}[/-]\d{4})\b", re.I)),
-    ("NIF", re.compile(
-        r"\b(?:nif|niss|contribuinte)[^\d\n]{0,20}(\d{9})\b", re.I)),
-    ("NUM_UTENTE", re.compile(
-        r"\butente[^\d\n]{0,20}(\d{9})\b", re.I)),
+    ("TELEFONE", re.compile(
+        r"(?<!\d)(?:\+351[\s-]?)?[92][1236]\d[\s-]?\d{3}[\s-]?\d{3}(?!\d)")),
 ]
+
 
 
 def pseudonimizar(texto: str) -> tuple[str, dict[str, str]]:
