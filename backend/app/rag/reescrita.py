@@ -21,7 +21,9 @@ Princípios:
 from __future__ import annotations
 
 import hashlib
+import json
 import re
+from pathlib import Path
 
 import structlog
 
@@ -51,6 +53,32 @@ _SYSTEM = (
 
 _MAX_CACHE = 256
 _cache: dict[str, str] = {}
+
+# A cache é persistida em disco. O modelo não aceita temperatura zero, pelo
+# que a mesma pergunta produz termos diferentes a cada execução e a qualidade
+# da pesquisa oscila. Guardando a primeira reescrita de cada caso, o sistema
+# passa a ser reprodutível: o mesmo caso dá sempre o mesmo resultado — o que
+# num sistema de justiça importa tanto para a qualidade como para a auditoria.
+_FICHEIRO_CACHE = Path(__file__).parent / "corpus" / "reescritas.json"
+
+
+def _carregar_cache() -> None:
+    if _cache or not _FICHEIRO_CACHE.is_file():
+        return
+    try:
+        _cache.update(json.loads(_FICHEIRO_CACHE.read_text(encoding="utf-8")))
+        logger.info("rag.reescrita.cache_carregada", entradas=len(_cache))
+    except Exception as exc:
+        logger.warning("rag.reescrita.cache_ilegivel", erro=str(exc)[:120])
+
+
+def _gravar_cache() -> None:
+    try:
+        _FICHEIRO_CACHE.parent.mkdir(parents=True, exist_ok=True)
+        _FICHEIRO_CACHE.write_text(
+            json.dumps(_cache, ensure_ascii=False, indent=1), encoding="utf-8")
+    except Exception as exc:  # a cache é uma optimização, nunca um bloqueio
+        logger.warning("rag.reescrita.cache_nao_gravada", erro=str(exc)[:120])
 
 
 def _chave(texto: str) -> str:
@@ -114,7 +142,45 @@ def _criar_mensagem(llm, conteudo: str):
     return llm.messages.create(**base)
 
 
-def reescrever(texto: str, llm=None) -> str:
+def reescrever_varias(texto: str, quantas: int = 3, llm=None) -> list[str]:
+    """
+    Produz várias reescritas independentes do mesmo caso.
+
+    O modelo não aceita temperatura zero, pelo que cada reescrita sai
+    diferente — umas melhores, outras piores. Em vez de aceitar a sorte da
+    primeira, ou de exigir que alguém escolha a melhor à mão, geram-se
+    várias e o motor de pesquisa combina-as: um artigo encontrado por várias
+    reescritas independentes é mais provavelmente relevante do que um que só
+    aparece numa. É o sistema a escolher, por consenso, sem intervenção
+    humana e sem conhecer a resposta certa.
+
+    Devolve a lista de conjuntos de termos (sem o texto original).
+    """
+    _carregar_cache()
+    chave = _chave(texto) + f"|x{quantas}"
+    if chave in _cache:
+        guardado = _cache[chave]
+        return [v for v in guardado.split("\n@@\n") if v.strip()]
+
+    variantes: list[str] = []
+    vistos: set[str] = set()
+    for _ in range(max(1, quantas)):
+        resultado = reescrever(texto, llm=llm, _sem_cache=True)
+        termos = resultado[len(texto):].strip()
+        if termos and termos not in vistos:
+            vistos.add(termos)
+            variantes.append(termos)
+
+    if variantes:
+        if len(_cache) >= _MAX_CACHE:
+            _cache.clear()
+        _cache[chave] = "\n@@\n".join(variantes)
+        _gravar_cache()
+        logger.info("rag.reescrita.variantes", n=len(variantes))
+    return variantes
+
+
+def reescrever(texto: str, llm=None, _sem_cache: bool = False) -> str:
     """
     Devolve o texto original enriquecido com termos jurídicos.
     Se não houver LLM disponível, devolve o texto tal como veio.
@@ -122,8 +188,9 @@ def reescrever(texto: str, llm=None) -> str:
     if not texto or not texto.strip():
         return texto
 
+    _carregar_cache()
     chave = _chave(texto)
-    if chave in _cache:
+    if not _sem_cache and chave in _cache:
         return f"{texto}\n{_cache[chave]}"
 
     if llm is None:
@@ -144,9 +211,11 @@ def reescrever(texto: str, llm=None) -> str:
         termos = _limpar(bruto)
         if not termos:
             return texto
-        if len(_cache) >= _MAX_CACHE:
-            _cache.clear()
-        _cache[chave] = termos
+        if not _sem_cache:
+            if len(_cache) >= _MAX_CACHE:
+                _cache.clear()
+            _cache[chave] = termos
+            _gravar_cache()
         logger.info("rag.reescrita.ok", termos=termos[:160])
         return f"{texto}\n{termos}"
     except Exception as exc:
