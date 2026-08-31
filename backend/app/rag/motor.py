@@ -378,10 +378,9 @@ class RAGJuridico:
 class ValidadorCitacoes:
     """Anti-alucinação determinístico baseado no corpus real."""
 
-    PADRAO = re.compile(
-        r"[Aa]rt(?:igo)?\.?\s*(\d+[A-Z]?)\.?[°º]?\s*"
-        r"(?:do|da|n\.?[°º]?)?\s*"
-        r"(Constituição da República Portuguesa|Constituição|"
+    # Diplomas reconhecidos, por nome completo ou sigla.
+    _DIPLOMAS = (
+        r"Constituição da República Portuguesa|Constituição|"
         r"Código de Processo Civil|Código de Processo Penal|"
         r"Código das Sociedades Comerciais|"
         r"Código da Insolvência e da Recuperação de Empresas|"
@@ -389,9 +388,37 @@ class ValidadorCitacoes:
         r"Código do Trabalho|Código Civil|Código Penal|"
         r"Regulamento Geral sobre a Prote[cç]?ção de Dados|"
         r"Lei dos Julgados de Paz|Lei de Defesa do Consumidor|"
-        r"CIRE|RGPD|CPP|CPC|CPA|CSC|CRP|LJP|LDC|CC|CP|CT)\b",
+        r"CIRE|RGPD|CPP|CPC|CPA|CSC|CRP|LJP|LDC|CC|CP|CT"
+    )
+
+    # Entre o número do artigo e o diploma podem surgir subdivisões e ligações:
+    #   "art. 1031.º, al. b) CC"      "art. 1083.º, n.º 3, do CC"
+    #   "arts. 1031.º e 1032.º CC"    "artigo 143.º do Código Penal"
+    # Sem tolerar estas formas, citações reais escapavam à validação — e uma
+    # citação inventada com uma alínea passaria sem ser verificada.
+    _LIGACAO = (
+        r"(?:\s*(?:,|\se\s|\sa\s|;)?\s*"
+        r"(?:al\.?|alínea|n\.?[°º]?|nº|par[áa]grafo|§)\s*[\w)º°.\-]+)*"
+        r"\s*(?:,)?\s*(?:do|da|dos|das)?\s*"
+    )
+
+    PADRAO = re.compile(
+        r"[Aa]rt(?:igo)?s?\.?\s*(\d+\.?[°º]?\-?[A-Z]?)"
+        + _LIGACAO + r"(" + _DIPLOMAS + r")\b",
         re.IGNORECASE | re.UNICODE,
     )
+
+    # Listas de artigos: "arts. 1031.º e 1032.º CC", "artigos 381.º a 385.º do CT".
+    # Captura o bloco inteiro de números e o diploma; os números são extraídos
+    # depois. Sem isto, uma enumeração ficava por validar quase toda.
+    PADRAO_LISTA = re.compile(
+        r"[Aa]rt(?:igo)?s\.?\s*"
+        r"((?:\d+(?:\-[A-Z])?\.?[°º]?\s*(?:,|\se\s|\sa\s)\s*)+\d+(?:\-[A-Z])?\.?[°º]?)"
+        r"\s*(?:,)?\s*(?:do|da|dos|das)?\s*"
+        r"(" + _DIPLOMAS + r")\b",
+        re.IGNORECASE | re.UNICODE,
+    )
+    _NUMEROS = re.compile(r"\d+(?:\-[A-Z])?")
     MAPA = {
         "crp": "CRP", "constituição": "CRP",
         "constituição da república portuguesa": "CRP",
@@ -417,14 +444,24 @@ class ValidadorCitacoes:
 
     def extrair_e_validar(self, texto: str) -> tuple[list[dict], list[dict]]:
         validas, suspeitas, vistos = [], [], set()
+        candidatos: list[tuple[str, str]] = []
         for m in self.PADRAO.finditer(texto):
-            artigo = m.group(1)
-            raw = m.group(2).strip().lower()
-            diploma = self.MAPA.get(raw, raw.upper())
-            chave = f"{diploma}-{artigo}"
-            if chave in vistos:
-                continue
-            vistos.add(chave)
-            entrada = {"diploma": diploma, "artigo": artigo}
-            (validas if self.validar(diploma, artigo) else suspeitas).append(entrada)
+            candidatos.append((m.group(1), m.group(2)))
+        for m in self.PADRAO_LISTA.finditer(texto):
+            for num in self._NUMEROS.findall(m.group(1)):
+                candidatos.append((num, m.group(2)))
+
+        if True:
+            for artigo, bruto in candidatos:
+                # No corpus os artigos com sufixo estão como "1110-A"; nas
+                # citações aparecem como "1110.º-A". Normaliza-se.
+                artigo = artigo.replace(".º", "").replace(".°", "").rstrip(".°º")
+                raw = bruto.strip().lower()
+                diploma = self.MAPA.get(raw, raw.upper())
+                chave = f"{diploma}-{artigo}"
+                if chave in vistos:
+                    continue
+                vistos.add(chave)
+                entrada = {"diploma": diploma, "artigo": artigo}
+                (validas if self.validar(diploma, artigo) else suspeitas).append(entrada)
         return validas, suspeitas
