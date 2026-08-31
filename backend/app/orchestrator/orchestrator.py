@@ -142,16 +142,12 @@ class JuridicalOrchestrator:
             resposta_raw = "".join(partes)
             log.info("llm.call.done", tokens_in=tokens_in, tokens_out=tokens_out,
                      partes=len(partes))
+            from app.core.json_llm import ler_json
             try:
-                dados = json.loads(resposta_raw)
-            except json.JSONDecodeError:
-                import re
-                match = re.search(r"\{.*\}", resposta_raw, re.DOTALL)
-                if match:
-                    dados = json.loads(match.group())
-                else:
-                    log.error("llm.parse.failed", raw=resposta_raw[:200])
-                    raise ValueError("LLM não devolveu JSON válido")
+                dados = ler_json(resposta_raw, "orchestrator")
+            except ValueError:
+                log.error("llm.parse.failed", raw=resposta_raw[:200])
+                raise
         except Exception as exc:
             log.warning("llm.falhou_a_degradar_para_stub", erro=str(exc)[:200])
             dados = self._dados_stub(request.texto, chunks)
