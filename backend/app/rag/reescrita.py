@@ -208,7 +208,7 @@ def reescrever(texto: str, llm=None, _sem_cache: bool = False,
         return texto
 
     _carregar_cache()
-    chave = _chave(texto)
+    chave = _chave(texto + (_angulo or ''))
     if not _sem_cache and chave in _cache:
         return f"{texto}\n{_cache[chave]}"
 
