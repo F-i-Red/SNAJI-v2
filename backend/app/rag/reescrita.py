@@ -142,6 +142,23 @@ def _criar_mensagem(llm, conteudo: str):
     return llm.messages.create(**base)
 
 
+# Ângulos pedidos a cada reescrita. A variação natural entre gerações produz
+# termos demasiado parecidos — e o consenso entre listas parecidas não
+# acrescenta nada. Pedindo ângulos distintos, cada reescrita procura numa
+# direcção diferente e a fusão cobre o caso por inteiro.
+_ANGULOS = [
+    "Foca-te nos DIREITOS E OBRIGAÇÕES substantivos das partes e nos vícios ou "
+    "defeitos da relação (o que cada parte devia ter feito e não fez).",
+    "Foca-te no INCUMPRIMENTO, nas suas consequências e nos remédios: mora, "
+    "resolução, indemnização, restituição, prazos.",
+    "Foca-te nos MEIOS DE TUTELA e no processo: que providências existem, que "
+    "condutas são proibidas às partes, que via judicial se aplica.",
+    "Foca-te nas GARANTIAS E PROTECÇÕES especiais aplicáveis (pessoas "
+    "vulneráveis, habitação, saúde, trabalho, consumo) e nos princípios "
+    "constitucionais convocados.",
+]
+
+
 def reescrever_varias(texto: str, quantas: int = 3, llm=None) -> list[str]:
     """
     Produz várias reescritas independentes do mesmo caso.
@@ -164,8 +181,9 @@ def reescrever_varias(texto: str, quantas: int = 3, llm=None) -> list[str]:
 
     variantes: list[str] = []
     vistos: set[str] = set()
-    for _ in range(max(1, quantas)):
-        resultado = reescrever(texto, llm=llm, _sem_cache=True)
+    for i in range(max(1, quantas)):
+        angulo = _ANGULOS[i % len(_ANGULOS)] if quantas > 1 else None
+        resultado = reescrever(texto, llm=llm, _sem_cache=True, _angulo=angulo)
         termos = resultado[len(texto):].strip()
         if termos and termos not in vistos:
             vistos.add(termos)
@@ -180,7 +198,8 @@ def reescrever_varias(texto: str, quantas: int = 3, llm=None) -> list[str]:
     return variantes
 
 
-def reescrever(texto: str, llm=None, _sem_cache: bool = False) -> str:
+def reescrever(texto: str, llm=None, _sem_cache: bool = False,
+               _angulo: str | None = None) -> str:
     """
     Devolve o texto original enriquecido com termos jurídicos.
     Se não houver LLM disponível, devolve o texto tal como veio.
@@ -206,7 +225,10 @@ def reescrever(texto: str, llm=None, _sem_cache: bool = False) -> str:
         from app.core.llm import obter_modelo
         from app.core.privacidade import pseudonimizar
         texto_seguro, _ = pseudonimizar(texto[:6000])
-        msg = _criar_mensagem(llm, texto_seguro)
+        conteudo = texto_seguro
+        if _angulo:
+            conteudo = f"{texto_seguro}\n\n[ÂNGULO DESTA PESQUISA] {_angulo}"
+        msg = _criar_mensagem(llm, conteudo)
         bruto = "".join(b.text for b in msg.content if getattr(b, "text", None))
         termos = _limpar(bruto)
         if not termos:
