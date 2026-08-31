@@ -408,17 +408,20 @@ class ValidadorCitacoes:
         re.IGNORECASE | re.UNICODE,
     )
 
-    # Listas de artigos: "arts. 1031.º e 1032.º CC", "artigos 381.º a 385.º do CT".
-    # Captura o bloco inteiro de números e o diploma; os números são extraídos
-    # depois. Sem isto, uma enumeração ficava por validar quase toda.
+    # Listas de artigos. Em vez de tentar prever todas as combinações de
+    # separadores, alíneas e números — "arts. 1031.º, al. b), e 1032.º CC",
+    # "artigos 381.º a 385.º do CT" — localiza-se o bloco entre "arts." e o
+    # diploma e extraem-se dele todos os números de artigo. É mais tolerante
+    # e falha menos: uma citação por validar é uma citação por verificar.
     PADRAO_LISTA = re.compile(
-        r"[Aa]rt(?:igo)?s\.?\s*"
-        r"((?:\d+(?:\-[A-Z])?\.?[°º]?\s*(?:,|\se\s|\sa\s)\s*)+\d+(?:\-[A-Z])?\.?[°º]?)"
-        r"\s*(?:,)?\s*(?:do|da|dos|das)?\s*"
+        r"[Aa]rt(?:igo)?s\.?\s*((?:\d[\d\s.,;ºa-z()°\-]{0,110}?))\s*(?:do|da|dos|das)?\s*"
         r"(" + _DIPLOMAS + r")\b",
         re.IGNORECASE | re.UNICODE,
     )
-    _NUMEROS = re.compile(r"\d+(?:\-[A-Z])?")
+    # Números de artigo dentro do bloco: ignora "al. b)" e "n.º 1", que não
+    # são artigos. Exige o ordinal ou fim de número para não apanhar o "1" de
+    # "n.º 1".
+    _NUMEROS = re.compile(r"(?<![\w.])(\d{1,4}(?:\-[A-Z])?)\.?[°º]", re.UNICODE)
     MAPA = {
         "crp": "CRP", "constituição": "CRP",
         "constituição da república portuguesa": "CRP",
