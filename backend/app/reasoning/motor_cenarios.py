@@ -145,6 +145,8 @@ Analisas o caso por TRÊS lentes interpretativas e devolves EXCLUSIVAMENTE JSON 
 REGRAS INVIOLÁVEIS:
 - Só marcas "viavel": true quando a lente produz uma solução juridicamente sustentável.
 - Citas APENAS artigos que constem das normas fornecidas — nunca inventes citações.
+- NUNCA uses aspas duplas dentro dos valores do JSON. Para citar uma expressão
+  do caso, usa aspas angulares «assim» — aspas duplas partem o JSON.
 - As normas fornecidas são uma SELECÇÃO feita para este caso, não a totalidade da
   legislação disponível. Se precisares de uma norma que não te foi entregue, escreve
   "não consta das normas seleccionadas para esta análise" — NUNCA "não consta do
@@ -539,14 +541,8 @@ class MotorCenarios:
 
     @staticmethod
     def _extrair_json(raw: str) -> dict:
-        raw = re.sub(r"```json|```", "", raw).strip()
-        try:
-            return json.loads(raw)
-        except json.JSONDecodeError:
-            m = re.search(r"\{.*\}", raw, re.DOTALL)
-            if not m:
-                raise ValueError("LLM não devolveu JSON válido")
-            return json.loads(m.group())
+        from app.core.json_llm import ler_json
+        return ler_json(raw, "cenarios")
 
 
 # Instância partilhada — usa LLM se ANTHROPIC_API_KEY estiver configurada

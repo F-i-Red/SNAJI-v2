@@ -302,13 +302,8 @@ class ClassificadorJuridico:
         # Remove markdown se vier por acidente
         raw = re.sub(r"```json|```", "", raw).strip()
 
-        try:
-            dados = json.loads(raw)
-        except json.JSONDecodeError:
-            m = re.search(r"\{.*\}", raw, re.DOTALL)
-            if not m:
-                raise ValueError("LLM não devolveu JSON válido")
-            dados = json.loads(m.group())
+        from app.core.json_llm import ler_json
+        dados = ler_json(raw, "classificador")
 
         areas = []
         for item in dados.get("areas", []):

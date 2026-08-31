@@ -392,11 +392,11 @@ class ReasoningPipeline:
                 {"role": "user", "content": "Continua exactamente de onde paraste."},
             ]
         raw = repor("".join(partes), _mapa)
+        from app.core.json_llm import ler_json
         try:
-            dados = json.loads(raw)
-        except json.JSONDecodeError:
-            m = re.search(r"\{.*\}", raw, re.DOTALL)
-            dados = json.loads(m.group()) if m else {}
+            dados = ler_json(raw, "reasoning")
+        except ValueError:
+            dados = {}
         dados["_tokens"] = tokens
         log.info("reasoning.llm.done", tokens=tokens)
         return dados
