@@ -971,11 +971,11 @@ Profere a SENTENÇA final, separando matéria de facto e matéria de direito. Re
   "recursos_possiveis": ["recurso de apelação", "revista"]
 }}"""
         raw = self._chamar_llm_completo(INSTRUCOES_AGENTES[PapelAgente.JUIZ], prompt)
+        from app.core.json_llm import ler_json
         try:
-            dados = _json.loads(_re.sub(r"```json|```", "", raw).strip())
-        except Exception:
-            m = _re.search(r"\{.*\}", raw, _re.DOTALL)
-            dados = _json.loads(m.group()) if m else {}
+            dados = ler_json(raw, "audiencias")
+        except ValueError:
+            dados = {}
         return DecisaoFinal(
             sumario=dados.get("sumario", ""),
             fundamentacao=dados.get("fundamentacao", ""),
