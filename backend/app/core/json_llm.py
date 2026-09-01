@@ -100,4 +100,12 @@ def ler_json(raw: str, componente: str = "llm") -> dict:
             logger.info(f"{componente}.json.reparado", motivo="estrutura incompleta")
             return dados
 
+    # Diagnóstico: sem ver a resposta, não é possível saber se o modelo
+    # devolveu texto corrido, uma recusa, ou uma estrutura irreparável.
+    logger.warning(
+        f"{componente}.json.irrecuperavel",
+        tamanho=len(raw),
+        inicio=raw[:180].replace("\n", " "),
+        fim=raw[-180:].replace("\n", " ") if len(raw) > 180 else "",
+    )
     raise ValueError("resposta do modelo não contém JSON recuperável")
