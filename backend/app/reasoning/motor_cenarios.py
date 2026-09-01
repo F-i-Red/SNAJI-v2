@@ -376,12 +376,27 @@ class MotorCenarios:
         caso_seguro, mapa = pseudonimizar(caso)
         if mapa:
             logger.info("privacidade.pseudonimizado", tipos=resumo(mapa))
-        raw = self._chamar_llm_completo(
-            _SYSTEM_CENARIOS,
-            _PROMPT_CENARIOS.format(caso=caso_seguro, normas=normas_txt),
-        )
-        raw = repor(raw, mapa)
-        dados = self._extrair_json(raw)
+        prompt = _PROMPT_CENARIOS.format(caso=caso_seguro, normas=normas_txt)
+        raw = repor(self._chamar_llm_completo(_SYSTEM_CENARIOS, prompt), mapa)
+        try:
+            dados = self._extrair_json(raw)
+        except ValueError:
+            # Segunda tentativa com instrução reforçada. Em casos muito longos
+            # — uma peça processual completa, por exemplo — o modelo tende a
+            # responder com análise corrida em vez do formato pedido. Perder
+            # a análise inteira por causa do formato seria desperdiçar
+            # trabalho já feito e já pago.
+            logger.warning("cenarios.json.segunda_tentativa")
+            reforco = (
+                "\n\nATENÇÃO: a resposta anterior não estava em JSON válido. "
+                "Responde ÚNICA E EXCLUSIVAMENTE com o objecto JSON pedido, "
+                "começando por { e terminando por }. Sem preâmbulo, sem texto "
+                "antes ou depois, sem cercas de código. Se o caso for extenso, "
+                "sê mais conciso em cada campo, mas mantém o formato."
+            )
+            raw = repor(
+                self._chamar_llm_completo(_SYSTEM_CENARIOS + reforco, prompt), mapa)
+            dados = self._extrair_json(raw)
         cenarios: list[Cenario] = []
         for item in dados.get("cenarios", []):
             try:
