@@ -101,6 +101,7 @@ class AnalisePeca:
     num_paginas: int
     num_caracteres: int
     tipo_provavel: str
+    num_palavras: int = 0
     citacoes: list[CitacaoVerificada] = field(default_factory=list)
     seccoes: list[SeccaoDetetada] = field(default_factory=list)
     prazos_desencadeados: list[str] = field(default_factory=list)
@@ -120,6 +121,7 @@ class AnalisePeca:
         return {
             "nome_ficheiro": self.nome_ficheiro,
             "num_paginas": self.num_paginas,
+            "num_palavras": self.num_palavras,
             "num_caracteres": self.num_caracteres,
             "tipo_provavel": self.tipo_provavel,
             "objeto_provavel": self.objeto_provavel,
@@ -198,6 +200,7 @@ class AnalisadorPecas:
         analise = AnalisePeca(
             nome_ficheiro=nome_ficheiro,
             num_paginas=num_paginas,
+            num_palavras=len(texto.split()),
             num_caracteres=len(texto),
             tipo_provavel=self._detetar_tipo(texto),
         )
@@ -264,24 +267,78 @@ class AnalisadorPecas:
 
     # ── Tipo e resumo ───────────────────────────────────────────────────
 
+    # Indícios por tipo de peça, com peso. Contam-se todos e vence o tipo com
+    # mais indícios — em vez de devolver o primeiro padrão que casa.
+    #
+    # Porquê: uma peça descreve frequentemente a tramitação anterior, e nessa
+    # descrição aparecem palavras de outros tipos. Um recurso que relata "veio
+    # o exequente contestar" era classificado como contestação, apenas porque
+    # esse padrão era testado primeiro. Os termos que identificam a natureza
+    # da própria peça (quem a subscreve e o que pede) pesam mais do que os que
+    # podem surgir na narração do processado.
+    _INDICIOS: list[tuple[str, list[tuple[str, int]]]] = [
+        ("Recurso / Alegações", [
+            (r"\binterp(?:or|oe|os)\w*\s+(?:o\s+)?(?:presente\s+)?recurso", 5),
+            (r"\bconclui\w*\s+as\s+suas\s+alegacoes", 5),
+            (r"\bora\s+recorrente\b", 4),
+            (r"\brecorrente\b", 2),
+            (r"\btribunal\s+a\s+quo\b", 3),
+            (r"\bdeve\w*\s+ser\s+revogad", 3),
+            (r"\balegacoes\s+de\s+recurso\b", 4),
+            (r"\brecurso\b", 1),
+        ]),
+        ("Petição inicial", [
+            (r"\bpeticao\s+inicial\b", 5),
+            (r"\bvem\s+(?:o|a)\s+\w+\s+propor\b", 5),
+            (r"\bpropor\s+(?:a\s+)?(?:presente\s+)?acao\b", 4),
+            (r"\bintenta\w*\b", 3),
+            (r"\bcita(?:cao|r)\s+d[oa]\s+re[u\b]", 2),
+        ]),
+        ("Contestação", [
+            (r"\bvem\s+(?:o|a)\s+\w+\s+contestar\b", 4),
+            (r"\bapresenta\w*\s+contestacao\b", 5),
+            (r"\bdeduz\w*\s+oposicao\b", 4),
+            (r"\bimpugna\w*\s+(?:especificadamente|os\s+factos)\b", 4),
+            (r"\bcontestacao\b", 1),
+        ]),
+        ("Acusação", [
+            (r"\bdeduz\w*\s+acusacao\b", 5),
+            (r"\bacusa\s+o\s+arguido\b", 5),
+            (r"\bministerio\s+publico\b.{0,60}\bacusa", 4),
+        ]),
+        ("Sentença / Decisão", [
+            (r"\bjulgo\s+(?:a\s+)?(?:acao\s+)?(?:procedente|improcedente)", 5),
+            (r"\b(?:condeno|absolvo)\b", 5),
+            (r"\bnestes\s+termos.{0,40}\bdecid", 4),
+            (r"\bsentenca\b", 1),
+        ]),
+        ("Requerimento", [
+            (r"\brequer\s+a\s+v\.?\s*ex", 5),
+            (r"\brequerimento\b", 2),
+        ]),
+    ]
+
     def _detetar_tipo(self, texto: str) -> str:
         import unicodedata
-        t = unicodedata.normalize("NFKD", texto[:3000].lower())
+        t = unicodedata.normalize("NFKD", texto[:6000].lower())
         t = "".join(ch for ch in t if not unicodedata.combining(ch))
-        # padrões SEM acentos (o texto foi normalizado acima)
-        if re.search(r"peticao\s+inicial|vem\s+(?:o\s+autor\s+)?propor|intenta|propor\s+(?:a\s+)?(?:presente\s+)?acao", t):
-            return "Petição inicial"
-        if re.search(r"acusa(?:cao|-se)|deduz(?:-se)?\s+acusacao", t):
-            return "Acusação"
-        if re.search(r"contesta(?:cao|r)|impugna|deduz.*oposicao", t):
-            return "Contestação"
-        if re.search(r"sentenca|decisao\s+final|condeno|absolvo|julgo\s+(?:a\s+)?(?:acao|procedente|improcedente)", t):
-            return "Sentença / Decisão"
-        if re.search(r"recurso|recorre|alega(?:coes|r)", t):
-            return "Recurso / Alegações"
-        if re.search(r"requer(?:imento|-se|\s+a\s+v)", t):
-            return "Requerimento"
-        return "Peça processual (tipo não determinado)"
+
+        pontuacao: dict[str, int] = {}
+        for tipo, padroes in self._INDICIOS:
+            total = 0
+            for padrao, peso in padroes:
+                if re.search(padrao, t):
+                    total += peso
+            if total:
+                pontuacao[tipo] = total
+
+        if not pontuacao:
+            return "Peça processual (tipo não determinado)"
+        melhor = max(pontuacao.items(), key=lambda x: x[1])
+        # Empate ou indício demasiado ténue: não arriscar uma etiqueta errada.
+        if melhor[1] < 3:
+            return "Peça processual (tipo não determinado)"
+        return melhor[0]
 
     def _resumir(self, texto: str, analise: AnalisePeca) -> str:
         if self._llm is not None:
