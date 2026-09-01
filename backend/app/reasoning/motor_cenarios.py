@@ -9,9 +9,10 @@ correspondentes a três lentes interpretativas reais da prática judiciária:
                       protege a parte mais fraca?")
   LEGALISTA         — aplicação estrita da letra da lei, sem extensão
                       interpretativa ("o que diz exatamente a norma?")
-  CONSEQUENCIALISTA — ponderação dos efeitos práticos; orientação da
-                      jurisprudência maioritária ("como têm os tribunais
-                      efetivamente decidido casos análogos?")
+  CONSEQUENCIALISTA — ponderação dos efeitos práticos da decisão para as
+                      partes ("que consequências concretas resultam de cada
+                      solução?"). NÃO afirma tendências jurisprudenciais que
+                      não estejam sustentadas em acórdãos fornecidos.
 
 REGRAS DO MOTOR (§2):
   - Só são apresentados os cenários juridicamente viáveis (1, 2 ou 3).
@@ -74,9 +75,9 @@ DESCRICAO_LENTES: dict[Lente, tuple[str, str]] = {
         "Uma leitura à letra da lei: o que está escrito é o que conta.",
     ),
     Lente.CONSEQUENCIALISTA: (
-        "Ponderação dos efeitos práticos da decisão; alinhamento com a "
-        "orientação maioritária da jurisprudência.",
-        "Uma leitura prática: como é que os tribunais têm decidido casos parecidos.",
+        "Ponderação dos efeitos práticos de cada solução para as partes. Só "
+        "invoca orientação jurisprudencial quando há acórdãos que a sustentem.",
+        "Uma leitura prática: que consequências concretas tem cada caminho.",
     ),
 }
 
@@ -145,6 +146,12 @@ Analisas o caso por TRÊS lentes interpretativas e devolves EXCLUSIVAMENTE JSON 
 REGRAS INVIOLÁVEIS:
 - Só marcas "viavel": true quando a lente produz uma solução juridicamente sustentável.
 - Citas APENAS artigos que constem das normas fornecidas — nunca inventes citações.
+- NUNCA afirmes qual é a "jurisprudência dominante", "maioritária" ou "constante",
+  nem que "os tribunais tendem a decidir" num sentido, SALVO se te forem
+  fornecidos acórdãos que o sustentem. Sem essa base, escreve que a questão é
+  controvertida ou que a orientação dos tribunais não pôde ser verificada. Uma
+  tendência jurisprudencial inventada é tão grave como uma norma inventada — e
+  mais difícil de detectar, porque nenhum validador a apanha.
 - NUNCA uses aspas duplas dentro dos valores do JSON. Para citar uma expressão
   do caso, usa aspas angulares «assim» — aspas duplas partem o JSON.
 - As normas fornecidas são uma SELECÇÃO feita para este caso, não a totalidade da
@@ -164,6 +171,8 @@ _PROMPT_CENARIOS = """CASO:
 NORMAS SELECCIONADAS PARA ESTE CASO (cita apenas destas; são uma selecção da
 legislação portuguesa, não a totalidade):
 {normas}
+
+JURISPRUDÊNCIA FORNECIDA PARA ESTE CASO: {jurisprudencia}
 
 Analisa o caso pelas três lentes e devolve:
 {{
@@ -376,7 +385,15 @@ class MotorCenarios:
         caso_seguro, mapa = pseudonimizar(caso)
         if mapa:
             logger.info("privacidade.pseudonimizado", tipos=resumo(mapa))
-        prompt = _PROMPT_CENARIOS.format(caso=caso_seguro, normas=normas_txt)
+        # Sem acórdãos, o modelo tem de saber que não pode falar de tendências.
+        prompt = _PROMPT_CENARIOS.format(
+            caso=caso_seguro, normas=normas_txt,
+            jurisprudencia=(
+                "NENHUMA. Não afirmes qual é a orientação dos tribunais; quando "
+                "a questão o exigir, escreve que é controvertida ou que não foi "
+                "possível verificar a orientação jurisprudencial."
+            ),
+        )
         raw = repor(self._chamar_llm_completo(_SYSTEM_CENARIOS, prompt), mapa)
         try:
             dados = self._extrair_json(raw)
