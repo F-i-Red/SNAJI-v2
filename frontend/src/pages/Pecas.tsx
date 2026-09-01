@@ -16,6 +16,7 @@ interface Seccao { nome: string; presente: boolean; posicao: number }
 interface Analise {
   nome_ficheiro: string
   num_paginas: number
+  num_palavras?: number
   num_caracteres: number
   tipo_provavel: string
   objeto_provavel?: string
@@ -26,6 +27,13 @@ interface Analise {
   seccoes: Seccao[]
   prazos_desencadeados: string[]
   avisos: string[]
+}
+
+/** Descreve a dimensão da peça sem forçar "páginas" onde não as há. */
+function dimensao(paginas: number, palavras?: number): string {
+  if (paginas > 1) return `${paginas} páginas`
+  if (paginas === 1) return '1 página'
+  return palavras ? `${palavras.toLocaleString('pt-PT')} palavras` : 'documento de texto'
 }
 
 const NOME_SECCAO: Record<string, string> = {
@@ -78,7 +86,7 @@ export default function PaginaPecas() {
     if (!analise) return null
     return {
       titulo: `Análise da peça: ${analise.nome_ficheiro}`,
-      subtitulo: `${analise.tipo_provavel} · ${analise.num_paginas} páginas`,
+      subtitulo: `${analise.tipo_provavel} · ${dimensao(analise.num_paginas, analise.num_palavras)}`,
       meta: [
         ...(analise.objeto_provavel ? [`Objeto provável: ${analise.objeto_provavel}`] : []),
         `Analisado pelo SNAJI em ${new Date().toLocaleDateString('pt-PT')}`,
@@ -168,7 +176,7 @@ export default function PaginaPecas() {
                 </div>
               )}
               <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>
-                {analise.nome_ficheiro} · {analise.num_paginas} páginas · {analise.total_citacoes} citações
+                {analise.nome_ficheiro} · {dimensao(analise.num_paginas, analise.num_palavras)} · {analise.total_citacoes} citações
               </div>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
