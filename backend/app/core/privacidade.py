@@ -30,36 +30,64 @@ import re
 _PADROES: list[tuple[str, re.Pattern]] = [
     # A ordem é significativa. Os padrões ancorados numa palavra-chave
     # ("NIF 213456789", "nasci em 03/07/1988") vêm primeiro: sem isso, o
-    # padrão genérico de telefone apanhava números de contribuinte iniciados
-    # por 2, e o padrão de IBAN — tolerante a espaços — engolia datas.
-    # [^\d]{0,20} permite quebras de linha entre a palavra-chave e o valor:
-    # em texto colado de documentos, "nascida\nem 03/07/1988" é comum.
+    # padrão genérico de telefone apanhava números de contribuinte, e o
+    # padrão de IBAN — tolerante a espaços — engolia datas.
+    #
+    # As variantes cobertas foram levantadas por ensaio deliberado de formas
+    # hostis: abreviaturas com pontos ("n.i.f."), ausência de separador
+    # ("NIF213456789"), enumerações ("o meu e o da minha mulher: X e Y") e a
+    # palavra-chave depois do valor ("14/02/1991 (data de nascimento)").
     ("NIF", re.compile(
-        r"\b(?:nif|niss|contribuinte)[^\d]{0,20}(\d{9})\b", re.I)),
+        r"\b(?:n\.?\s?i\.?\s?f\.?|nif|niss|nipc|contribuinte|"
+        r"n\.?[ºo°]?\s*fiscal|n[uú]mero\s+fiscal)[^\d\n]{0,25}(\d{9})\b", re.I)),
+    # Segundo e seguintes números de uma enumeração: só apanha quando o que
+    # vem antes já foi mascarado como NIF.
+    # A distância tolerada cobre frases como "o meu e o do meu marido é X"
+    # ou "os nossos números são X e Y", mantendo-se dentro da mesma frase
+    # (não atravessa ponto final nem mudança de linha).
+    # Não apanha valores monetários: um número de nove dígitos seguido de
+    # "euros" ou "€" é um montante, não um contribuinte.
+    ("NIF", re.compile(r"\[NIF_\d+\][^\d\n.]{0,40}(\d{9})\b(?!\s*(?:euros?|€))")),
+
     ("NUM_UTENTE", re.compile(
-        r"\butente[^\d]{0,20}(\d{9})\b", re.I)),
+        r"\b(?:utente|sns)\b[^\d\n]{0,25}(\d{9})\b", re.I)),
+
     ("DATA_NASCIMENTO", re.compile(
-        r"\b(?:nasci|nascid[oa]|data\s+de\s+nascimento)[^\d]{0,20}"
-        r"(\d{1,2}[/-]\d{1,2}[/-]\d{4})\b", re.I)),
+        r"\b(?:nasci|nascid[oa]|d\.?\s?n\.?|data\s+de\s+nascimento)"
+        r"[^\d\n]{0,20}(\d{1,2}[/-]\d{1,2}[/-]\d{4})\b", re.I)),
+    ("DATA_NASCIMENTO", re.compile(
+        r"(\d{1,2}[/-]\d{1,2}[/-]\d{4})(?=[^\d\n]{0,6}\(?\s*(?:data\s+de\s+)?nascim)", re.I)),
+    ("DATA_NASCIMENTO", re.compile(
+        r"\b(?:nasci|nascid[oa])\s+(?:em|a)\s+"
+        r"(\d{1,2}\s+de\s+\w+\s+de\s+\d{4})", re.I)),
+
     ("EMAIL", re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.]{2,}\b")),
-    # IBAN em todas as formas correntes: "PT50 0035…", "PT500035…",
-    # "PT50-0035-…", "PT 50 0035…" e ainda o NIB (21 dígitos sem prefixo),
-    # que continua a ser usado em Portugal.
+
+    # IBAN em todas as formas correntes, e o NIB (21 dígitos sem prefixo).
     ("IBAN", re.compile(r"\bPT\s?50[\s-]?(?:\d[\s-]?){21}\b", re.I)),
     ("NIB", re.compile(r"(?<![\d.])(?:\d[\s-]?){20}\d(?![\d.])")),
-    ("MATRICULA", re.compile(
-        r"\b(?:[A-Z]{2}-\d{2}-[A-Z]{2}|\d{2}-[A-Z]{2}-\d{2}|[A-Z]{2}-\d{2}-\d{2})\b")),
-    ("CODIGO_POSTAL", re.compile(r"\b\d{4}-\d{3}\b")),
+
+    # Cartão de cidadão: com dígito de controlo, ou apenas os dígitos quando
+    # precedido da designação.
     ("CARTAO_CIDADAO", re.compile(r"\b\d{8}\s?\d?\s?[A-Z]{2}\d\b")),
+    ("CARTAO_CIDADAO", re.compile(
+        r"\b(?:cart[aã]o\s+de\s+cidad[aã]o|cc|bi|bilhete\s+de\s+identidade)\b"
+        r"[^\d\n]{0,20}(\d{7,8})\b", re.I)),
+
+    ("MATRICULA", re.compile(
+        r"\b(?:[A-Z]{2}[\s-]\d{2}[\s-][A-Z]{2}|\d{2}[\s-][A-Z]{2}[\s-]\d{2}|"
+        r"[A-Z]{2}[\s-]\d{2}[\s-]\d{2}|\d{2}[\s-]\d{2}[\s-][A-Z]{2})\b")),
+
+    ("CODIGO_POSTAL", re.compile(r"\b\d{4}-\d{3}\b")),
+
     # Telefones portugueses: 9 dígitos começados por 2 (fixos, de todos os
-    # indicativos regionais — 21 Lisboa, 289 Faro, 253 Braga…) ou por 9
-    # (telemóveis). O agrupamento é livre, porque as pessoas escrevem
-    # "913 222 444", "913222444", "913 22 24 44" ou "91 3222444".
-    # Antes só eram detectados os indicativos 21, 22 e os telemóveis, o que
-    # deixava passar os fixos da maior parte do país.
+    # indicativos regionais) ou por 9 (telemóveis), com agrupamento livre.
+    # Não apanha montantes: um número de nove dígitos seguido de "euros" ou
+    # "€" é um valor, não um telefone. Sem esta guarda, "custou 250000000
+    # euros" era mascarado.
     ("TELEFONE", re.compile(
         r"(?<![\d\-/.])(?:(?:\+|00)\s?351[\s-]?|\(\+351\)[\s-]?)?"
-        r"[29](?:[\s-]?\d){8}(?![\d\-/])")),
+        r"[29](?:[\s-]?\d){8}(?![\d\-/])(?!\s*(?:euros?|€))")),
 ]
 
 
