@@ -42,13 +42,24 @@ _PADROES: list[tuple[str, re.Pattern]] = [
         r"\b(?:nasci|nascid[oa]|data\s+de\s+nascimento)[^\d]{0,20}"
         r"(\d{1,2}[/-]\d{1,2}[/-]\d{4})\b", re.I)),
     ("EMAIL", re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.]{2,}\b")),
-    ("IBAN", re.compile(r"\bPT50[\s-]?(?:\d[\s-]?){21}\b", re.I)),
+    # IBAN em todas as formas correntes: "PT50 0035…", "PT500035…",
+    # "PT50-0035-…", "PT 50 0035…" e ainda o NIB (21 dígitos sem prefixo),
+    # que continua a ser usado em Portugal.
+    ("IBAN", re.compile(r"\bPT\s?50[\s-]?(?:\d[\s-]?){21}\b", re.I)),
+    ("NIB", re.compile(r"(?<![\d.])(?:\d[\s-]?){20}\d(?![\d.])")),
     ("MATRICULA", re.compile(
         r"\b(?:[A-Z]{2}-\d{2}-[A-Z]{2}|\d{2}-[A-Z]{2}-\d{2}|[A-Z]{2}-\d{2}-\d{2})\b")),
     ("CODIGO_POSTAL", re.compile(r"\b\d{4}-\d{3}\b")),
     ("CARTAO_CIDADAO", re.compile(r"\b\d{8}\s?\d?\s?[A-Z]{2}\d\b")),
+    # Telefones portugueses: 9 dígitos começados por 2 (fixos, de todos os
+    # indicativos regionais — 21 Lisboa, 289 Faro, 253 Braga…) ou por 9
+    # (telemóveis). O agrupamento é livre, porque as pessoas escrevem
+    # "913 222 444", "913222444", "913 22 24 44" ou "91 3222444".
+    # Antes só eram detectados os indicativos 21, 22 e os telemóveis, o que
+    # deixava passar os fixos da maior parte do país.
     ("TELEFONE", re.compile(
-        r"(?<!\d)(?:\+351[\s-]?)?[92][1236]\d[\s-]?\d{3}[\s-]?\d{3}(?!\d)")),
+        r"(?<![\d\-/.])(?:(?:\+|00)\s?351[\s-]?|\(\+351\)[\s-]?)?"
+        r"[29](?:[\s-]?\d){8}(?![\d\-/])")),
 ]
 
 
