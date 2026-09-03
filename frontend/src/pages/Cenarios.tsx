@@ -72,6 +72,13 @@ const NOME_SENTIDO: Record<string, string> = {
   misto: 'Desfecho incerto',
 }
 
+/** Nota curta que acompanha a solidez, no ecrã e na impressão. */
+const NOTA_SOLIDEZ: Record<CenarioAPI['solidez'], string> = {
+  elevada: 'fundamentação sustentada',
+  media: 'com lacunas',
+  baixa: 'base limitada',
+}
+
 const NOME_SOLIDEZ: Record<CenarioAPI['solidez'], string> = {
   elevada: 'Solidez elevada',
   media: 'Solidez média',
@@ -169,19 +176,41 @@ export default function PaginaCenarios() {
     color: 'var(--color-text-secondary)',
   }
 
+  /**
+   * Indicador de solidez.
+   *
+   * As lentes são sempre apresentadas pela mesma ordem — garantista,
+   * legalista, consequencialista — porque essa ordem é pedagógica e
+   * previsível, e porque ordenar por força equivaleria a recomendar uma
+   * leitura sem o assumir. A diferença entre leituras é dada aqui, no
+   * indicador: cor e legenda distintas por nível, para que o leitor a veja
+   * sem que o sistema escolha por ele.
+   */
   const Solidez = ({ nivel }: { nivel: CenarioAPI['solidez'] }) => {
-    const n = nivel === 'elevada' ? 3 : nivel === 'media' ? 2 : 1
+    const cfg = {
+      elevada: { n: 3, cor: '#1e7a46', fundo: '#e8f5ee', nota: NOTA_SOLIDEZ.elevada },
+      media:   { n: 2, cor: '#a5750c', fundo: '#fdf6e3', nota: NOTA_SOLIDEZ.media },
+      baixa:   { n: 1, cor: '#9a3b2f', fundo: '#fdecea', nota: NOTA_SOLIDEZ.baixa },
+    }[nivel]
     return (
-      <span style={{ display: 'inline-flex', gap: 3, alignItems: 'center' }}
-            title={NOME_SOLIDEZ[nivel]}>
+      <span
+        title={`${NOME_SOLIDEZ[nivel]} — ${cfg.nota}`}
+        style={{
+          display: 'inline-flex', gap: 4, alignItems: 'center',
+          background: cfg.fundo, border: `1px solid ${cfg.cor}33`,
+          borderRadius: 999, padding: '2px 9px 2px 7px',
+        }}>
         {[0, 1, 2].map(i => (
           <span key={i} style={{
             width: 7, height: 7, borderRadius: '50%',
-            background: i < n ? '#c4960a' : 'var(--color-border-tertiary)',
+            background: i < cfg.n ? cfg.cor : 'var(--color-border-tertiary)',
           }} />
         ))}
-        <span style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginLeft: 4 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: cfg.cor, marginLeft: 2 }}>
           {NOME_SOLIDEZ[nivel]}
+        </span>
+        <span style={{ fontSize: 10.5, color: 'var(--color-text-tertiary)' }}>
+          · {cfg.nota}
         </span>
       </span>
     )
@@ -263,7 +292,8 @@ export default function PaginaCenarios() {
         const riscos = registoTecnico ? cn.riscos : cn.riscos_cidadao
         const normas = cn.fundamentacao_normas.map(n => n.replace('-', ' art. ')).join('; ')
         return {
-          titulo: `Lente ${NOME_LENTE[cn.lente]} — ${NOME_SOLIDEZ[cn.solidez].toLowerCase()}`,
+          titulo: `Lente ${NOME_LENTE[cn.lente]} — ${NOME_SOLIDEZ[cn.solidez].toLowerCase()}`
+            + ` (${NOTA_SOLIDEZ[cn.solidez]})`,
           paragrafos: [
             registoTecnico ? cn.lente_descricao_tecnica : cn.lente_descricao_cidada,
             `${cn.titulo} — ${NOME_SENTIDO[cn.sentido] ?? cn.sentido}`,
