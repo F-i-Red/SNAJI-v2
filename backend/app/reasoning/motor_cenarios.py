@@ -83,6 +83,51 @@ DESCRICAO_LENTES: dict[Lente, tuple[str, str]] = {
 
 SOLIDEZ_VALORES = ("elevada", "media", "baixa")
 
+# Sentidos equivalentes, para a regra de convergência.
+#
+# A convergência exigia que as três lentes devolvessem exactamente a mesma
+# palavra. Como o modelo produz por vezes variantes fora da lista pedida
+# ("favoravel" em vez de "procedente", "incerto" em vez de "misto"), casos
+# em que as três leituras concordavam podiam não ser reconhecidos como
+# convergentes — por diferença de vocabulário, não de conteúdo.
+# Sentidos reduzidos a três direcções. O modelo não usa sempre a mesma
+# palavra — escreve "tendência condenatória" onde antes escrevia "condenação",
+# e "tipicamente favorável" onde escrevia "procedente". Sem cobrir estas
+# variantes, duas lentes que concordam eram contadas como divergentes e a
+# convergência nunca era declarada.
+_SENTIDOS_EQUIVALENTES = {
+    # Favorável a quem expõe o caso / procedência da pretensão
+    "procedente": "favoravel", "favoravel": "favoravel",
+    "condenacao": "favoravel", "condenatoria": "favoravel",
+    "tipicamente favoravel": "favoravel",
+    "tendencia condenatoria": "favoravel",
+    "tendencialmente favoravel": "favoravel",
+    "tendencia favoravel": "favoravel",
+    "provavelmente procedente": "favoravel",
+
+    # Desfavorável / improcedência
+    "improcedente": "desfavoravel", "desfavoravel": "desfavoravel",
+    "absolvicao": "desfavoravel", "absolutoria": "desfavoravel",
+    "tipicamente desfavoravel": "desfavoravel",
+    "tendencia absolutoria": "desfavoravel",
+    "tendencialmente desfavoravel": "desfavoravel",
+    "tendencia desfavoravel": "desfavoravel",
+    "provavelmente improcedente": "desfavoravel",
+
+    # Sem direcção
+    "misto": "incerto", "incerto": "incerto", "indeterminado": "incerto",
+    "desfecho incerto": "incerto", "resultado incerto": "incerto",
+    "inviavel": "incerto", "nao aplicavel": "incerto",
+}
+
+
+def _sentido_normalizado(valor: str) -> str:
+    """Reduz o sentido a uma de três direcções, ignorando o vocabulário."""
+    import unicodedata
+    v = unicodedata.normalize("NFKD", (valor or "").strip().lower())
+    v = "".join(c for c in v if not unicodedata.combining(c))
+    return _SENTIDOS_EQUIVALENTES.get(v, v)
+
 
 @dataclass
 class Cenario:
@@ -327,15 +372,30 @@ class MotorCenarios:
                 viaveis[0].solidez = "baixa"
 
         # 3) Regra da convergência (§2): mesmas conclusões → uma só solução
-        sentidos = {c.sentido for c in viaveis}
-        convergencia = len(viaveis) >= 2 and len(sentidos) == 1
+        sentidos = {_sentido_normalizado(c.sentido) for c in viaveis}
+        # A convergência exige direcção comum — nunca se declara quando as
+        # lentes coincidem apenas em «incerto», que não é acordo sobre o
+        # desfecho mas ausência dele.
+        #
+        # Uma lente que se diz «incerta» não contraria as restantes: abstém-se.
+        # É frequente na consequencialista, cuja incerteza respeita ao tempo e
+        # à cobrança efectiva, não ao mérito. Por isso conta-se a direcção das
+        # lentes que se pronunciam, exigindo que sejam pelo menos duas e que
+        # nenhuma aponte em sentido contrário.
+        direccoes = {s for s in sentidos if s != "incerto"}
+        pronunciadas = [c for c in viaveis
+                        if _sentido_normalizado(c.sentido) != "incerto"]
+        convergencia = len(direccoes) == 1 and len(pronunciadas) >= 2
         if convergencia:
-            base = max(viaveis, key=lambda c: SOLIDEZ_VALORES.index(c.solidez) * -1)
-            base.titulo = "As três abordagens convergem: " + base.titulo
+            base = max(pronunciadas, key=lambda c: SOLIDEZ_VALORES.index(c.solidez) * -1)
+            quantas = len(pronunciadas)
+            base.titulo = (
+                f"As {'três' if quantas >= 3 else 'duas'} abordagens convergem: "
+                + base.titulo)
             base.solidez = "elevada"
             base.solucao_tecnica = (
-                "CONVERGÊNCIA DAS LENTES (garantista, legalista e consequencialista) "
-                "no mesmo sentido — indicador de caso juridicamente claro. " + base.solucao_tecnica
+                "CONVERGÊNCIA DAS LENTES no mesmo sentido — indicador de caso "
+                "juridicamente claro. " + base.solucao_tecnica
             )
             viaveis = [base]
 
