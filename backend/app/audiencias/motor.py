@@ -35,6 +35,8 @@ formando uma cadeia de integridade verificável.
 from __future__ import annotations
 import uuid
 import hashlib
+
+from app.core.normas import MAX_CARACTERES_NORMA as _MAX_NORMA
 import json as _json
 import re as _re
 from dataclasses import dataclass, field
@@ -829,7 +831,8 @@ class MotorAudiencias:
     def _gerar_com_llm(self, a: AudienciaCompleta, papel: PapelAgente, contexto: str) -> str:
         normas_rag = self._rag.search(a.descricao_caso, top_k=5)
         normas_txt = "\n".join(
-            f"• Art. {c.artigo}.º {c.diploma} — {c.texto[:150]}"
+            f"• Art. {c.artigo}.º {c.diploma} — "
+            f"{c.texto[:_MAX_NORMA]}{' […]' if len(c.texto) > _MAX_NORMA else ''}"
             for c in normas_rag
         )
         prompt = f"""CONTEXTO DA AUDIÊNCIA:
@@ -946,7 +949,10 @@ Cita sempre os artigos exactos das normas fornecidas acima."""
 
     def _gerar_decisao_llm(self, a: AudienciaCompleta) -> DecisaoFinal:
         normas_rag = self._rag.search(a.descricao_caso, top_k=6)
-        normas_txt = "\n".join(f"• Art. {c.artigo}.º {c.diploma} — {c.texto[:200]}" for c in normas_rag)
+        normas_txt = "\n".join(
+            f"• Art. {c.artigo}.º {c.diploma} — "
+            f"{c.texto[:_MAX_NORMA]}{' […]' if len(c.texto) > _MAX_NORMA else ''}"
+            for c in normas_rag)
         pede_civil = (
             '\n  "dispositivo_civil": "decisão sobre o pedido de indemnização civil enxertado",'
             if a.regime == "adesao" else ""
