@@ -622,7 +622,12 @@ export default function PaginaCenarios() {
                         </div>
                         {p.nome === 'recuperacao_de_normas' && Array.isArray((p.dados as any).normas_recuperadas) && (
                           <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 5 }}>
-                            {((p.dados as any).normas_recuperadas as any[]).slice(0, 8).map(n => (
+                            {/* Todas as normas entregues, não as primeiras oito:
+                                o corte era um resto de quando eram oito, e
+                                escondia metade do que o modelo recebeu — o que
+                                impedia perceber se uma norma em falta na
+                                análise fora ou não recuperada. */}
+                            {((p.dados as any).normas_recuperadas as any[]).map(n => (
                               <span key={n.norma} style={etiqueta} title={`relevância ${n.relevancia}`}>
                                 {String(n.norma).replace('-', ' art. ')}
                               </span>
