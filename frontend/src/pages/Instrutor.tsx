@@ -268,7 +268,39 @@ export default function PaginaInstrutor() {
 
   // ── Render da pergunta consoante o tipo ────────────────────────────────
 
+  /**
+   * Aviso de espera.
+   *
+   * Os botões já ficavam bloqueados durante o pedido, mas sem qualquer sinal
+   * visível: o utilizador via o botão não responder e voltava a clicar, o que
+   * dá a sensação de avaria. Um aviso explícito evita cliques repetidos e
+   * explica que a demora é do sistema a trabalhar, não de uma falha.
+   */
+  const AguardeSNAJI = ({ texto = 'O SNAJI está a analisar a sua resposta…' }) => (
+    <div
+      role="status"
+      aria-live="polite"
+      style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        background: 'var(--color-background-secondary)',
+        border: '1px solid var(--color-border-default)',
+        borderRadius: 8, padding: '10px 14px', fontSize: 13,
+        color: 'var(--color-text-secondary)',
+      }}>
+      <span style={{
+        width: 14, height: 14, borderRadius: '50%', flexShrink: 0,
+        border: '2px solid var(--color-border-secondary)',
+        borderTopColor: '#0a2342',
+        animation: 'snaji-girar 0.8s linear infinite',
+      }} />
+      <span>{texto} <strong>Aguarde, por favor</strong> — não é preciso clicar de novo.</span>
+      <style>{`@keyframes snaji-girar { to { transform: rotate(360deg) } }`}</style>
+    </div>
+  )
+
   const renderPergunta = (p: PerguntaAPI) => {
+    if (carregando) return <AguardeSNAJI />
+
     if (p.tipo === 'escolha' && !modoOutro) {
       return (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -281,7 +313,9 @@ export default function PaginaInstrutor() {
                 background: op === OPCAO_OUTRO ? 'transparent' : 'var(--color-background-secondary)',
                 border: '0.5px solid var(--color-border-secondary)',
                 borderRadius: 'var(--border-radius-md)',
-                padding: '9px 16px', fontSize: 13, cursor: 'pointer',
+                padding: '9px 16px', fontSize: 13,
+                cursor: carregando ? 'wait' : 'pointer',
+                opacity: carregando ? 0.5 : 1,
                 fontFamily: 'inherit', color: 'var(--color-text-primary)',
               }}
             >
@@ -489,6 +523,9 @@ export default function PaginaInstrutor() {
               {DISTRITOS.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
           </label>
+          {carregando && (
+            <AguardeSNAJI texto="O SNAJI está a preparar as perguntas sobre o seu caso…" />
+          )}
           <div>
             <button
               style={botaoPrimario}
@@ -601,6 +638,9 @@ export default function PaginaInstrutor() {
             }}>
               {ficha.texto_para_analise}
             </pre>
+            {carregando && (
+              <AguardeSNAJI texto="O SNAJI está a analisar o caso e a procurar as normas aplicáveis…" />
+            )}
             <div style={{ display: 'flex', gap: 10 }}>
               {!analise && (
                 <button style={botaoPrimario} disabled={carregando} onClick={enviarParaAnalise}>
