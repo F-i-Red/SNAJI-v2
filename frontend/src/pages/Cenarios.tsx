@@ -49,6 +49,7 @@ interface LenteOmitidaAPI {
 interface CenariosAPI {
   cenarios: CenarioAPI[]
   lentes_omitidas?: LenteOmitidaAPI[]
+  cenarios_convergentes?: CenarioAPI[]
   convergencia: boolean
   sintese_tecnica: string
   sintese_cidada: string
@@ -74,9 +75,9 @@ const NOME_SENTIDO: Record<string, string> = {
 
 /** Nota curta que acompanha a solidez, no ecrã e na impressão. */
 const NOTA_SOLIDEZ: Record<CenarioAPI['solidez'], string> = {
-  elevada: 'fundamentação sustentada',
-  media: 'com lacunas',
-  baixa: 'base limitada',
+  elevada: 'normas sustentam a conclusão',
+  media: 'faltam normas para fechar o raciocínio',
+  baixa: 'base documental insuficiente',
 }
 
 const NOME_SOLIDEZ: Record<CenarioAPI['solidez'], string> = {
@@ -187,10 +188,15 @@ export default function PaginaCenarios() {
    * sem que o sistema escolha por ele.
    */
   const Solidez = ({ nivel }: { nivel: CenarioAPI['solidez'] }) => {
+    // Cores de semáforo, por serem imediatamente legíveis. Atenção ao que
+    // significam: o vermelho indica FALTA DE BASE DOCUMENTAL — tipicamente
+    // ausência de jurisprudência — e NÃO que a leitura esteja errada. No teste
+    // contra o acórdão da Relação do Porto, a lente que acertou não era a de
+    // solidez mais alta. Daí a legenda explicar sempre o que o nível quer dizer.
     const cfg = {
-      elevada: { n: 3, cor: '#1e7a46', fundo: '#e8f5ee', nota: NOTA_SOLIDEZ.elevada },
-      media:   { n: 2, cor: '#a5750c', fundo: '#fdf6e3', nota: NOTA_SOLIDEZ.media },
-      baixa:   { n: 1, cor: '#9a3b2f', fundo: '#fdecea', nota: NOTA_SOLIDEZ.baixa },
+      elevada: { n: 3, cor: '#1a7f37', fundo: '#e7f6ec', nota: NOTA_SOLIDEZ.elevada },
+      media:   { n: 2, cor: '#b58900', fundo: '#fdf6e0', nota: NOTA_SOLIDEZ.media },
+      baixa:   { n: 1, cor: '#c62828', fundo: '#fdeaea', nota: NOTA_SOLIDEZ.baixa },
     }[nivel]
     return (
       <span
@@ -288,7 +294,9 @@ export default function PaginaCenarios() {
             paragrafos: caso.split(/\n{2,}/).map(p => p.replace(/\s*\n\s*/g, ' ').trim()).filter(Boolean),
           }]
         : []),
-      ...resultado.cenarios.map(cn => {
+      // Em papel não há como abrir nada: as lentes que convergiram são
+      // impressas por extenso, a seguir à principal.
+      ...[...resultado.cenarios, ...(resultado.cenarios_convergentes ?? [])].map(cn => {
         const riscos = registoTecnico ? cn.riscos : cn.riscos_cidadao
         const normas = cn.fundamentacao_normas.map(n => n.replace('-', ' art. ')).join('; ')
         return {
@@ -484,6 +492,38 @@ export default function PaginaCenarios() {
               ? 'repeat(auto-fit, minmax(260px, 1fr))' : '1fr',
           }}>
             {resultado.cenarios.map(c => <CartaoCenario key={c.lente} c={c} />)}
+          </div>
+
+          {/* Lentes que convergiram, disponíveis para consulta */}
+          {(resultado.cenarios_convergentes?.length ?? 0) > 0 && (
+            <details style={{
+              border: '1px solid var(--color-border-default)', borderRadius: 8,
+              padding: '10px 12px', background: 'var(--color-background-secondary)',
+            }}>
+              <summary style={{ cursor: 'pointer', fontSize: 12.5, fontWeight: 600 }}>
+                Ver as outras {resultado.cenarios_convergentes!.length} leituras que
+                convergiram
+                <span style={{ fontWeight: 400, color: 'var(--color-text-tertiary)' }}>
+                  {' '}— {resultado.cenarios_convergentes!.map(c => NOME_LENTE[c.lente]).join(' e ')}
+                </span>
+              </summary>
+              <div style={{ marginTop: 10, display: 'grid', gap: 12 }}>
+                {resultado.cenarios_convergentes!.map(c => (
+                  <CartaoCenario key={c.lente} c={c} />
+                ))}
+              </div>
+            </details>
+          )}
+
+          {/* O que a solidez significa — e o que não significa */}
+          <div style={{
+            fontSize: 11.5, lineHeight: 1.55, color: 'var(--color-text-tertiary)',
+            paddingLeft: 2,
+          }}>
+            A <strong>solidez</strong> indica quanta base documental sustenta cada leitura, e não
+            a probabilidade de ela vir a proceder. Uma leitura com base limitada pode estar
+            correcta: assinala apenas que faltam normas ou jurisprudência para a fundamentar
+            por inteiro.
           </div>
 
           {/* Lentes que se abstiveram */}
