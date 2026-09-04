@@ -4,11 +4,14 @@ Motor de Cenários de Resolução — SNAJI (Especificação V8, §2 e §3)
 Para cada caso analisado, gera ATÉ TRÊS cenários de resolução,
 correspondentes a três lentes interpretativas reais da prática judiciária:
 
+Apresentadas pela ordem do raciocínio jurídico — primeiro o que a lei diz,
+depois os princípios, por fim as consequências:
+
+  LEGALISTA         — aplicação estrita da letra da lei, sem extensão
+                      interpretativa ("o que diz exatamente a norma?")
   GARANTISTA        — máxima proteção dos direitos fundamentais e das
                       garantias processuais ("qual a solução que melhor
                       protege a parte mais fraca?")
-  LEGALISTA         — aplicação estrita da letra da lei, sem extensão
-                      interpretativa ("o que diz exatamente a norma?")
   CONSEQUENCIALISTA — ponderação dos efeitos práticos da decisão para as
                       partes ("que consequências concretas resultam de cada
                       solução?"). NÃO afirma tendências jurisprudenciais que
@@ -59,6 +62,14 @@ class Lente(str, Enum):
     GARANTISTA        = "garantista"
     LEGALISTA         = "legalista"
     CONSEQUENCIALISTA = "consequencialista"
+
+
+# Ordem de apresentação, que reproduz a sequência do raciocínio jurídico:
+# primeiro a qualificação e a subsunção (que diz a letra da lei), depois a
+# interpretação à luz dos princípios e garantias, por fim a ponderação dos
+# efeitos práticos da solução. Apresentar o garantismo à cabeça sugeriria
+# que o sistema toma partido antes de qualificar os factos.
+ORDEM_LENTES = [Lente.LEGALISTA, Lente.GARANTISTA, Lente.CONSEQUENCIALISTA]
 
 
 DESCRICAO_LENTES: dict[Lente, tuple[str, str]] = {
@@ -227,7 +238,7 @@ Analisa o caso pelas três lentes e devolve:
 {{
   "cenarios": [
     {{
-      "lente": "garantista|legalista|consequencialista",
+      "lente": "legalista|garantista|consequencialista",
       "viavel": true,
       "titulo": "título curto do cenário",
       "sentido": "procedente|improcedente|condenacao|absolvicao|misto",
@@ -508,6 +519,8 @@ class MotorCenarios:
             if c.lente not in vistos:
                 vistos.add(c.lente)
                 unicos.append(c)
+        unicos.sort(key=lambda c: ORDEM_LENTES.index(c.lente)
+                    if c.lente in ORDEM_LENTES else 99)
         return unicos[:3], str(dados.get("sintese_tecnica", "")).strip()
 
     def _gerar_registo_cidadao(self, cenarios: list[Cenario], sintese_tec: str) -> None:
