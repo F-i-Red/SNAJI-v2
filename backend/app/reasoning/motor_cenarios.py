@@ -71,6 +71,14 @@ class Lente(str, Enum):
 # que o sistema toma partido antes de qualificar os factos.
 ORDEM_LENTES = [Lente.LEGALISTA, Lente.GARANTISTA, Lente.CONSEQUENCIALISTA]
 
+# Caracteres de cada norma enviados ao modelo. Ajustável em .env com
+# SNAJI_MAX_CARACTERES_NORMA para casos com muitos artigos extensos.
+import os as _os
+try:
+    _MAX_CARACTERES_NORMA = int(_os.getenv("SNAJI_MAX_CARACTERES_NORMA", "2500"))
+except ValueError:
+    _MAX_CARACTERES_NORMA = 2500
+
 
 DESCRICAO_LENTES: dict[Lente, tuple[str, str]] = {
     # (descrição técnica, descrição em linguagem clara)
@@ -319,8 +327,24 @@ class MotorCenarios:
         }]
 
         normas = self._rag.search(texto_caso, top_k=top_k_normas)
+        # Texto das normas enviado ao modelo.
+        #
+        # Estava truncado aos 180 caracteres, o que cortava 89% dos artigos do
+        # corpus — muitas vezes antes da alínea que resolvia o caso. No art.
+        # 381.º CT, por exemplo, o modelo recebia a alínea a) (motivos
+        # políticos) e nunca chegava à c) — «se não for precedido do
+        # respectivo procedimento» —, que é a norma central de um despedimento
+        # sem processo disciplinar. O modelo assinalava correctamente que não
+        # podia citar a alínea exacta, e a solidez descia por uma limitação
+        # que não era da lei nem dele.
+        #
+        # 2500 caracteres cobrem 96% do corpus por inteiro. O custo é de
+        # cêntimos por análise e o ganho em fundamentação é grande.
         normas_txt = "\n".join(
-            f"• Art. {c.artigo}.º {c.diploma} — {(c.epigrase + ': ') if getattr(c, 'epigrase', '') else ''}{c.texto[:180]}"
+            f"• Art. {c.artigo}.º {c.diploma} — "
+            f"{(c.epigrase + ': ') if getattr(c, 'epigrase', '') else ''}"
+            f"{c.texto[:_MAX_CARACTERES_NORMA]}"
+            f"{' […]' if len(c.texto) > _MAX_CARACTERES_NORMA else ''}"
             for c in normas
         ) or "— sem normas recuperadas —"
 

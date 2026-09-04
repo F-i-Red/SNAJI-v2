@@ -205,7 +205,8 @@ def _formatar_normas_para_prompt(chunks: list[Chunk]) -> str:
     linhas = []
     for c in chunks:
         epigrase = f" ({c.epigrase})" if c.epigrase else ""
-        excerto = c.texto[:300] + "..." if len(c.texto) > 300 else c.texto
+        from app.core.normas import MAX_CARACTERES_NORMA as _MAX
+        excerto = (c.texto[:_MAX] + " […]") if len(c.texto) > _MAX else c.texto
         linhas.append(f"• Art. {c.artigo}.º {c.diploma}{epigrase}: {excerto}")
     return "\n".join(linhas)
 
