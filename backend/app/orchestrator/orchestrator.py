@@ -10,6 +10,8 @@ from typing import Optional
 import anthropic
 import structlog
 
+from app.core.normas import MAX_CARACTERES_NORMA as _MAX_NORMA
+
 from app.core.config import get_settings
 from app.core.schemas import (
     AnalysisRequest, AnalysisResponse,
@@ -92,7 +94,8 @@ class JuridicalOrchestrator:
         # Etapa 1: RAG — retrieval de normas relevantes
         chunks = self._rag.search(request.texto, top_k=6)
         normas_rag_texto = "\n".join(
-            f"- Art. {c.artigo}.º {c.diploma} (score={c.score}): {c.texto[:200]}..."
+            f"- Art. {c.artigo}.º {c.diploma} (score={c.score}): "
+            f"{c.texto[:_MAX_NORMA]}{' […]' if len(c.texto) > _MAX_NORMA else ''}"
             for c in chunks
         )
         log.info("rag.done", chunks_found=len(chunks))
