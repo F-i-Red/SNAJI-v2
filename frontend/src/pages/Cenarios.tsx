@@ -344,7 +344,9 @@ export default function PaginaCenarios() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 860 }}>
+    // 920 px: com as leituras em coluna única, a linha ganha largura sem
+    // passar do limite a partir do qual o olho perde a mudança de linha.
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 920 }}>
 
       {location.state?.contraditorio && (
         <div style={{
@@ -485,12 +487,12 @@ export default function PaginaCenarios() {
             </div>
           )}
 
-          {/* Cartões dos cenários */}
-          <div style={{
-            display: 'grid', gap: 12,
-            gridTemplateColumns: resultado.cenarios.length > 1
-              ? 'repeat(auto-fit, minmax(260px, 1fr))' : '1fr',
-          }}>
+          {/* Cartões dos cenários — coluna única.
+              Três colunas numa página de 860 px davam ~275 px cada, largura a
+              que texto jurídico, com citações e incisos, se torna penoso de
+              ler. Em sequência, cada leitura ocupa a largura toda e lê-se
+              como se lê qualquer peça. */}
+          <div style={{ display: 'grid', gap: 14, gridTemplateColumns: '1fr' }}>
             {resultado.cenarios.map(c => <CartaoCenario key={c.lente} c={c} />)}
           </div>
 
@@ -507,7 +509,7 @@ export default function PaginaCenarios() {
                   {' '}— {resultado.cenarios_convergentes!.map(c => NOME_LENTE[c.lente]).join(' e ')}
                 </span>
               </summary>
-              <div style={{ marginTop: 10, display: 'grid', gap: 12 }}>
+              <div style={{ marginTop: 10, display: 'grid', gap: 14, gridTemplateColumns: '1fr' }}>
                 {resultado.cenarios_convergentes!.map(c => (
                   <CartaoCenario key={c.lente} c={c} />
                 ))}
