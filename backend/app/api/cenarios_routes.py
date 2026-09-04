@@ -46,7 +46,11 @@ def get_motor() -> MotorCenarios:
 class CenariosRequest(BaseModel):
     texto: str = Field(..., min_length=20, max_length=200_000,
                        description="Texto do caso ou texto_para_analise do Instrutor")
-    top_k_normas: int = Field(default=8, ge=3, le=15)
+    # 15 por omissão, alinhado com o motor. O valor estava em 8 e, por ser
+    # passado explicitamente na chamada, sobrepunha-se ao valor do motor — que
+    # nunca chegava a ser usado. Medição: a cobertura de normas de referência
+    # sobe de 50% para 77% ao passar de 8 para 15.
+    top_k_normas: int = Field(default=15, ge=3, le=25)
     caso_id: str | None = Field(default=None,
                                 description="Se indicado, a análise fica anexada ao caso guardado")
     contraditorio: bool = Field(default=False,
