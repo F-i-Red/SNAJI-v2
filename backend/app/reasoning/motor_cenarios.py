@@ -163,6 +163,9 @@ class ResultadoCenarios:
     # simplesmente desaparecia levantava a dúvida de ter falhado, quando na
     # verdade se absteve por não ter fundamento honesto a oferecer.
     lentes_omitidas: list[dict] = field(default_factory=list)
+    # Lentes que convergiram com a principal e não são apresentadas em
+    # destaque. Mantidas para consulta e para a versão impressa.
+    cenarios_convergentes: list["Cenario"] = field(default_factory=list)
     ressalva: str = RESSALVA_CENARIOS
     via_llm: bool = False
     percurso: list[dict] = field(default_factory=list)   # explicabilidade (V8.1)
@@ -172,6 +175,7 @@ class ResultadoCenarios:
         return {
             "cenarios": [c.para_dict() for c in self.cenarios],
             "lentes_omitidas": self.lentes_omitidas,
+            "cenarios_convergentes": [c.para_dict() for c in self.cenarios_convergentes],
             "convergencia": self.convergencia,
             "sintese_tecnica": self.sintese_tecnica,
             "sintese_cidada": self.sintese_cidada,
@@ -371,6 +375,8 @@ class MotorCenarios:
                 viaveis[0].viavel = True
                 viaveis[0].solidez = "baixa"
 
+        secundarios: list[Cenario] = []
+
         # 3) Regra da convergência (§2): mesmas conclusões → uma só solução
         sentidos = {_sentido_normalizado(c.sentido) for c in viaveis}
         # A convergência exige direcção comum — nunca se declara quando as
@@ -397,6 +403,11 @@ class MotorCenarios:
                 "CONVERGÊNCIA DAS LENTES no mesmo sentido — indicador de caso "
                 "juridicamente claro. " + base.solucao_tecnica
             )
+            # As restantes não são descartadas: passam a secundárias. A leitura
+            # fundida fica em destaque, mas as outras continuam disponíveis —
+            # sem elas, um documento de convergência mostra uma só lente e
+            # perde-se a prova de que as três foram efectivamente percorridas.
+            secundarios = [c for c in viaveis if c is not base]
             viaveis = [base]
 
         percurso.append({
@@ -426,6 +437,7 @@ class MotorCenarios:
             sintese_cidada=sintese_cid,
             normas_rejeitadas_total=sorted(set(rejeitadas_total)),
             lentes_omitidas=omitidas,
+            cenarios_convergentes=secundarios,
             via_llm=via_llm,
             percurso=percurso,
             perspetiva="contraparte" if contraditorio else "propria",
