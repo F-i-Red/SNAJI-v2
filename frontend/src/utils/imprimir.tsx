@@ -128,13 +128,22 @@ export function documentoParaHTML(doc: DocumentoImprimivel): string {
   h1 { font-size: 24px; border-bottom: 2px solid #0a2342; padding-bottom: 8px; }
   h2 { font-size: 17px; color: #0a2342; margin-top: 22px; }
   h2.solidez-elevada, h2.solidez-media, h2.solidez-baixa {
-    padding-left: 10px; border-left: 4px solid currentColor; }
+    padding-left: 10px; border-left: 4px solid currentColor;
+    /* As leituras aparecem em sequência: mais respiro entre elas e uma
+       linha ténue acima marcam onde uma acaba e a seguinte começa. */
+    margin-top: 30px; padding-top: 14px;
+    border-top: 1px solid #e2e6ea; }
   h2.solidez-elevada { color: #1a7f37; }
   h2.solidez-media   { color: #8a6100; }
   h2.solidez-baixa   { color: #c62828; }
   h2 .marca { margin-right: 7px; font-size: 13px; vertical-align: 1px; }
-  @media print { h2.solidez-elevada, h2.solidez-media, h2.solidez-baixa {
-    -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+  @media print {
+    h2.solidez-elevada, h2.solidez-media, h2.solidez-baixa {
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      /* Não deixar um título isolado no fim da página. */
+      break-after: avoid-page; page-break-after: avoid; }
+    p { orphans: 3; widows: 3; }
+  }
   .sub { color: #333; font-size: 15px; margin-top: 4px; }
   .meta { color: #555; font-size: 13px; margin: 6px 0 16px; }
   ul { padding-left: 20px; } li { margin: 3px 0; }
