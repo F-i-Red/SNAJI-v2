@@ -126,7 +126,9 @@ export function documentoParaHTML(doc: DocumentoImprimivel): string {
   body { font-family: Georgia, 'Times New Roman', serif; max-width: 800px;
          margin: 32px auto; padding: 0 24px; color: #1a1a1a; line-height: 1.6; }
   h1 { font-size: 24px; border-bottom: 2px solid #0a2342; padding-bottom: 8px; }
-  h2 { font-size: 17px; color: #0a2342; margin-top: 22px; }
+  h2 { font-size: 15.5px; color: #0a2342; margin-top: 22px;
+       /* 15.5px em vez de 17: os títulos das lentes trazem o nível de
+          solidez entre parênteses e partiam-se em duas linhas. */ }
   h2.solidez-elevada, h2.solidez-media, h2.solidez-baixa {
     padding-left: 10px; border-left: 4px solid currentColor;
     /* As leituras aparecem em sequência: mais respiro entre elas e uma
