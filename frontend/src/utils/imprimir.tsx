@@ -95,8 +95,24 @@ export function descarregarTxt(doc: DocumentoImprimivel, nomeFicheiro?: string) 
 export function documentoParaHTML(doc: DocumentoImprimivel): string {
   const esc = (t: string) =>
     t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  // A solidez é transmitida no ecrã por cor. Em papel, o título da secção
+  // recebe indicador equivalente — barra lateral e ponto — para a informação
+  // não se perder na impressão nem em fotocópia a preto e branco.
+  const nivelSolidez = (titulo: string): 'elevada' | 'media' | 'baixa' | null => {
+    const t = titulo.toLowerCase()
+    if (t.includes('solidez elevada')) return 'elevada'
+    if (t.includes('solidez média') || t.includes('solidez media')) return 'media'
+    if (t.includes('solidez baixa')) return 'baixa'
+    return null
+  }
+
   const seccoes = doc.seccoes.map(s => {
-    const h = s.titulo ? `<h2>${esc(s.titulo)}</h2>` : ''
+    const nivel = s.titulo ? nivelSolidez(s.titulo) : null
+    const h = s.titulo
+      ? (nivel
+          ? `<h2 class="solidez-${nivel}"><span class="marca">\u25CF</span>${esc(s.titulo)}</h2>`
+          : `<h2>${esc(s.titulo)}</h2>`)
+      : ''
     const par = (s.paragrafos ?? []).map(p => `<p>${esc(p)}</p>`).join('')
     const it = s.itens?.length
       ? `<ul>${s.itens.map(i => `<li>${esc(i)}</li>`).join('')}</ul>`
@@ -111,6 +127,14 @@ export function documentoParaHTML(doc: DocumentoImprimivel): string {
          margin: 32px auto; padding: 0 24px; color: #1a1a1a; line-height: 1.6; }
   h1 { font-size: 24px; border-bottom: 2px solid #0a2342; padding-bottom: 8px; }
   h2 { font-size: 17px; color: #0a2342; margin-top: 22px; }
+  h2.solidez-elevada, h2.solidez-media, h2.solidez-baixa {
+    padding-left: 10px; border-left: 4px solid currentColor; }
+  h2.solidez-elevada { color: #1a7f37; }
+  h2.solidez-media   { color: #8a6100; }
+  h2.solidez-baixa   { color: #c62828; }
+  h2 .marca { margin-right: 7px; font-size: 13px; vertical-align: 1px; }
+  @media print { h2.solidez-elevada, h2.solidez-media, h2.solidez-baixa {
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
   .sub { color: #333; font-size: 15px; margin-top: 4px; }
   .meta { color: #555; font-size: 13px; margin: 6px 0 16px; }
   ul { padding-left: 20px; } li { margin: 3px 0; }
