@@ -74,10 +74,22 @@ const NOME_SENTIDO: Record<string, string> = {
 }
 
 /** Nota curta que acompanha a solidez, no ecrã e na impressão. */
+/**
+ * Nota curta que acompanha a solidez, no ecrã e na impressão.
+ * Deliberadamente breve: entra num título de secção, e uma frase longa
+ * partia-se em duas linhas no documento impresso.
+ */
 const NOTA_SOLIDEZ: Record<CenarioAPI['solidez'], string> = {
-  elevada: 'normas sustentam a conclusão',
+  elevada: 'bem fundamentada',
+  media: 'com lacunas',
+  baixa: 'base insuficiente',
+}
+
+/** Versão longa, para o texto explicativo e para a dica do rato. */
+const NOTA_SOLIDEZ_LONGA: Record<CenarioAPI['solidez'], string> = {
+  elevada: 'as normas disponíveis sustentam a conclusão',
   media: 'faltam normas para fechar o raciocínio',
-  baixa: 'base documental insuficiente',
+  baixa: 'base documental insuficiente, tipicamente por falta de jurisprudência',
 }
 
 const NOME_SOLIDEZ: Record<CenarioAPI['solidez'], string> = {
@@ -200,7 +212,7 @@ export default function PaginaCenarios() {
     }[nivel]
     return (
       <span
-        title={`${NOME_SOLIDEZ[nivel]} — ${cfg.nota}`}
+        title={`${NOME_SOLIDEZ[nivel]} — ${NOTA_SOLIDEZ_LONGA[nivel]}`}
         style={{
           display: 'inline-flex', gap: 4, alignItems: 'center',
           background: cfg.fundo, border: `1px solid ${cfg.cor}33`,
@@ -336,7 +348,12 @@ export default function PaginaCenarios() {
       subtitulo: location.state?.contraditorio ? 'Análise do contraditório (perspetiva da parte contrária)' : 'O mesmo caso analisado por três abordagens da prática judiciária',
       meta: [
         `Gerado pelo SNAJI em ${new Date().toLocaleDateString('pt-PT')}`,
-        registoTecnico ? 'Registo técnico' : 'Linguagem clara',
+        // O registo é dito por extenso: um documento arquivado deve declarar
+        // para quem foi escrito, e a menção curta passava despercebida a quem
+        // imprimia sem reparar em que separador estava.
+        registoTecnico
+          ? 'Registo técnico — redigido para profissionais do direito'
+          : 'Linguagem clara — redigido para o cidadão',
       ],
       seccoes,
       rodape: resultado.ressalva || 'Apoio à decisão gerado pelo SNAJI — sem valor oficial. Não substitui aconselhamento jurídico profissional.',
@@ -375,7 +392,14 @@ export default function PaginaCenarios() {
         }}>
           Cenários de resolução
         </h1>
-        {resultado && <div style={{ marginLeft: 'auto' }}><BotoesImprimir doc={docImprimivel()!} /></div>}
+        {resultado && (
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 11.5, color: 'var(--color-text-tertiary)' }}>
+              Vai imprimir em <strong>{registoTecnico ? 'registo técnico' : 'linguagem clara'}</strong>
+            </span>
+            <BotoesImprimir doc={docImprimivel()!} />
+          </div>
+        )}
         <small style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>
           O mesmo caso analisado por três abordagens da prática judiciária
         </small>
