@@ -55,6 +55,11 @@ class CenariosRequest(BaseModel):
     # forma contínua, sem degrau que sirva de fronteira: um número fixo é,
     # na prática, o melhor compromisso.
     top_k_normas: int = Field(default=20, ge=3, le=30)
+    # Quando a análise parte de um processo em carteira: se o processo ainda
+    # não tiver caso associado, é criado um e ligado, para as análises ficarem
+    # guardadas e poderem ser reabertas.
+    processo_id: str | None = Field(default=None,
+                                    description="Processo de origem, se aplicável")
     caso_id: str | None = Field(default=None,
                                 description="Se indicado, a análise fica anexada ao caso guardado")
     contraditorio: bool = Field(default=False,
@@ -110,7 +115,11 @@ async def gerar_cenarios(
     Só cenários juridicamente viáveis são devolvidos (1 a 3); em caso de
     convergência das lentes, devolve-se uma única solução assinalada.
     """
-    resultado = motor.gerar(request.texto, top_k_normas=request.top_k_normas)
+    resultado = motor.gerar(
+        request.texto,
+        top_k_normas=request.top_k_normas,
+        contraditorio=request.contraditorio,
+    )
     logger.info(
         "cenarios.api", user_id=utilizador.id,
         n=len(resultado.cenarios), convergencia=resultado.convergencia,
@@ -127,9 +136,27 @@ async def gerar_cenarios(
     })
     d = resultado.para_dict()
 
-    # Persistência: anexar a análise ao histórico do caso, se indicado
-    if request.caso_id:
-        casos_repo.anexar_cenarios(str(utilizador.id), request.caso_id, d)
+    # Persistência: anexar a análise ao histórico do caso.
+    caso_id = request.caso_id
+    if not caso_id and request.processo_id:
+        # Processo sem caso associado: cria-se um a partir do próprio processo,
+        # para a análise ter onde ficar guardada.
+        from app.processes.repositorio import repositorio_processos
+        proc = repositorio_processos.por_id(request.processo_id)
+        if proc is not None:
+            caso_id = proc.caso_id_analise or casos_repo.guardar_caso(
+                str(utilizador.id),
+                {
+                    "relato": request.texto,
+                    "texto_para_analise": request.texto,
+                    "numero_processo": proc.numero_interno,
+                    "areas": proc.areas or [str(getattr(proc.tipo, "value", proc.tipo))],
+                },
+            )
+            repositorio_processos.ligar_caso(request.processo_id, caso_id)
+
+    if caso_id:
+        casos_repo.anexar_cenarios(str(utilizador.id), caso_id, d)
 
     return CenariosResponse(
         cenarios=[CenarioOut(
