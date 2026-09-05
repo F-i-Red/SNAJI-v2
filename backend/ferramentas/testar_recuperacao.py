@@ -77,7 +77,7 @@ CASOS = [
     },
 ]
 
-K = 15
+K = 20
 
 
 def main() -> None:
