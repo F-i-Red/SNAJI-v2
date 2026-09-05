@@ -133,6 +133,46 @@ def _anexar(user_id: str, caso_id: str, campo: str, resultado: dict, evento: str
     return True
 
 
+def remover_analise(user_id: str, caso_id: str, indice: int,
+                    campo: str = "analises_cenarios") -> bool:
+    """
+    Remove uma análise do histórico de um caso, pela sua posição.
+
+    Existe para limpar análises falhadas ou de ensaio, que poluem o histórico
+    sem valor. Não substitui um registo de auditoria: num uso institucional, o
+    apagamento devia ser antes uma marcação de «descartada», preservando o
+    rasto. Fica assinalado como decisão a rever se o sistema for adotado em
+    ambiente de produção.
+    """
+    with _lock:
+        todos = _carregar()
+        caso = todos.get(str(user_id), {}).get(caso_id)
+        if not caso:
+            return False
+        lista = caso.get(campo, [])
+        if not (0 <= indice < len(lista)):
+            return False
+        lista.pop(indice)
+        _gravar(todos)
+    logger.info("caso.analise_removida", caso_id=caso_id, indice=indice, campo=campo)
+    return True
+
+
+def limpar_analises(user_id: str, caso_id: str,
+                    campo: str = "analises_cenarios") -> int:
+    """Remove todas as análises de um caso. Devolve quantas foram removidas."""
+    with _lock:
+        todos = _carregar()
+        caso = todos.get(str(user_id), {}).get(caso_id)
+        if not caso:
+            return 0
+        n = len(caso.get(campo, []))
+        caso[campo] = []
+        _gravar(todos)
+    logger.info("caso.analises_limpas", caso_id=caso_id, removidas=n, campo=campo)
+    return n
+
+
 def anexar_cenarios(user_id: str, caso_id: str, resultado: dict) -> bool:
     """Anexa uma análise de cenários ao histórico do caso (idempotente)."""
     return _anexar(user_id, caso_id, "analises_cenarios", resultado, "cenarios")
