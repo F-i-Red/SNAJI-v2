@@ -74,6 +74,14 @@ ORDEM_LENTES = [Lente.LEGALISTA, Lente.GARANTISTA, Lente.CONSEQUENCIALISTA]
 # Caracteres de cada norma enviados ao modelo. Ajustável em .env com
 # SNAJI_MAX_CARACTERES_NORMA para casos com muitos artigos extensos.
 import os as _os
+
+# Sobreposição mínima de termos entre o caso e o sumário de um acórdão para
+# este ser considerado pertinente. Ajustável com SNAJI_LIMIAR_JURISPRUDENCIA.
+try:
+    _LIMIAR_JURISPRUDENCIA = float(_os.getenv("SNAJI_LIMIAR_JURISPRUDENCIA", "0.18"))
+except ValueError:
+    _LIMIAR_JURISPRUDENCIA = 0.18
+
 try:
     _MAX_CARACTERES_NORMA = int(_os.getenv("SNAJI_MAX_CARACTERES_NORMA", "2500"))
 except ValueError:
@@ -138,6 +146,67 @@ _SENTIDOS_EQUIVALENTES = {
     "desfecho incerto": "incerto", "resultado incerto": "incerto",
     "inviavel": "incerto", "nao aplicavel": "incerto",
 }
+
+
+def _jurisprudencia_para_prompt(caso: str, top_k: int = 4) -> str:
+    """
+    Acórdãos aplicáveis ao caso, para o modelo poder falar de orientação
+    jurisprudencial com base — em vez de a inventar ou de se calar sempre.
+
+    A base local é pequena (dezenas de acórdãos de uniformização do STJ), pelo
+    que na maioria dos casos não haverá correspondência. Nesses casos diz-se
+    expressamente que não foi fornecida jurisprudência, e a instrução mantém-se
+    a mesma: não afirmar tendências sem base.
+    """
+    try:
+        from app.integrations.jurisprudencia import motor_jurisprudencia
+        resultado = motor_jurisprudencia.pesquisar(caso, top_k=top_k * 3)
+        acordaos = getattr(resultado, "acordaos", []) or []
+    except Exception as exc:
+        logger.warning("cenarios.jurisprudencia_indisponivel", erro=str(exc)[:120])
+        acordaos = []
+
+    # Filtro de pertinência. A base tem 64 acórdãos de uniformização sobre
+    # matérias muito diversas, e a pesquisa devolve sempre os melhores que
+    # encontra — ainda que maus. Num caso de despedimento verbal chegou a
+    # devolver um acórdão sobre requerimento de abertura de instrução em
+    # processo penal. Entregar isso ao modelo é pior do que não entregar
+    # nada: enche o pedido de ruído e convida a citar o que não se aplica.
+    from app.rag.motor import _normalizar
+    termos_caso = {t for t in _normalizar(caso) if len(t) > 4}
+    pertinentes = []
+    for a in acordaos:
+        texto = f"{a.sumario or ''} {' '.join(getattr(a, 'descritores', []) or [])}"
+        termos_ac = {t for t in _normalizar(texto) if len(t) > 4}
+        if not termos_ac:
+            continue
+        # Proporção dos termos do acórdão que aparecem no caso.
+        sobreposicao = len(termos_caso & termos_ac) / len(termos_ac)
+        if sobreposicao >= _LIMIAR_JURISPRUDENCIA:
+            pertinentes.append((sobreposicao, a))
+    pertinentes.sort(key=lambda x: x[0], reverse=True)
+    acordaos = [a for _, a in pertinentes[:top_k]]
+
+    if not acordaos:
+        return (
+            "NENHUMA. Não afirmes qual é a orientação dos tribunais; quando a "
+            "questão o exigir, escreve que é controvertida ou que não foi "
+            "possível verificar a orientação jurisprudencial."
+        )
+
+    linhas = [
+        f"• {a.tribunal}, {a.numero_processo} ({a.data}): "
+        f"{(a.sumario or '')[:600]}"
+        for a in acordaos
+    ]
+    logger.info("cenarios.jurisprudencia", acordaos=len(acordaos))
+    return (
+        "Os acórdãos seguintes foram recuperados para este caso. Podes invocar "
+        "a orientação que deles resulte, identificando sempre o acórdão. Não "
+        "extrapoles para além do que eles dizem, nem afirmes que representam a "
+        "orientação dominante — são os que a pesquisa encontrou, não a "
+        "totalidade da jurisprudência portuguesa.\n" + "\n".join(linhas)
+    )
 
 
 def _sentido_normalizado(valor: str) -> str:
@@ -503,14 +572,9 @@ class MotorCenarios:
         caso_seguro, mapa = pseudonimizar(caso)
         if mapa:
             logger.info("privacidade.pseudonimizado", tipos=resumo(mapa))
-        # Sem acórdãos, o modelo tem de saber que não pode falar de tendências.
         prompt = _PROMPT_CENARIOS.format(
             caso=caso_seguro, normas=normas_txt,
-            jurisprudencia=(
-                "NENHUMA. Não afirmes qual é a orientação dos tribunais; quando "
-                "a questão o exigir, escreve que é controvertida ou que não foi "
-                "possível verificar a orientação jurisprudencial."
-            ),
+            jurisprudencia=_jurisprudencia_para_prompt(caso_seguro),
         )
         raw = repor(self._chamar_llm_completo(_SYSTEM_CENARIOS, prompt), mapa)
         try:
