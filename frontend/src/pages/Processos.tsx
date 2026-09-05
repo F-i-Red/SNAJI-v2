@@ -85,24 +85,45 @@ export default function PaginaProcessos() {
     } catch { setAnalises([]) }
   }
 
-  const removerAnalise = async (indice: number) => {
+  // Motivos de descarte, vindos do servidor para não divergirem do registo.
+  const [motivos, setMotivos] = useState<Record<string, string>>({})
+  const [motivoEscolhido, setMotivoEscolhido] = useState('falhada')
+
+  useEffect(() => {
+    api.get('/casos/motivos-descarte')
+      .then(r => setMotivos(r.data))
+      .catch(() => setMotivos({ falhada: 'Análise falhada', outro: 'Outro motivo' }))
+  }, [])
+
+  /**
+   * Descartar não é apagar: a análise sai da vista mas fica arquivada no
+   * caso, com data e motivo. Num processo judicial, uma peça anulada não
+   * desaparece — fica assinalada como anulada, e é isso que permite auditar
+   * uma decisão mais tarde.
+   */
+  const descartarAnalise = async (indice: number) => {
     if (!seleccionado?.caso_id_analise) return
     try {
-      await api.delete(`/casos/${seleccionado.caso_id_analise}/analises/${indice}`)
+      await api.post(
+        `/casos/${seleccionado.caso_id_analise}/analises/${indice}/descartar`,
+        { motivo: motivoEscolhido })
       setARemover(null)
       carregarAnalises(seleccionado.caso_id_analise)
     } catch (e) { setErro(tratarErroAPI(e)) }
   }
 
-  const limparAnalises = async () => {
+  const descartarTodas = async () => {
     if (!seleccionado?.caso_id_analise) return
     if (!window.confirm(
-      `Apagar TODAS as ${analises.length} análises deste processo?\n\n` +
-      'O processo e a ficha de factos mantêm-se. Só as análises são removidas.'
+      `Descartar as ${analises.length} análises deste processo?\n\n` +
+      'Saem da vista principal mas ficam arquivadas no caso, com a data e o ' +
+      'motivo. O processo e a ficha de factos mantêm-se.'
     )) return
-    if (!window.confirm('Confirma? Esta ação não pode ser anulada.')) return
+    if (!window.confirm('Confirma o descarte de todas as análises?')) return
     try {
-      await api.delete(`/casos/${seleccionado.caso_id_analise}/analises`)
+      await api.post(
+        `/casos/${seleccionado.caso_id_analise}/analises/descartar-todas`,
+        { motivo: motivoEscolhido })
       carregarAnalises(seleccionado.caso_id_analise)
     } catch (e) { setErro(tratarErroAPI(e)) }
   }
@@ -436,15 +457,15 @@ export default function PaginaProcessos() {
                       Análises deste processo ({analises.length})
                     </span>
                     <button
-                      onClick={limparAnalises}
-                      title="Apagar todas as análises, mantendo o processo"
+                      onClick={descartarTodas}
+                      title="Descartar todas as análises — ficam arquivadas no caso"
                       style={{
                         marginLeft: 'auto', background: 'none', border: 'none',
                         color: 'var(--color-text-tertiary)', fontSize: 11,
                         cursor: 'pointer', fontFamily: 'inherit',
                         textDecoration: 'underline',
                       }}>
-                      apagar todas
+                      descartar todas
                     </button>
                   </div>
                   {analises.map((an, i) => (
@@ -471,15 +492,27 @@ export default function PaginaProcessos() {
                           {' · '}{an.cenarios?.length ?? 0} cenário(s)
                         </span>
                         {aRemover === i ? (
-                          <span style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
-                            <button
-                              onClick={() => removerAnalise(i)}
+                          <span style={{ marginLeft: 'auto', display: 'flex', gap: 6, alignItems: 'center' }}>
+                            <select
+                              value={motivoEscolhido}
+                              onChange={e => setMotivoEscolhido(e.target.value)}
                               style={{
-                                background: '#c62828', color: '#fff', border: 'none',
+                                fontSize: 11, fontFamily: 'inherit', padding: '2px 4px',
+                                border: '0.5px solid var(--color-border-secondary)',
+                                borderRadius: 'var(--border-radius-md)',
+                              }}>
+                              {Object.entries(motivos).map(([k, v]) => (
+                                <option key={k} value={k}>{v}</option>
+                              ))}
+                            </select>
+                            <button
+                              onClick={() => descartarAnalise(i)}
+                              style={{
+                                background: '#7a3b0a', color: '#fff', border: 'none',
                                 borderRadius: 'var(--border-radius-md)', padding: '2px 9px',
                                 fontSize: 11, cursor: 'pointer', fontFamily: 'inherit',
                               }}>
-                              confirmar
+                              descartar
                             </button>
                             <button
                               onClick={() => setARemover(null)}
@@ -494,7 +527,7 @@ export default function PaginaProcessos() {
                         ) : (
                           <button
                             onClick={() => setARemover(i)}
-                            title="Apagar esta análise"
+                            title="Descartar esta análise — fica arquivada no caso"
                             style={{
                               marginLeft: 'auto', background: 'none', border: 'none',
                               color: 'var(--color-text-tertiary)', fontSize: 13,
