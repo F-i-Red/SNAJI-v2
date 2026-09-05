@@ -156,15 +156,46 @@ export default function PaginaCenarios() {
   const [emContraditorio, setEmContraditorio] = useState(
     location.state?.contraditorio ?? false)
 
-  const gerar = async (t?: string, contra?: boolean) => {
+  /**
+   * As duas análises do mesmo caso — a própria e a do contraditório — ficam
+   * guardadas em conjunto, e alternar entre elas não repete a chamada.
+   *
+   * Cada análise leva minutos e custa tokens: descartá-la ao mudar de lado
+   * era deitar fora trabalho já feito e já pago. E ter os dois lados
+   * disponíveis lado a lado é, para um magistrado ou para o Ministério
+   * Público, o próprio caso de uso — não um extra.
+   */
+  const [analises, setAnalises] = useState<{
+    propria?: CenariosAPI; contraditorio?: CenariosAPI; texto?: string
+  }>({})
+
+  const chave = (contra: boolean) => (contra ? 'contraditorio' : 'propria') as const
+
+  const gerar = async (t?: string, contra?: boolean, forcar = false) => {
     const corpo = (t ?? texto).trim()
     if (corpo.length < 20 || carregando) return
     const modo = contra ?? location.state?.contraditorio ?? false
+
+    // Já existe para este texto: mostra sem repetir a chamada.
+    const guardada = analises.texto === corpo ? analises[chave(modo)] : undefined
+    if (guardada && !forcar) {
+      setResultado(guardada)
+      setEmContraditorio(modo)
+      setErro(null)
+      return
+    }
+
     setCarregando(true); setErro(null); setResultado(null)
     try {
       const res = await api.post<CenariosAPI>('/cenarios', { texto: corpo, explicar: true, caso_id: location.state?.caso_id ?? null, contraditorio: modo })
       setResultado(res.data)
       setEmContraditorio(modo)
+      setAnalises(a => ({
+        // Texto diferente do guardado: recomeça, para não misturar casos.
+        ...(a.texto === corpo ? a : {}),
+        texto: corpo,
+        [chave(modo)]: res.data,
+      }))
     } catch (e) { setErro(tratarErroAPI(e)) }
     finally { setCarregando(false) }
   }
@@ -380,19 +411,6 @@ export default function PaginaCenarios() {
         }}>
           ⇄ Análise do contraditório — estes cenários adotam a perspetiva da parte contrária,
           para preparar os argumentos que virão contra si.
-          {resultado && (
-            <button
-              onClick={() => gerar(texto, false)}
-              disabled={carregando}
-              style={{
-                marginLeft: 10, padding: '3px 10px', background: 'transparent',
-                color: '#7a3b0a', border: '0.5px solid #7a3b0a',
-                borderRadius: 'var(--border-radius-md)', fontSize: 11.5,
-                cursor: carregando ? 'wait' : 'pointer', fontFamily: 'inherit',
-              }}>
-              voltar à análise do seu lado
-            </button>
-          )}
         </div>
       )}
       {location.state?.caso_id && (
@@ -562,34 +580,50 @@ export default function PaginaCenarios() {
             </details>
           )}
 
-          {/* Analisar o mesmo caso do lado contrário.
-              Estava apenas em «Os meus casos», o que obrigava a sair da
-              análise e a voltar atrás. É aqui, depois de ler os cenários,
-              que a pergunta «e o que dirá a outra parte?» surge. */}
-          {!emContraditorio && (
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
-              border: '0.5px solid #7a3b0a44', borderRadius: 'var(--border-radius-md)',
-              background: '#fdf8f2', padding: '10px 14px',
-            }}>
-              <span style={{ fontSize: 12.5, color: 'var(--color-text-secondary)' }}>
-                Quer saber o que a parte contrária vai argumentar?
-              </span>
-              <button
-                onClick={() => gerar(texto, true)}
-                disabled={carregando}
-                title="Gera os cenários adotando a perspetiva da parte contrária — para preparar a resposta que virá"
-                style={{
-                  padding: '7px 14px', background: 'transparent', color: '#7a3b0a',
-                  border: '0.5px solid #7a3b0a', borderRadius: 'var(--border-radius-md)',
-                  fontSize: 12.5, fontWeight: 500,
-                  cursor: carregando ? 'wait' : 'pointer',
-                  opacity: carregando ? 0.5 : 1, fontFamily: 'inherit',
-                }}>
-                ⇄ Analisar pelo lado contrário
-              </button>
-            </div>
-          )}
+          {/* Alternar entre os dois lados do caso.
+              Ambas as análises ficam guardadas: mudar de lado não repete a
+              chamada nem descarta o que já foi gerado. */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+            border: '0.5px solid #7a3b0a44', borderRadius: 'var(--border-radius-md)',
+            background: '#fdf8f2', padding: '10px 14px',
+          }}>
+            <span style={{ fontSize: 12.5, color: 'var(--color-text-secondary)' }}>
+              Ver este caso:
+            </span>
+            {([false, true] as const).map(contra => {
+              const activo = emContraditorio === contra
+              const pronta = analises.texto === texto.trim() && analises[chave(contra)]
+              return (
+                <button
+                  key={String(contra)}
+                  onClick={() => gerar(texto, contra)}
+                  disabled={carregando || activo}
+                  title={contra
+                    ? 'Os mesmos factos, argumentados por quem se opõe — para preparar a resposta que virá'
+                    : 'A análise na perspetiva de quem relata o caso'}
+                  style={{
+                    padding: '7px 14px', fontSize: 12.5, fontWeight: 500,
+                    fontFamily: 'inherit', borderRadius: 'var(--border-radius-md)',
+                    border: `0.5px solid ${activo ? '#7a3b0a' : '#7a3b0a55'}`,
+                    background: activo ? '#7a3b0a' : 'transparent',
+                    color: activo ? '#fff' : '#7a3b0a',
+                    cursor: carregando ? 'wait' : activo ? 'default' : 'pointer',
+                    opacity: carregando ? 0.5 : 1,
+                  }}>
+                  {contra ? '⇄ Pelo lado contrário' : 'O seu lado'}
+                  {pronta && !activo && (
+                    <span style={{ marginLeft: 6, fontSize: 11 }} title="já analisado">✓</span>
+                  )}
+                </button>
+              )
+            })}
+            <span style={{ fontSize: 11.5, color: 'var(--color-text-tertiary)', marginLeft: 'auto' }}>
+              {analises.propria && analises.contraditorio
+                ? 'Ambos os lados analisados — alterne sem esperar.'
+                : 'A análise de cada lado é feita uma só vez e fica guardada.'}
+            </span>
+          </div>
 
           {/* O que a solidez significa — e o que não significa */}
           <div style={{
