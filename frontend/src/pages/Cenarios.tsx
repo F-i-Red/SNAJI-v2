@@ -11,7 +11,7 @@
  * página do Instrutor encaminha a Ficha de Factos para aqui.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { BotoesImprimir, DocumentoImprimivel } from '../utils/imprimir'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { api, tratarErroAPI } from '../services/api'
@@ -171,9 +171,21 @@ export default function PaginaCenarios() {
 
   const chave = (contra: boolean) => (contra ? 'contraditorio' : 'propria') as const
 
+  /**
+   * Bloqueio de pedidos simultâneos.
+   *
+   * O estado `carregando` só fica visível na renderização seguinte, pelo que
+   * duas chamadas disparadas no mesmo instante — como acontece quando um
+   * efeito de arranque é executado duas vezes — passavam ambas pela guarda e
+   * geravam duas análises em paralelo, ao dobro do custo. Uma referência é
+   * actualizada de imediato e fecha essa janela.
+   */
+  const aGerar = useRef(false)
+
   const gerar = async (t?: string, contra?: boolean, forcar = false) => {
     const corpo = (t ?? texto).trim()
-    if (corpo.length < 20 || carregando) return
+    if (corpo.length < 20 || carregando || aGerar.current) return
+    aGerar.current = true
     const modo = contra ?? location.state?.contraditorio ?? false
 
     // Já existe para este texto: mostra sem repetir a chamada.
@@ -182,6 +194,7 @@ export default function PaginaCenarios() {
       setResultado(guardada)
       setEmContraditorio(modo)
       setErro(null)
+      aGerar.current = false
       return
     }
 
@@ -197,11 +210,18 @@ export default function PaginaCenarios() {
         [chave(modo)]: res.data,
       }))
     } catch (e) { setErro(tratarErroAPI(e)) }
-    finally { setCarregando(false) }
+    finally { setCarregando(false); aGerar.current = false }
   }
 
   // Se veio do Instrutor com texto, gera automaticamente
+  // Geração automática ao chegar de outra página, uma única vez.
+  // Em desenvolvimento os efeitos correm duas vezes; sem esta marca, chegar
+  // aqui a partir de um processo disparava duas análises em paralelo — com o
+  // dobro do tempo e do custo, para o mesmo resultado.
+  const jaArrancou = useRef(false)
   useEffect(() => {
+    if (jaArrancou.current) return
+    jaArrancou.current = true
     if (location.state?.texto) gerar(location.state.texto)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

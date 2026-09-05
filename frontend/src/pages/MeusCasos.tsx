@@ -8,7 +8,7 @@
  * igualmente guardada no histórico.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { BotoesImprimir, DocumentoImprimivel } from '../utils/imprimir'
 import { api, tratarErroAPI } from '../services/api'
@@ -81,7 +81,10 @@ export default function PaginaMeusCasos() {
   // Quando se chega a partir de um processo em carteira, abre-se logo o caso
   // respectivo: o magistrado quer ver as análises já feitas, não procurá-las
   // numa lista.
+  const jaAbriu = useRef(false)
   useEffect(() => {
+    if (jaAbriu.current) return
+    jaAbriu.current = true
     if (location.state?.abrir_caso_id) abrir(location.state.abrir_caso_id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
