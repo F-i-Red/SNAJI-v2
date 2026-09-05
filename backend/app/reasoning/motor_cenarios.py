@@ -362,7 +362,12 @@ Devolve:
 
 class MotorCenarios:
     MODELO = "claude-sonnet-4-20250514"
-    MAX_TOKENS = 6000
+    # 12000: três lentes com fundamentação completa, em dois registos
+    # (técnico e linguagem clara), excedem folgadamente 6000 tokens — e o
+    # contraditório, que constrói a tese oposta de raiz, ainda mais. Com o
+    # limite anterior, a resposta era cortada e o sistema encadeava
+    # continuações: cinco numa análise de contraditório, sem chegar ao fim.
+    MAX_TOKENS = 12000
     MAX_CONTINUACOES = 4
 
     def __init__(self, llm_client=None):
@@ -745,8 +750,27 @@ class MotorCenarios:
                 system=system, messages=mensagens,
             )
             texto = "".join(b.text for b in msg.content if getattr(b, "text", None))
+            razao = getattr(msg, "stop_reason", "end_turn")
+
+            # Resposta sem texto. Sem esta guarda, o histórico recebia uma
+            # mensagem de assistente vazia — que a API ignora — e o ciclo
+            # repetia-se até esgotar as continuações, gastando tokens e
+            # minutos para terminar com zero caracteres. Observado numa
+            # análise de contraditório: cinco continuações, resultado vazio.
+            if not texto.strip():
+                logger.warning("cenarios.llm.resposta_vazia",
+                               iteracao=i + 1, stop_reason=razao)
+                if partes:
+                    break          # aproveita o que já foi gerado
+                if i == 0:
+                    # Nada de nada à primeira: uma segunda tentativa limpa,
+                    # sem histórico, costuma resolver.
+                    mensagens = [{"role": "user", "content": prompt}]
+                    continue
+                break
+
             partes.append(texto)
-            if getattr(msg, "stop_reason", "end_turn") != "max_tokens":
+            if razao != "max_tokens":
                 break
             logger.info("cenarios.llm.continuacao", iteracao=i + 1)
             mensagens = mensagens + [
