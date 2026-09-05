@@ -145,3 +145,30 @@ async def governacao(
     """
     logger.info("analista.governacao", user_id=utilizador.id, dias=dias)
     return MotorAnalista(dias=dias).governacao()
+
+
+@router.get("/analista/analises-descartadas", tags=["Analista"])
+async def analises_descartadas(
+    utilizador: Utilizador = Depends(dep_metricas),
+) -> dict:
+    """
+    Contagem de análises por caso: quantas activas, quantas descartadas.
+
+    Devolve <b>factos, não juízos</b>. Um caso com várias análises e vários
+    descartes tem explicações legítimas — texto corrigido, factos novos,
+    consulta do contraditório, análise truncada — e o sistema não presume
+    intenção a partir de um padrão. Cabe a quem tem o contexto interpretar.
+
+    O SNAJI informa, não decide: vale para as leituras jurídicas e vale para
+    o comportamento de quem o usa.
+    """
+    from app.db import casos_repo
+    dados = casos_repo.estatisticas_descarte()
+    dados["motivos_legenda"] = casos_repo.MOTIVOS_DESCARTE
+    dados["nota"] = (
+        "Estes números descrevem a atividade sobre cada caso. Refazer ou "
+        "descartar uma análise tem, na maioria das vezes, motivos legítimos; "
+        "a interpretação exige contexto que o sistema não possui."
+    )
+    logger.info("analista.analises_descartadas", user_id=utilizador.id)
+    return dados

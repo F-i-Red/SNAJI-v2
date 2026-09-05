@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 
 from app.db.utilizadores import Utilizador
 from app.security.dependencias import requer_permissao
@@ -33,6 +34,13 @@ async def listar_casos(utilizador: Utilizador = Depends(dep_casos)) -> list[dict
     return casos_repo.listar_casos(str(utilizador.id))
 
 
+# Esta rota vem antes de /casos/{caso_id}: caso contrário o FastAPI leria
+# "motivos-descarte" como identificador de um caso e devolveria 404.
+@router.get("/casos/motivos-descarte", tags=["Casos"])
+async def motivos_descarte(_: Utilizador = Depends(dep_casos)) -> dict:
+    """Motivos disponíveis para descartar uma análise."""
+    return casos_repo.MOTIVOS_DESCARTE
+
 @router.get("/casos/{caso_id}", tags=["Casos"])
 async def obter_caso(caso_id: str, utilizador: Utilizador = Depends(dep_casos)) -> dict:
     """Devolve o caso completo, incluindo o histórico de análises."""
@@ -42,30 +50,37 @@ async def obter_caso(caso_id: str, utilizador: Utilizador = Depends(dep_casos)) 
     return caso
 
 
-@router.delete("/casos/{caso_id}/analises/{indice}", tags=["Casos"])
-async def remover_analise(caso_id: str, indice: int,
-                          utilizador: Utilizador = Depends(dep_casos)) -> dict:
-    """
-    Remove uma análise do histórico do caso, pela sua posição.
+class DescarteRequest(BaseModel):
+    motivo: str = Field(default="outro", description="Chave de casos_repo.MOTIVOS_DESCARTE")
+    nota: str = Field(default="", max_length=400)
 
-    Serve para limpar análises falhadas ou de ensaio. O isolamento por
-    utilizador é o mesmo das restantes rotas: cada um só apaga o que é seu.
+
+
+
+@router.post("/casos/{caso_id}/analises/{indice}/descartar", tags=["Casos"])
+async def descartar_analise(caso_id: str, indice: int, dados: DescarteRequest,
+                            utilizador: Utilizador = Depends(dep_casos)) -> dict:
     """
-    if not casos_repo.remover_analise(str(utilizador.id), caso_id, indice):
+    Retira uma análise da vista principal, arquivando-a com data e motivo.
+
+    Não destrói: a análise continua no processo, assinalada como descartada.
+    """
+    ok = casos_repo.descartar_analise(
+        str(utilizador.id), caso_id, indice, dados.motivo, dados.nota)
+    if not ok:
         raise HTTPException(status_code=404, detail="Análise não encontrada")
-    logger.info("caso.analise_removida.api",
-                caso_id=caso_id, indice=indice, user_id=str(utilizador.id))
-    return {"removida": True, "indice": indice}
+    logger.info("caso.analise_descartada.api", caso_id=caso_id,
+                indice=indice, motivo=dados.motivo, user_id=str(utilizador.id))
+    return {"descartada": True, "indice": indice, "motivo": dados.motivo}
 
 
-@router.delete("/casos/{caso_id}/analises", tags=["Casos"])
-async def limpar_analises(caso_id: str,
+@router.post("/casos/{caso_id}/analises/descartar-todas", tags=["Casos"])
+async def descartar_todas(caso_id: str, dados: DescarteRequest,
                           utilizador: Utilizador = Depends(dep_casos)) -> dict:
-    """Remove todas as análises do caso, mantendo o caso e a ficha de factos."""
-    caso = casos_repo.obter_caso(str(utilizador.id), caso_id)
-    if not caso:
+    """Descarta todas as análises do caso, arquivando-as."""
+    if not casos_repo.obter_caso(str(utilizador.id), caso_id):
         raise HTTPException(status_code=404, detail="Caso não encontrado")
-    n = casos_repo.limpar_analises(str(utilizador.id), caso_id)
-    logger.info("caso.analises_limpas.api",
-                caso_id=caso_id, removidas=n, user_id=str(utilizador.id))
-    return {"removidas": n}
+    n = casos_repo.descartar_todas(str(utilizador.id), caso_id, dados.motivo, dados.nota)
+    logger.info("caso.analises_descartadas.api", caso_id=caso_id,
+                descartadas=n, motivo=dados.motivo, user_id=str(utilizador.id))
+    return {"descartadas": n, "motivo": dados.motivo}
