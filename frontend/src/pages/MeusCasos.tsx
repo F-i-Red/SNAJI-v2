@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { BotoesImprimir, DocumentoImprimivel } from '../utils/imprimir'
 import { api, tratarErroAPI } from '../services/api'
 
@@ -58,6 +58,7 @@ const NOME_PAPEL: Record<string, string> = {
 
 export default function PaginaMeusCasos() {
   const navigate = useNavigate()
+  const location = useLocation() as { state?: { abrir_caso_id?: string } }
   const [casos, setCasos] = useState<CasoResumo[]>([])
   const [caso, setCaso] = useState<CasoCompleto | null>(null)
   const [erro, setErro] = useState<string | null>(null)
@@ -76,6 +77,14 @@ export default function PaginaMeusCasos() {
     catch (e) { setErro(tratarErroAPI(e)) }
     finally { setCarregando(false) }
   }
+
+  // Quando se chega a partir de um processo em carteira, abre-se logo o caso
+  // respectivo: o magistrado quer ver as análises já feitas, não procurá-las
+  // numa lista.
+  useEffect(() => {
+    if (location.state?.abrir_caso_id) abrir(location.state.abrir_caso_id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => { carregarLista() }, [])
 

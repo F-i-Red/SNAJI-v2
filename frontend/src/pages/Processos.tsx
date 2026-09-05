@@ -22,6 +22,7 @@ interface Processo {
   notas: string[]
   prazos_urgentes?: number
   num_eventos?: number
+  caso_id_analise?: string | null
 }
 
 export default function PaginaProcessos() {
@@ -270,7 +271,16 @@ export default function PaginaProcessos() {
                 ↩ Anular último avanço
               </button>
               <button
-                onClick={() => navigate('/cenarios', { state: { texto: seleccionado.descricao } })}
+                onClick={() => navigate('/cenarios', {
+                  state: {
+                    texto: seleccionado.descricao,
+                    // Sem o caso_id a análise não era guardada: cada regresso
+                    // ao processo obrigava a repeti-la, e um processo em
+                    // carteira ficava eternamente «por ler». Com ele, a
+                    // análise anexa-se ao caso e fica consultável.
+                    caso_id: seleccionado.caso_id_analise ?? null,
+                  },
+                })}
                 style={{
                   padding: '7px 12px', background: 'transparent',
                   border: '0.5px solid #0a2342', borderRadius: 'var(--border-radius-md)',
@@ -279,6 +289,23 @@ export default function PaginaProcessos() {
               >
                 ⚖ Analisar cenários deste caso
               </button>
+              {seleccionado.caso_id_analise && (
+                <button
+                  onClick={() => navigate('/casos', {
+                    state: { abrir_caso_id: seleccionado.caso_id_analise },
+                  })}
+                  title="Consultar as análises já feitas a este processo, tal como foram geradas"
+                  style={{
+                    padding: '7px 12px', background: 'transparent',
+                    border: '0.5px solid var(--color-border-secondary)',
+                    borderRadius: 'var(--border-radius-md)', fontSize: 12,
+                    color: 'var(--color-text-secondary)', cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  📁 Análises anteriores
+                </button>
+              )}
               {seleccionado.proximo_estado && (
                 <button
                   onClick={() => {
