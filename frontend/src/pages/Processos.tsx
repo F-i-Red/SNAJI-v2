@@ -279,6 +279,7 @@ export default function PaginaProcessos() {
                     // carteira ficava eternamente «por ler». Com ele, a
                     // análise anexa-se ao caso e fica consultável.
                     caso_id: seleccionado.caso_id_analise ?? null,
+                    processo_id: seleccionado.id,
                   },
                 })}
                 style={{

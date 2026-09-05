@@ -115,7 +115,7 @@ const NOME_ETAPA: Record<string, string> = {
 export default function PaginaCenarios() {
   const { utilizador } = useAuthStore()
   const ehProfissional = utilizador?.role === 'advogado' || utilizador?.role === 'magistrado'
-  const location = useLocation() as { state?: { texto?: string; caso_id?: string; contraditorio?: boolean } }
+  const location = useLocation() as { state?: { texto?: string; caso_id?: string; processo_id?: string; contraditorio?: boolean } }
   const navigate = useNavigate()
 
   const [texto, setTexto] = useState(location.state?.texto ?? '')
@@ -200,7 +200,7 @@ export default function PaginaCenarios() {
 
     setCarregando(true); setErro(null); setResultado(null)
     try {
-      const res = await api.post<CenariosAPI>('/cenarios', { texto: corpo, explicar: true, caso_id: location.state?.caso_id ?? null, contraditorio: modo })
+      const res = await api.post<CenariosAPI>('/cenarios', { texto: corpo, explicar: true, caso_id: location.state?.caso_id ?? null, processo_id: location.state?.processo_id ?? null, contraditorio: modo })
       setResultado(res.data)
       setEmContraditorio(modo)
       setAnalises(a => ({
