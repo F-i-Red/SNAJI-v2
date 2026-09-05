@@ -133,16 +133,28 @@ def _anexar(user_id: str, caso_id: str, campo: str, resultado: dict, evento: str
     return True
 
 
-def remover_analise(user_id: str, caso_id: str, indice: int,
-                    campo: str = "analises_cenarios") -> bool:
-    """
-    Remove uma análise do histórico de um caso, pela sua posição.
+# Motivos de descarte oferecidos ao utilizador. A lista é curta de propósito:
+# um campo livre produz registos incomparáveis entre si.
+MOTIVOS_DESCARTE = {
+    "falhada": "Análise falhada ou incompleta",
+    "texto_errado": "Erro no texto do caso submetido",
+    "factos_novos": "Chegaram factos novos ao processo",
+    "ensaio": "Ensaio ou teste",
+    "outro": "Outro motivo",
+}
 
-    Existe para limpar análises falhadas ou de ensaio, que poluem o histórico
-    sem valor. Não substitui um registo de auditoria: num uso institucional, o
-    apagamento devia ser antes uma marcação de «descartada», preservando o
-    rasto. Fica assinalado como decisão a rever se o sistema for adotado em
-    ambiente de produção.
+
+def descartar_analise(user_id: str, caso_id: str, indice: int,
+                      motivo: str = "outro", nota: str = "",
+                      campo: str = "analises_cenarios") -> bool:
+    """
+    Retira uma análise da vista principal, guardando-a no arquivo do caso.
+
+    Não destrói: uma análise descartada continua no processo, com a data do
+    descarte e o motivo. Num sistema de justiça o rasto documental é o que
+    permite auditar uma decisão a posteriori — saber o que foi analisado,
+    quando, e o que foi posto de lado. Uma peça anulada não desaparece de um
+    processo judicial; fica assinalada como anulada.
     """
     with _lock:
         todos = _carregar()
@@ -152,25 +164,81 @@ def remover_analise(user_id: str, caso_id: str, indice: int,
         lista = caso.get(campo, [])
         if not (0 <= indice < len(lista)):
             return False
-        lista.pop(indice)
+        analise = lista.pop(indice)
+        analise["descartada_em"] = datetime.now(timezone.utc).isoformat()
+        analise["descarte_motivo"] = motivo if motivo in MOTIVOS_DESCARTE else "outro"
+        if nota:
+            analise["descarte_nota"] = nota[:400]
+        caso.setdefault(f"{campo}_descartadas", []).append(analise)
         _gravar(todos)
-    logger.info("caso.analise_removida", caso_id=caso_id, indice=indice, campo=campo)
+    logger.info("caso.analise_descartada",
+                caso_id=caso_id, indice=indice, motivo=motivo, campo=campo)
     return True
 
 
-def limpar_analises(user_id: str, caso_id: str,
-                    campo: str = "analises_cenarios") -> int:
-    """Remove todas as análises de um caso. Devolve quantas foram removidas."""
+def descartar_todas(user_id: str, caso_id: str, motivo: str = "outro",
+                    nota: str = "", campo: str = "analises_cenarios") -> int:
+    """Descarta todas as análises de um caso. Devolve quantas foram arquivadas."""
     with _lock:
         todos = _carregar()
         caso = todos.get(str(user_id), {}).get(caso_id)
         if not caso:
             return 0
-        n = len(caso.get(campo, []))
+        lista = caso.get(campo, [])
+        n = len(lista)
+        agora = datetime.now(timezone.utc).isoformat()
+        for a in lista:
+            a["descartada_em"] = agora
+            a["descarte_motivo"] = motivo if motivo in MOTIVOS_DESCARTE else "outro"
+            if nota:
+                a["descarte_nota"] = nota[:400]
+        caso.setdefault(f"{campo}_descartadas", []).extend(lista)
         caso[campo] = []
         _gravar(todos)
-    logger.info("caso.analises_limpas", caso_id=caso_id, removidas=n, campo=campo)
+    logger.info("caso.analises_descartadas",
+                caso_id=caso_id, descartadas=n, motivo=motivo, campo=campo)
     return n
+
+
+def estatisticas_descarte(user_id: str | None = None) -> dict:
+    """
+    Contagem de análises activas e descartadas, por caso.
+
+    Devolve factos, não juízos: quantas análises um caso teve e quantas foram
+    postas de lado, com os motivos declarados. Refazer uma análise tem
+    explicações legítimas — texto corrigido, factos novos, ver o contraditório
+    — e cabe a quem tem contexto interpretar, não ao sistema presumir
+    intenção.
+    """
+    with _lock:
+        todos = _carregar()
+    utilizadores = [str(user_id)] if user_id else list(todos.keys())
+    casos: list[dict] = []
+    motivos: dict[str, int] = {}
+    for uid in utilizadores:
+        for cid, c in todos.get(uid, {}).items():
+            activas = len(c.get("analises_cenarios", []))
+            descartadas = c.get("analises_cenarios_descartadas", [])
+            for d in descartadas:
+                m = d.get("descarte_motivo", "outro")
+                motivos[m] = motivos.get(m, 0) + 1
+            if activas or descartadas:
+                casos.append({
+                    "caso_id": cid,
+                    "titulo": c.get("titulo", ""),
+                    "numero_processo": c.get("numero_processo", ""),
+                    "analises_activas": activas,
+                    "analises_descartadas": len(descartadas),
+                    "total": activas + len(descartadas),
+                })
+    casos.sort(key=lambda x: x["total"], reverse=True)
+    return {
+        "casos": casos,
+        "motivos_descarte": motivos,
+        "total_casos": len(casos),
+        "total_analises": sum(c["total"] for c in casos),
+        "total_descartadas": sum(c["analises_descartadas"] for c in casos),
+    }
 
 
 def anexar_cenarios(user_id: str, caso_id: str, resultado: dict) -> bool:
