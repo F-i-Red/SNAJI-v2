@@ -31,6 +31,24 @@ export default function PaginaProcessos() {
   const podeGerir = utilizador?.role === 'advogado' || utilizador?.role === 'magistrado' || utilizador?.role === 'admin'
   const [lista, setLista] = useState<Processo[]>([])
   const [seleccionado, setSeleccionado] = useState<Processo | null>(null)
+
+  /**
+   * Análises já feitas ao processo, com data e perspetiva.
+   *
+   * Um processo em carteira precisa de uma apreciação estável: sem ver o que
+   * já foi analisado e quando, o magistrado repete o trabalho e obtém
+   * conclusões diferentes sobre o mesmo processo em dias diferentes.
+   */
+  interface AnaliseDoProcesso {
+    analisado_em: string
+    perspetiva?: string
+    convergencia: boolean
+    sintese_cidada?: string
+    sintese_tecnica?: string
+    cenarios: { titulo: string; solidez: string }[]
+  }
+  const [analises, setAnalises] = useState<AnaliseDoProcesso[]>([])
+  const [aRemover, setARemover] = useState<number | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
   const [filtroTipo, setFiltroTipo] = useState<string>('todos')
@@ -53,9 +71,40 @@ export default function PaginaProcessos() {
     try {
       const r = await api.get(`/processos/${id}`)
       setSeleccionado(r.data)
+      carregarAnalises(r.data.caso_id_analise)
     } catch (e) {
       setErro(tratarErroAPI(e))
     }
+  }
+
+  const carregarAnalises = async (casoId?: string | null) => {
+    if (!casoId) { setAnalises([]); return }
+    try {
+      const r = await api.get(`/casos/${casoId}`)
+      setAnalises(r.data.analises_cenarios ?? [])
+    } catch { setAnalises([]) }
+  }
+
+  const removerAnalise = async (indice: number) => {
+    if (!seleccionado?.caso_id_analise) return
+    try {
+      await api.delete(`/casos/${seleccionado.caso_id_analise}/analises/${indice}`)
+      setARemover(null)
+      carregarAnalises(seleccionado.caso_id_analise)
+    } catch (e) { setErro(tratarErroAPI(e)) }
+  }
+
+  const limparAnalises = async () => {
+    if (!seleccionado?.caso_id_analise) return
+    if (!window.confirm(
+      `Apagar TODAS as ${analises.length} análises deste processo?\n\n` +
+      'O processo e a ficha de factos mantêm-se. Só as análises são removidas.'
+    )) return
+    if (!window.confirm('Confirma? Esta ação não pode ser anulada.')) return
+    try {
+      await api.delete(`/casos/${seleccionado.caso_id_analise}/analises`)
+      carregarAnalises(seleccionado.caso_id_analise)
+    } catch (e) { setErro(tratarErroAPI(e)) }
   }
 
   const avancar = async (pid: string) => {
@@ -290,12 +339,12 @@ export default function PaginaProcessos() {
               >
                 ⚖ Analisar cenários deste caso
               </button>
-              {seleccionado.caso_id_analise && (
+              {analises.length > 0 && (
                 <button
                   onClick={() => navigate('/casos', {
                     state: { abrir_caso_id: seleccionado.caso_id_analise },
                   })}
-                  title="Consultar as análises já feitas a este processo, tal como foram geradas"
+                  title="Abrir o caso completo, com a ficha de factos e todas as análises"
                   style={{
                     padding: '7px 12px', background: 'transparent',
                     border: '0.5px solid var(--color-border-secondary)',
@@ -304,7 +353,7 @@ export default function PaginaProcessos() {
                     fontFamily: 'inherit',
                   }}
                 >
-                  📁 Análises anteriores
+                  📁 Abrir caso completo
                 </button>
               )}
               {seleccionado.proximo_estado && (
@@ -373,6 +422,99 @@ export default function PaginaProcessos() {
                   })}
                 </div>
               </div>
+
+              {/* Análises feitas a este processo */}
+              {analises.length > 0 && (
+                <div>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6,
+                  }}>
+                    <span style={{
+                      fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em',
+                      color: 'var(--color-text-tertiary)', fontWeight: 500,
+                    }}>
+                      Análises deste processo ({analises.length})
+                    </span>
+                    <button
+                      onClick={limparAnalises}
+                      title="Apagar todas as análises, mantendo o processo"
+                      style={{
+                        marginLeft: 'auto', background: 'none', border: 'none',
+                        color: 'var(--color-text-tertiary)', fontSize: 11,
+                        cursor: 'pointer', fontFamily: 'inherit',
+                        textDecoration: 'underline',
+                      }}>
+                      apagar todas
+                    </button>
+                  </div>
+                  {analises.map((an, i) => (
+                    <div key={i} style={{
+                      border: '0.5px solid var(--color-border-tertiary)',
+                      borderRadius: 'var(--border-radius-md)',
+                      padding: '8px 10px', marginBottom: 6, fontSize: 12.5,
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ fontWeight: 600 }}>
+                          {new Date(an.analisado_em).toLocaleString('pt-PT', {
+                            day: '2-digit', month: '2-digit', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit',
+                          })}
+                        </span>
+                        {an.perspetiva === 'contraparte' && (
+                          <span style={{
+                            background: '#f7ead9', color: '#7a3b0a',
+                            padding: '1px 7px', borderRadius: 999, fontSize: 11,
+                          }}>⇄ Contraditório</span>
+                        )}
+                        <span style={{ fontSize: 11.5, color: 'var(--color-text-tertiary)' }}>
+                          {an.convergencia ? 'lentes convergentes' : 'leituras em confronto'}
+                          {' · '}{an.cenarios?.length ?? 0} cenário(s)
+                        </span>
+                        {aRemover === i ? (
+                          <span style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+                            <button
+                              onClick={() => removerAnalise(i)}
+                              style={{
+                                background: '#c62828', color: '#fff', border: 'none',
+                                borderRadius: 'var(--border-radius-md)', padding: '2px 9px',
+                                fontSize: 11, cursor: 'pointer', fontFamily: 'inherit',
+                              }}>
+                              confirmar
+                            </button>
+                            <button
+                              onClick={() => setARemover(null)}
+                              style={{
+                                background: 'none', border: 'none', fontSize: 11,
+                                color: 'var(--color-text-tertiary)', cursor: 'pointer',
+                                fontFamily: 'inherit',
+                              }}>
+                              cancelar
+                            </button>
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => setARemover(i)}
+                            title="Apagar esta análise"
+                            style={{
+                              marginLeft: 'auto', background: 'none', border: 'none',
+                              color: 'var(--color-text-tertiary)', fontSize: 13,
+                              cursor: 'pointer', fontFamily: 'inherit',
+                            }}>
+                            ×
+                          </button>
+                        )}
+                      </div>
+                      {an.cenarios?.length > 0 && (
+                        <div style={{
+                          marginTop: 4, color: 'var(--color-text-secondary)', lineHeight: 1.5,
+                        }}>
+                          {an.cenarios.map(c => c.titulo).join(' · ')}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Prazos */}
               {seleccionado.prazos.length > 0 && (
