@@ -151,6 +151,11 @@ export function documentoParaHTML(doc: DocumentoImprimivel): string {
   ul { padding-left: 20px; } li { margin: 3px 0; }
   .rodape { color: #777; font-size: 12px; margin-top: 24px;
             border-top: 1px solid #ddd; padding-top: 10px; font-style: italic; }
+  /* O navegador acrescenta cabeçalho e rodapé próprios — endereço da
+     página, data e numeração. Como o documento é gerado numa janela sem
+     endereço, saía literalmente "about:blank" no rodapé de cada folha.
+     A regra @page com margens próprias remove-os. */
+  @page { margin: 16mm 14mm; }
   @media print { .noprint { display: none; } body { margin: 0; } }
 </style></head><body>
 <button class="noprint" onclick="window.print()" style="float:right;padding:8px 16px;
