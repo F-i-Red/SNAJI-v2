@@ -150,13 +150,21 @@ export default function PaginaCenarios() {
     finally { setAExtrair(false) }
   }
 
-  const gerar = async (t?: string) => {
+  // Modo em que o resultado apresentado foi produzido. Guardado em estado
+  // próprio, e não lido da navegação, porque o contraditório passa a poder
+  // ser pedido a partir desta mesma página, sem mudar de rota.
+  const [emContraditorio, setEmContraditorio] = useState(
+    location.state?.contraditorio ?? false)
+
+  const gerar = async (t?: string, contra?: boolean) => {
     const corpo = (t ?? texto).trim()
     if (corpo.length < 20 || carregando) return
+    const modo = contra ?? location.state?.contraditorio ?? false
     setCarregando(true); setErro(null); setResultado(null)
     try {
-      const res = await api.post<CenariosAPI>('/cenarios', { texto: corpo, explicar: true, caso_id: location.state?.caso_id ?? null, contraditorio: location.state?.contraditorio ?? false })
+      const res = await api.post<CenariosAPI>('/cenarios', { texto: corpo, explicar: true, caso_id: location.state?.caso_id ?? null, contraditorio: modo })
       setResultado(res.data)
+      setEmContraditorio(modo)
     } catch (e) { setErro(tratarErroAPI(e)) }
     finally { setCarregando(false) }
   }
@@ -345,7 +353,7 @@ export default function PaginaCenarios() {
     ]
     return {
       titulo: 'Cenários de resolução',
-      subtitulo: location.state?.contraditorio ? 'Análise do contraditório (perspetiva da parte contrária)' : 'O mesmo caso analisado por três abordagens da prática judiciária',
+      subtitulo: emContraditorio ? 'Análise do contraditório (perspetiva da parte contrária)' : 'O mesmo caso analisado por três abordagens da prática judiciária',
       meta: [
         `Gerado pelo SNAJI em ${new Date().toLocaleDateString('pt-PT')}`,
         // O registo é dito por extenso: um documento arquivado deve declarar
@@ -365,13 +373,26 @@ export default function PaginaCenarios() {
     // passar do limite a partir do qual o olho perde a mudança de linha.
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: 920 }}>
 
-      {location.state?.contraditorio && (
+      {emContraditorio && (
         <div style={{
           padding: '8px 14px', borderRadius: 'var(--border-radius-md)',
           background: '#f7ead9', color: '#7a3b0a', fontSize: 12.5, fontWeight: 500,
         }}>
           ⇄ Análise do contraditório — estes cenários adotam a perspetiva da parte contrária,
           para preparar os argumentos que virão contra si.
+          {resultado && (
+            <button
+              onClick={() => gerar(texto, false)}
+              disabled={carregando}
+              style={{
+                marginLeft: 10, padding: '3px 10px', background: 'transparent',
+                color: '#7a3b0a', border: '0.5px solid #7a3b0a',
+                borderRadius: 'var(--border-radius-md)', fontSize: 11.5,
+                cursor: carregando ? 'wait' : 'pointer', fontFamily: 'inherit',
+              }}>
+              voltar à análise do seu lado
+            </button>
+          )}
         </div>
       )}
       {location.state?.caso_id && (
@@ -539,6 +560,35 @@ export default function PaginaCenarios() {
                 ))}
               </div>
             </details>
+          )}
+
+          {/* Analisar o mesmo caso do lado contrário.
+              Estava apenas em «Os meus casos», o que obrigava a sair da
+              análise e a voltar atrás. É aqui, depois de ler os cenários,
+              que a pergunta «e o que dirá a outra parte?» surge. */}
+          {!emContraditorio && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+              border: '0.5px solid #7a3b0a44', borderRadius: 'var(--border-radius-md)',
+              background: '#fdf8f2', padding: '10px 14px',
+            }}>
+              <span style={{ fontSize: 12.5, color: 'var(--color-text-secondary)' }}>
+                Quer saber o que a parte contrária vai argumentar?
+              </span>
+              <button
+                onClick={() => gerar(texto, true)}
+                disabled={carregando}
+                title="Gera os cenários adotando a perspetiva da parte contrária — para preparar a resposta que virá"
+                style={{
+                  padding: '7px 14px', background: 'transparent', color: '#7a3b0a',
+                  border: '0.5px solid #7a3b0a', borderRadius: 'var(--border-radius-md)',
+                  fontSize: 12.5, fontWeight: 500,
+                  cursor: carregando ? 'wait' : 'pointer',
+                  opacity: carregando ? 0.5 : 1, fontFamily: 'inherit',
+                }}>
+                ⇄ Analisar pelo lado contrário
+              </button>
+            </div>
           )}
 
           {/* O que a solidez significa — e o que não significa */}
