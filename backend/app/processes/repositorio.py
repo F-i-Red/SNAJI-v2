@@ -501,6 +501,24 @@ class RepositorioProcessos:
         return p
 
 
+    def ligar_caso(self, pid: str, caso_id: str) -> Optional[Processo]:
+        """
+        Associa um caso ao processo, para as análises ficarem guardadas.
+
+        Os processos criados directamente na carteira nasciam sem caso
+        associado, e por isso as análises feitas a partir deles não tinham
+        onde ser anexadas: cada regresso ao processo obrigava a repetir tudo,
+        e um processo em carteira ficava eternamente «por ler».
+        """
+        p = self.por_id(pid)
+        if p is None or p.caso_id_analise:
+            return p
+        p.caso_id_analise = caso_id
+        p.atualizado_em = datetime.now(timezone.utc)
+        self._gravar()
+        logger.info("processo.caso_ligado", processo=pid, caso=caso_id)
+        return p
+
     def adicionar_nota(self, pid: str, nota: str, utilizador_id: str) -> Processo:
         p = self._processos.get(pid)
         if not p:
