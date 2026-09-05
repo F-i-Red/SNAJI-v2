@@ -97,10 +97,18 @@ def obter_caso(user_id: str, caso_id: str) -> Optional[dict]:
 
 
 def _essencia(d: dict) -> str:
-    """Representação estável de uma análise, ignorando campos voláteis —
-    serve para detetar repetições exatas (idempotência)."""
+    """
+    Representação estável de uma análise, ignorando campos voláteis — serve
+    para detetar repetições exatas (idempotência).
+
+    A perspetiva entra sempre na comparação, ainda que o conteúdo saia igual:
+    a análise própria e a do contraditório são duas peças distintas do
+    processo, e guardar apenas uma delas faria desaparecer do histórico
+    justamente o lado que se quis ver.
+    """
     limpo = {k: v for k, v in d.items()
              if k not in ("analisado_em", "percurso", "caso_id", "timestamp", "audit")}
+    limpo["_perspetiva"] = d.get("perspetiva", "propria")
     return json.dumps(limpo, ensure_ascii=False, sort_keys=True)
 
 
