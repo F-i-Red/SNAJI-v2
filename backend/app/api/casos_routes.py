@@ -40,3 +40,32 @@ async def obter_caso(caso_id: str, utilizador: Utilizador = Depends(dep_casos)) 
     if not caso:
         raise HTTPException(status_code=404, detail="Caso não encontrado")
     return caso
+
+
+@router.delete("/casos/{caso_id}/analises/{indice}", tags=["Casos"])
+async def remover_analise(caso_id: str, indice: int,
+                          utilizador: Utilizador = Depends(dep_casos)) -> dict:
+    """
+    Remove uma análise do histórico do caso, pela sua posição.
+
+    Serve para limpar análises falhadas ou de ensaio. O isolamento por
+    utilizador é o mesmo das restantes rotas: cada um só apaga o que é seu.
+    """
+    if not casos_repo.remover_analise(str(utilizador.id), caso_id, indice):
+        raise HTTPException(status_code=404, detail="Análise não encontrada")
+    logger.info("caso.analise_removida.api",
+                caso_id=caso_id, indice=indice, user_id=str(utilizador.id))
+    return {"removida": True, "indice": indice}
+
+
+@router.delete("/casos/{caso_id}/analises", tags=["Casos"])
+async def limpar_analises(caso_id: str,
+                          utilizador: Utilizador = Depends(dep_casos)) -> dict:
+    """Remove todas as análises do caso, mantendo o caso e a ficha de factos."""
+    caso = casos_repo.obter_caso(str(utilizador.id), caso_id)
+    if not caso:
+        raise HTTPException(status_code=404, detail="Caso não encontrado")
+    n = casos_repo.limpar_analises(str(utilizador.id), caso_id)
+    logger.info("caso.analises_limpas.api",
+                caso_id=caso_id, removidas=n, user_id=str(utilizador.id))
+    return {"removidas": n}
