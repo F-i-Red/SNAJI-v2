@@ -438,14 +438,29 @@ class ValidadorCitacoes:
     #   "arts. 1031.º e 1032.º CC"    "artigo 143.º do Código Penal"
     # Sem tolerar estas formas, citações reais escapavam à validação — e uma
     # citação inventada com uma alínea passaria sem ser verificada.
+    # Entre o número do artigo e o diploma cabe uma variedade grande de
+    # subdivisões, e os juristas escrevem-nas de todas as maneiras. Estas
+    # formas foram levantadas por ensaio deliberado de variantes hostis:
+    #   "art. 366.º/4 CT"          "art. 389.º/1/a) CT"
+    #   "art. 368.º/2, al. b), do CT"   "art. 1083.º/2 al. a) e b) do CC"
+    #   "artigo 366.o/4 CT"        "art. 366 . º / 4 CT"
+    # Uma citação que escape ao padrão não é validada NEM sinalizada — ou
+    # seja, uma norma inventada nesse formato passaria sem verificação.
     _LIGACAO = (
-        r"(?:\s*(?:,|\se\s|\sa\s|;)?\s*"
-        r"(?:al\.?|alínea|n\.?[°º]?|nº|par[áa]grafo|§)\s*[\w)º°.\-]+)*"
+        r"(?:"
+        # subdivisões por extenso, com ou sem vírgula: ", al. b)", "n.º 3"
+        r"\s*(?:,|;|\se\s|\sa\s)?\s*"
+        r"(?:al\.?|alínea|n\.?\s*[°ºo]?|nº|par[áa]grafo|§)\s*[\w)º°.\-]+"
+        r"(?:\s*(?:,|e)\s*[a-z]\))*"
+        r"|"
+        # subdivisões com barra: "/4", "/1/a)"
+        r"\s*/\s*[\w)]+"
+        r")*"
         r"\s*(?:,)?\s*(?:do|da|dos|das)?\s*"
     )
 
     PADRAO = re.compile(
-        r"[Aa]rt(?:igo)?s?\.?\s*(\d+\.?[°º]?\-?[A-Z]?)"
+        r"[Aa]rt(?:igo)?s?\.?\s*[°ºo]?\.?\s*(\d+)\s*\.?\s*[°ºo]?((?:\-[A-Z]\b)?)"
         + _LIGACAO + r"(" + _DIPLOMAS + r")\b",
         re.IGNORECASE | re.UNICODE,
     )
@@ -464,6 +479,14 @@ class ValidadorCitacoes:
     # são artigos. Exige o ordinal ou fim de número para não apanhar o "1" de
     # "n.º 1".
     _NUMEROS = re.compile(r"(?<![\w.])(\d{1,4}(?:\-[A-Z])?)\.?[°º]", re.UNICODE)
+
+    # Diploma antes do artigo: "CT, art. 366.º", "do Código Civil, artigo 483.º".
+    # Ordem invertida em relação ao padrão principal, e igualmente corrente.
+    PADRAO_INVERTIDO = re.compile(
+        r"(" + _DIPLOMAS + r")\b[,\s]{1,4}(?:o\s+)?"
+        r"[Aa]rt(?:igo)?s?\.?\s*[°ºo]?\.?\s*(\d+)\s*\.?\s*[°ºo]?",
+        re.IGNORECASE | re.UNICODE,
+    )
     MAPA = {
         "crp": "CRP", "constituição": "CRP",
         "constituição da república portuguesa": "CRP",
@@ -491,10 +514,13 @@ class ValidadorCitacoes:
         validas, suspeitas, vistos = [], [], set()
         candidatos: list[tuple[str, str]] = []
         for m in self.PADRAO.finditer(texto):
-            candidatos.append((m.group(1), m.group(2)))
+            # grupo 1: número; grupo 2: sufixo "-A" se existir; grupo 3: diploma
+            candidatos.append((m.group(1) + (m.group(2) or ""), m.group(3)))
         for m in self.PADRAO_LISTA.finditer(texto):
             for num in self._NUMEROS.findall(m.group(1)):
                 candidatos.append((num, m.group(2)))
+        for m in self.PADRAO_INVERTIDO.finditer(texto):
+            candidatos.append((m.group(2), m.group(1)))
 
         if True:
             for artigo, bruto in candidatos:
