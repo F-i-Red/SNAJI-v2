@@ -207,6 +207,10 @@ def _processo_de_dict(d: dict) -> "Processo":
         numero_citius=d.get("numero_citius", ""),
         tipo=TipoProcesso(d["tipo"]), estado=EstadoProcesso(d["estado"]),
         descricao=d["descricao"],
+        # O assunto é lido do disco: sem isto, era gravado mas perdia-se ao
+        # recarregar, e uma correcção feita pelo utilizador desaparecia no
+        # reinício seguinte.
+        assunto=d.get("assunto", ""),
         partes=[Parte(**x) for x in d.get("partes", [])],
         criado_por=d["criado_por"],
         criado_em=datetime.fromisoformat(d["criado_em"]),
