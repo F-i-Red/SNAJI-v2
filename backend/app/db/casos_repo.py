@@ -127,6 +127,11 @@ def _anexar(user_id: str, caso_id: str, campo: str, resultado: dict, evento: str
             logger.info(f"caso.{evento}_repetida_ignorada", caso_id=caso_id)
             return True
         resultado["analisado_em"] = datetime.now(timezone.utc).isoformat()
+        # A primeira análise de um caso fica automaticamente activa: sem isso,
+        # um caso com uma única análise apareceria sem apreciação corrente.
+        # As seguintes entram em apreciação, para não substituírem em silêncio
+        # a leitura em que o processo se apoia.
+        resultado["activa"] = not any(a.get("activa") for a in lista)
         lista.append(resultado)
         _gravar(todos)
     logger.info(f"caso.{evento}_anexada", caso_id=caso_id)
@@ -198,6 +203,52 @@ def descartar_todas(user_id: str, caso_id: str, motivo: str = "outro",
     logger.info("caso.analises_descartadas",
                 caso_id=caso_id, descartadas=n, motivo=motivo, campo=campo)
     return n
+
+
+def activar_analise(user_id: str, caso_id: str, indice: int,
+                    campo: str = "analises_cenarios") -> bool:
+    """
+    Marca uma análise como a activa do caso; as restantes ficam em apreciação.
+
+    Um caso pode ter várias leituras — refeitas, do contraditório, com factos
+    novos — mas apenas uma vale como apreciação corrente do processo. As
+    outras não desaparecem: ficam disponíveis para comparação, que é o que
+    permite ver como a apreciação evoluiu.
+    """
+    with _lock:
+        todos = _carregar()
+        caso = todos.get(str(user_id), {}).get(caso_id)
+        if not caso:
+            return False
+        lista = caso.get(campo, [])
+        if not (0 <= indice < len(lista)):
+            return False
+        for i, a in enumerate(lista):
+            a["activa"] = (i == indice)
+        _gravar(todos)
+    logger.info("caso.analise_activada", caso_id=caso_id, indice=indice)
+    return True
+
+
+def restaurar_analise(user_id: str, caso_id: str, indice: int,
+                      campo: str = "analises_cenarios") -> bool:
+    """Traz uma análise do arquivo de volta à lista activa."""
+    with _lock:
+        todos = _carregar()
+        caso = todos.get(str(user_id), {}).get(caso_id)
+        if not caso:
+            return False
+        arquivo = caso.get(f"{campo}_descartadas", [])
+        if not (0 <= indice < len(arquivo)):
+            return False
+        a = arquivo.pop(indice)
+        for k in ("descartada_em", "descarte_motivo", "descarte_nota"):
+            a.pop(k, None)
+        a["activa"] = False
+        caso.setdefault(campo, []).append(a)
+        _gravar(todos)
+    logger.info("caso.analise_restaurada", caso_id=caso_id, indice=indice)
+    return True
 
 
 def estatisticas_descarte(user_id: str | None = None) -> dict:
