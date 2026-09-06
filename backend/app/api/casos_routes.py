@@ -84,3 +84,21 @@ async def descartar_todas(caso_id: str, dados: DescarteRequest,
     logger.info("caso.analises_descartadas.api", caso_id=caso_id,
                 descartadas=n, motivo=dados.motivo, user_id=str(utilizador.id))
     return {"descartadas": n, "motivo": dados.motivo}
+
+
+@router.post("/casos/{caso_id}/analises/{indice}/activar", tags=["Casos"])
+async def activar_analise(caso_id: str, indice: int,
+                          utilizador: Utilizador = Depends(dep_casos)) -> dict:
+    """Marca a análise como a apreciação corrente do caso."""
+    if not casos_repo.activar_analise(str(utilizador.id), caso_id, indice):
+        raise HTTPException(status_code=404, detail="Análise não encontrada")
+    return {"activa": indice}
+
+
+@router.post("/casos/{caso_id}/arquivo/{indice}/restaurar", tags=["Casos"])
+async def restaurar_analise(caso_id: str, indice: int,
+                            utilizador: Utilizador = Depends(dep_casos)) -> dict:
+    """Traz uma análise do arquivo de volta à lista."""
+    if not casos_repo.restaurar_analise(str(utilizador.id), caso_id, indice):
+        raise HTTPException(status_code=404, detail="Análise não encontrada no arquivo")
+    return {"restaurada": indice}
