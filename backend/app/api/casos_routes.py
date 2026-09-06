@@ -44,7 +44,7 @@ async def motivos_descarte(_: Utilizador = Depends(dep_casos)) -> dict:
 @router.get("/casos/{caso_id}", tags=["Casos"])
 async def obter_caso(caso_id: str, utilizador: Utilizador = Depends(dep_casos)) -> dict:
     """Devolve o caso completo, incluindo o histórico de análises."""
-    caso = casos_repo.obter_caso(str(utilizador.id), caso_id)
+    caso = casos_repo.obter_caso(str(utilizador.id), caso_id, partilhado=True)
     if not caso:
         raise HTTPException(status_code=404, detail="Caso não encontrado")
     return caso
@@ -66,8 +66,18 @@ async def descartar_analise(caso_id: str, indice: int, dados: DescarteRequest,
     Não destrói: a análise continua no processo, assinalada como descartada.
     """
     ok = casos_repo.descartar_analise(
-        str(utilizador.id), caso_id, indice, dados.motivo, dados.nota)
+        casos_repo.dono_do_caso(caso_id) or str(utilizador.id),
+        caso_id, indice, dados.motivo, dados.nota)
     if not ok:
+        # Distingue os dois motivos: uma análise fixada como definitiva integra
+        # o processo e a recusa é deliberada, não um erro de identificação.
+        caso = casos_repo.obter_caso(str(utilizador.id), caso_id, partilhado=True)
+        lista = (caso or {}).get("analises_cenarios", [])
+        if 0 <= indice < len(lista) and lista[indice].get("definitiva"):
+            raise HTTPException(
+                status_code=409,
+                detail="Análise fixada como definitiva: integra o processo e "
+                       "não pode ser descartada.")
         raise HTTPException(status_code=404, detail="Análise não encontrada")
     logger.info("caso.analise_descartada.api", caso_id=caso_id,
                 indice=indice, motivo=dados.motivo, user_id=str(utilizador.id))
@@ -78,9 +88,11 @@ async def descartar_analise(caso_id: str, indice: int, dados: DescarteRequest,
 async def descartar_todas(caso_id: str, dados: DescarteRequest,
                           utilizador: Utilizador = Depends(dep_casos)) -> dict:
     """Descarta todas as análises do caso, arquivando-as."""
-    if not casos_repo.obter_caso(str(utilizador.id), caso_id):
+    if not casos_repo.obter_caso(str(utilizador.id), caso_id, partilhado=True):
         raise HTTPException(status_code=404, detail="Caso não encontrado")
-    n = casos_repo.descartar_todas(str(utilizador.id), caso_id, dados.motivo, dados.nota)
+    n = casos_repo.descartar_todas(
+        casos_repo.dono_do_caso(caso_id) or str(utilizador.id),
+        caso_id, dados.motivo, dados.nota)
     logger.info("caso.analises_descartadas.api", caso_id=caso_id,
                 descartadas=n, motivo=dados.motivo, user_id=str(utilizador.id))
     return {"descartadas": n, "motivo": dados.motivo}
@@ -90,7 +102,8 @@ async def descartar_todas(caso_id: str, dados: DescarteRequest,
 async def activar_analise(caso_id: str, indice: int,
                           utilizador: Utilizador = Depends(dep_casos)) -> dict:
     """Marca a análise como a apreciação corrente do caso."""
-    if not casos_repo.activar_analise(str(utilizador.id), caso_id, indice):
+    if not casos_repo.activar_analise(
+            casos_repo.dono_do_caso(caso_id) or str(utilizador.id), caso_id, indice):
         raise HTTPException(status_code=404, detail="Análise não encontrada")
     return {"activa": indice}
 
@@ -99,6 +112,24 @@ async def activar_analise(caso_id: str, indice: int,
 async def restaurar_analise(caso_id: str, indice: int,
                             utilizador: Utilizador = Depends(dep_casos)) -> dict:
     """Traz uma análise do arquivo de volta à lista."""
-    if not casos_repo.restaurar_analise(str(utilizador.id), caso_id, indice):
+    if not casos_repo.restaurar_analise(
+            casos_repo.dono_do_caso(caso_id) or str(utilizador.id), caso_id, indice):
         raise HTTPException(status_code=404, detail="Análise não encontrada no arquivo")
     return {"restaurada": indice}
+
+
+@router.post("/casos/{caso_id}/analises/{indice}/definitiva", tags=["Casos"])
+async def definir_definitiva(caso_id: str, indice: int,
+                             utilizador: Utilizador = Depends(dep_casos)) -> dict:
+    """
+    Fixa a análise como apreciação definitiva do processo.
+
+    Deixa de poder ser descartada — é o equivalente a proferir. As restantes
+    mantêm-se disponíveis para consulta e comparação.
+    """
+    dono = casos_repo.dono_do_caso(caso_id) or str(utilizador.id)
+    if not casos_repo.definir_definitiva(dono, caso_id, indice):
+        raise HTTPException(status_code=404, detail="Análise não encontrada")
+    logger.info("caso.analise_definitiva.api", caso_id=caso_id,
+                indice=indice, user_id=str(utilizador.id))
+    return {"definitiva": indice}
