@@ -9,6 +9,7 @@ Produção: substituir por PostgreSQL (a interface pública não muda).
 """
 
 from __future__ import annotations
+import re
 import json
 import uuid
 from pathlib import Path
@@ -85,17 +86,51 @@ class Prazo:
     cumprido: bool = False
 
 
+def derivar_assunto(descricao: str, limite: int = 90) -> str:
+    """
+    Assunto provável a partir do relato, quando não é indicado.
+
+    Um relato começa muitas vezes por circunstâncias de tempo — «No dia 26 de
+    julho de…» — que não identificam nada. Procura-se a primeira frase com
+    substância, saltando aberturas puramente temporais.
+    """
+    texto = " ".join((descricao or "").split())
+    if not texto:
+        return "(sem assunto)"
+
+    # Salta a abertura temporal, se existir: "No dia X de Y de ZZZZ, ..."
+    texto = re.sub(
+        r"^(?:n[oa]\s+)?(?:dia\s+)?\d{1,2}\s+de\s+\w+\s+de\s+\d{4}[,;\s]+",
+        "", texto, flags=re.I)
+    texto = re.sub(r"^(?:em|no|na|a)\s+\d{1,2}[/-]\d{1,2}[/-]\d{2,4}[,;\s]+",
+                   "", texto, flags=re.I)
+
+    if len(texto) <= limite:
+        return texto
+    corte = texto[:limite]
+    espaco = corte.rfind(" ")
+    return (corte[:espaco] if espaco > limite * 0.6 else corte).rstrip(" ,;.") + "…"
+
+
 @dataclass
 class Processo:
     id: str
     numero_interno: str                      # nasce sempre (SNAJI-ANO/NNNNN-T)
     tipo: TipoProcesso
+    # Relato dos factos, usado na análise. Pode ser extenso.
     descricao: str
     estado: EstadoProcesso
     partes: list[Parte]
     criado_por: str         # utilizador_id
     criado_em: datetime
     atualizado_em: datetime
+    # Assunto: uma linha que identifica o processo na carteira.
+    #
+    # Sem este campo, a lista mostrava o início do relato — e um relato começa
+    # frequentemente por «No dia 26 de julho de…», que não distingue um
+    # processo de nenhum outro. Quando está vazio, é derivado do relato; o
+    # utilizador pode corrigi-lo a qualquer momento.
+    assunto: str = ""
     eventos: list[EventoProcesso] = field(default_factory=list)
     prazos: list[Prazo] = field(default_factory=list)
     caso_id_analise: Optional[str] = None   # ligação à análise RAG
@@ -151,6 +186,7 @@ def _processo_para_dict(p: "Processo") -> dict:
     return {
         "id": p.id, "numero_interno": p.numero_interno, "numero_citius": p.numero_citius,
         "tipo": p.tipo.value, "estado": p.estado.value, "descricao": p.descricao,
+        "assunto": p.assunto or derivar_assunto(p.descricao),
         "partes": [{"nome": x.nome, "papel": x.papel, "email": x.email, "nif": x.nif} for x in p.partes],
         "criado_por": p.criado_por,
         "criado_em": p.criado_em.isoformat(), "atualizado_em": p.atualizado_em.isoformat(),
@@ -322,6 +358,7 @@ class RepositorioProcessos:
         comarca: str = "Lisboa",
         areas: Optional[list[str]] = None,
         numero_citius: str = "",
+        assunto: str = "",
     ) -> Processo:
         pid = str(uuid.uuid4())
         agora = datetime.now(timezone.utc)
@@ -341,6 +378,7 @@ class RepositorioProcessos:
             areas=areas or [tipo.value],
             tribunal=tribunal,
             comarca=comarca,
+            assunto=(assunto.strip() or derivar_assunto(descricao)),
         )
         p.eventos.append(EventoProcesso(
             id=str(uuid.uuid4()),
@@ -500,6 +538,17 @@ class RepositorioProcessos:
         self._gravar()
         return p
 
+
+    def definir_assunto(self, pid: str, assunto: str) -> Optional[Processo]:
+        """Corrige o assunto do processo — a linha que o identifica na carteira."""
+        p = self.por_id(pid)
+        if p is None:
+            return None
+        p.assunto = " ".join(assunto.split())[:160]
+        p.atualizado_em = datetime.now(timezone.utc)
+        self._gravar()
+        logger.info("processo.assunto_definido", processo=pid)
+        return p
 
     def ligar_caso(self, pid: str, caso_id: str) -> Optional[Processo]:
         """
