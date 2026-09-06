@@ -29,6 +29,8 @@ interface CenarioResumo {
 interface Analise {
   analisado_em: string
   activa?: boolean
+  definitiva?: boolean
+  definitiva_em?: string
   perspetiva?: string
   convergencia: boolean
   sintese_tecnica?: string
@@ -97,6 +99,24 @@ export default function ProcessoDetalhe() {
   }, [])
 
   const caso = processo?.caso_id_analise
+
+  /**
+   * Fixar como definitiva.
+   *
+   * É o equivalente a proferir: a análise passa a integrar o processo e deixa
+   * de poder ser descartada. As outras mantêm-se para consulta — o que muda é
+   * qual delas o processo assume.
+   */
+  const fixarDefinitiva = async (i: number) => {
+    if (!caso) return
+    if (!window.confirm(
+      'Fixar esta análise como a apreciação definitiva do processo?\n\n' +
+      'Passa a integrar o processo e deixa de poder ser descartada. ' +
+      'As restantes continuam disponíveis para consulta.'
+    )) return
+    try { await api.post(`/casos/${caso}/analises/${i}/definitiva`); carregar() }
+    catch (e) { setErro(tratarErroAPI(e)) }
+  }
 
   const activar = async (i: number) => {
     if (!caso) return
@@ -177,12 +197,17 @@ export default function ProcessoDetalhe() {
       marginBottom: 10,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        {a.activa && (
+        {a.definitiva ? (
+          <span style={{
+            background: '#0a2342', color: '#fff', fontSize: 11, fontWeight: 600,
+            padding: '2px 9px', borderRadius: 999,
+          }}>⚖ apreciação definitiva</span>
+        ) : a.activa ? (
           <span style={{
             background: '#e7f6ec', color: '#1a7f37', fontSize: 11, fontWeight: 600,
             padding: '2px 9px', borderRadius: 999,
           }}>apreciação corrente</span>
-        )}
+        ) : null}
         <strong style={{ fontSize: 13 }}>{dataHora(a.analisado_em)}</strong>
         {a.perspetiva === 'contraparte' && (
           <span style={{
@@ -223,9 +248,16 @@ export default function ProcessoDetalhe() {
           </button>
         ) : (
           <>
-            {!a.activa && (
+            {!a.activa && !a.definitiva && (
               <button onClick={() => activar(i)} style={botaoLeve}>
                 ✓ Tornar apreciação corrente
+              </button>
+            )}
+            {!a.definitiva && (
+              <button onClick={() => fixarDefinitiva(i)}
+                title="Fixar como apreciação definitiva — passa a integrar o processo"
+                style={{ ...botaoLeve, background: '#0a2342', color: '#fff', border: 'none' }}>
+                ⚖ Fixar como definitiva
               </button>
             )}
             <label style={{
@@ -240,7 +272,13 @@ export default function ProcessoDetalhe() {
               />
               comparar
             </label>
-            {aDescartar === i ? (
+            {a.definitiva ? (
+              <span style={{
+                marginLeft: 'auto', fontSize: 11.5, color: 'var(--color-text-tertiary)',
+              }}>
+                integra o processo — não pode ser descartada
+              </span>
+            ) : aDescartar === i ? (
               <span style={{ display: 'flex', gap: 6, alignItems: 'center', marginLeft: 'auto' }}>
                 <select value={motivo} onChange={e => setMotivo(e.target.value)}
                   style={{ fontSize: 11, fontFamily: 'inherit', padding: '2px 4px' }}>
