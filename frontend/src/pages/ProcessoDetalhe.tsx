@@ -43,6 +43,7 @@ interface Processo {
   numero_interno: string
   tipo: string
   descricao: string
+  assunto?: string
   estado: string
   nome_autor?: string
   nome_reu?: string
@@ -289,6 +290,22 @@ export default function ProcessoDetalhe() {
           <h2 style={{ margin: 0, fontSize: 17, color: '#0a2342' }}>
             {processo.numero_interno}
           </h2>
+          <button
+            onClick={async () => {
+              const novo = window.prompt(
+                'Assunto do processo — a linha que o identifica na carteira.\n' +
+                'O relato dos factos mantém-se intacto.',
+                processo.assunto ?? '')
+              if (novo === null || !novo.trim()) return
+              try {
+                await api.patch(`/processos/${processo.id}/assunto`, { assunto: novo })
+                carregar()
+              } catch (e) { setErro(tratarErroAPI(e)) }
+            }}
+            title="Corrigir o assunto — não altera o relato dos factos"
+            style={botaoTexto}>
+            ✎ assunto
+          </button>
           <span style={{
             fontSize: 11.5, color: 'var(--color-text-tertiary)',
             textTransform: 'uppercase', letterSpacing: '0.06em',
@@ -304,8 +321,17 @@ export default function ProcessoDetalhe() {
             {processo.nome_autor} <span style={{ opacity: 0.6 }}>contra</span> {processo.nome_reu}
           </div>
         )}
+        {processo.assunto && (
+          <div style={{
+            marginTop: 8, fontSize: 14, fontWeight: 600, color: '#0a2342',
+          }}>{processo.assunto}</div>
+        )}
         <div style={{
-          marginTop: 10, fontSize: 13.5, lineHeight: 1.65, whiteSpace: 'pre-wrap',
+          fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em',
+          color: 'var(--color-text-tertiary)', marginTop: 12, marginBottom: 4,
+        }}>Relato dos factos — é este texto que alimenta a análise</div>
+        <div style={{
+          fontSize: 13.5, lineHeight: 1.65, whiteSpace: 'pre-wrap',
         }}>{processo.descricao}</div>
       </div>
 

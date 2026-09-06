@@ -12,7 +12,7 @@ const CORES: Record<string, string> = {
 }
 
 interface Processo {
-  id: string; numero: string; numero_interno?: string; numero_citius?: string; tem_numero_oficial?: boolean; tipo: string; descricao: string
+  id: string; numero: string; numero_interno?: string; numero_citius?: string; tem_numero_oficial?: boolean; tipo: string; descricao: string; assunto?: string
   estado: string; estado_index: number; proximo_estado: string | null
   partes: { nome: string; papel: string }[]
   tribunal: string; comarca: string; valor_causa: number | null
@@ -52,7 +52,7 @@ export default function PaginaProcessos() {
   const [erro, setErro] = useState<string | null>(null)
   const [filtroTipo, setFiltroTipo] = useState<string>('todos')
   const [mostrarFormNovo, setMostrarFormNovo] = useState(false)
-  const [formNovo, setFormNovo] = useState({ descricao: '', nome_autor: '', nome_reu: '', comarca: 'Lisboa' })
+  const [formNovo, setFormNovo] = useState({ assunto: '', descricao: '', nome_autor: '', nome_reu: '', comarca: 'Lisboa' })
   const [areasSel, setAreasSel] = useState<string[]>(['civil'])
   const [numeroCitius, setNumeroCitius] = useState('')
   const [criando, setCriando] = useState(false)
@@ -128,6 +128,7 @@ export default function PaginaProcessos() {
     setCriando(true)
     try {
       await api.post('/processos', {
+        assunto: formNovo.assunto,
         ...formNovo,
         areas: areasSel,
         numero_citius: numeroCitius.trim() || null,
@@ -216,7 +217,7 @@ export default function PaginaProcessos() {
                         {(p as any).areas?.join(' + ') ?? p.tipo}
                       </span>
                     </td>
-                    <td style={{ padding: '9px 10px', color: 'var(--color-text-primary)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.descricao}</td>
+                    <td style={{ padding: '9px 10px', color: 'var(--color-text-primary)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={p.descricao}>{p.assunto || p.descricao}</td>
                     <td style={{ padding: '9px 10px', color: 'var(--color-text-secondary)', fontSize: 12, whiteSpace: 'nowrap' }}>{p.estado}</td>
                     <td style={{ padding: '9px 10px' }}>
                       {(p.prazos_urgentes ?? 0) > 0 && (
@@ -464,7 +465,10 @@ export default function PaginaProcessos() {
                 )}
               </div>
               {[
-                { label: 'Descrição', field: 'descricao', type: 'text', ph: 'Breve descrição do caso...' },
+                { label: 'Assunto', field: 'assunto', type: 'text',
+                  ph: 'Uma linha que identifique o processo (opcional)' },
+                { label: 'Relato dos factos', field: 'descricao', type: 'text',
+                  ph: 'Descrição completa — é este texto que alimenta a análise' },
                 { label: 'Nome do autor', field: 'nome_autor', type: 'text', ph: 'Nome completo ou entidade' },
                 { label: 'Nome do réu / arguido', field: 'nome_reu', type: 'text', ph: 'Nome completo ou entidade' },
                 { label: 'Comarca', field: 'comarca', type: 'text', ph: 'Lisboa' },
