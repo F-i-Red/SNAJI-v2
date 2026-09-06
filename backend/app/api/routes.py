@@ -19,7 +19,7 @@ from app.db import config_repo
 from app.documents.processador import ProcessadorDocumentos
 from app.documents.analisador_pecas import AnalisadorPecas
 from app.documents.compilador_dossie import CompiladorDossie
-from app.processes.repositorio import repositorio_processos, TipoProcesso, Parte
+from app.processes.repositorio import repositorio_processos, derivar_assunto, TipoProcesso, Parte
 from app.generation.gerador import GeradorDocumentos, TipoDocumento
 from app.reasoning.pipeline import ReasoningPipeline
 
@@ -344,6 +344,7 @@ class CriarProcessoRequest(BaseModel):
     tribunal: str = "Tribunal Judicial"
     comarca: str = "Lisboa"
     caso_id_analise: Optional[str] = None
+    assunto: str = ""
     # caso misto: ex.: ["penal", "civil"] — o tipo principal comanda fases/prazos
     areas: Optional[list[str]] = None
     # número oficial do tribunal, se o processo já existe no Citius (opcional)
@@ -364,6 +365,7 @@ async def listar_processos(utilizador: Utilizador = Depends(requer_login)):
         "numero_citius": p.numero_citius,
         "tem_numero_oficial": p.tem_numero_oficial,
                 "descricao": p.descricao,
+                "assunto": p.assunto or derivar_assunto(p.descricao),
                 "estado": p.estado.value,
                 "partes": [{"nome": pt.nome, "papel": pt.papel} for pt in p.partes],
                 "criado_em": p.criado_em.isoformat(),
@@ -386,6 +388,7 @@ async def criar_processo(
     p = repositorio_processos.criar(
         tipo=dados.tipo, descricao=dados.descricao, partes=partes,
         criado_por=utilizador.id, caso_id_analise=dados.caso_id_analise,
+        assunto=dados.assunto,
         valor_causa=dados.valor_causa, tribunal=dados.tribunal, comarca=dados.comarca,
         areas=dados.areas,
         numero_citius=dados.numero_citius or "",
@@ -405,6 +408,7 @@ async def ver_processo(pid: str, utilizador: Utilizador = Depends(requer_login))
     return {
         "id": p.id, "numero": p.numero, "tipo": p.tipo.value,
         "descricao": p.descricao, "estado": p.estado.value,
+        "assunto": p.assunto or derivar_assunto(p.descricao),
         "estado_index": p.fase_index(),
         "proximo_estado": p.proximo_estado().value if p.proximo_estado() else None,
         "partes": [{"nome": pt.nome, "papel": pt.papel} for pt in p.partes],
@@ -421,6 +425,7 @@ async def ver_processo(pid: str, utilizador: Utilizador = Depends(requer_login))
                      "estado_novo": ev.estado_novo,
                      "por": _nome_utilizador(ev.utilizador_id)} for ev in p.eventos],
         "notas": p.notas, "caso_id_analise": p.caso_id_analise,
+        "assunto": p.assunto,
     }
 
 
@@ -507,3 +512,24 @@ async def gerar_documento(
         "advertencia": doc.advertencia,
         "tipos_recomendados": [t.value for t in _gerador.tipos_disponiveis(resultado.tipo_processo)],
     }
+
+
+class AssuntoRequest(BaseModel):
+    assunto: str = Field(..., min_length=3, max_length=160)
+
+
+@router.patch("/processos/{processo_id}/assunto", tags=["Processos"])
+async def definir_assunto(processo_id: str, dados: AssuntoRequest,
+                          utilizador: Utilizador = Depends(requer_login)) -> dict:
+    """
+    Corrige o assunto do processo — a linha que o identifica na carteira.
+
+    O relato completo mantém-se intacto: é ele que alimenta a análise. O
+    assunto serve para reconhecer o processo numa lista, onde o início de um
+    relato («No dia 26 de julho de…») não distingue nada.
+    """
+    from app.processes.repositorio import repositorio_processos
+    p = repositorio_processos.definir_assunto(processo_id, dados.assunto)
+    if p is None:
+        raise HTTPException(status_code=404, detail="Processo não encontrado")
+    return {"assunto": p.assunto}
