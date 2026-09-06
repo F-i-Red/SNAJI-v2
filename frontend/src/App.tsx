@@ -16,6 +16,7 @@ import PaginaContactos from './pages/Contactos'
 import PaginaPrivacidade from './pages/Privacidade'
 import PaginaGlossario from './pages/Glossario'
 import PaginaProcessos from './pages/Processos'
+import PaginaProcessoDetalhe from './pages/ProcessoDetalhe'
 import PaginaDocumentos from './pages/Documentos'
 import PaginaAuditoria from './pages/Auditoria'
 import PaginaAudiencias from './pages/Audiencias'
@@ -51,6 +52,8 @@ export default function App() {
           <Route path="privacidade" element={<PaginaPrivacidade />} />
           <Route path="glossario" element={<PaginaGlossario />} />
           <Route path="processos"  element={<PaginaProcessos />} />
+          {/* Janela do processo: descrição, análises e arquivo num só sítio. */}
+          <Route path="processos/:id" element={<PaginaProcessoDetalhe />} />
           <Route path="documentos" element={<PaginaDocumentos />} />
           <Route path="audiencias" element={<PaginaAudiencias />} />
           <Route path="auditoria"  element={<PaginaAuditoria />} />
