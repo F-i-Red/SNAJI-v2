@@ -48,7 +48,6 @@ export default function PaginaProcessos() {
     cenarios: { titulo: string; solidez: string }[]
   }
   const [analises, setAnalises] = useState<AnaliseDoProcesso[]>([])
-  const [aRemover, setARemover] = useState<number | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
   const [filtroTipo, setFiltroTipo] = useState<string>('todos')
@@ -83,49 +82,6 @@ export default function PaginaProcessos() {
       const r = await api.get(`/casos/${casoId}`)
       setAnalises(r.data.analises_cenarios ?? [])
     } catch { setAnalises([]) }
-  }
-
-  // Motivos de descarte, vindos do servidor para não divergirem do registo.
-  const [motivos, setMotivos] = useState<Record<string, string>>({})
-  const [motivoEscolhido, setMotivoEscolhido] = useState('falhada')
-
-  useEffect(() => {
-    api.get('/casos/motivos-descarte')
-      .then(r => setMotivos(r.data))
-      .catch(() => setMotivos({ falhada: 'Análise falhada', outro: 'Outro motivo' }))
-  }, [])
-
-  /**
-   * Descartar não é apagar: a análise sai da vista mas fica arquivada no
-   * caso, com data e motivo. Num processo judicial, uma peça anulada não
-   * desaparece — fica assinalada como anulada, e é isso que permite auditar
-   * uma decisão mais tarde.
-   */
-  const descartarAnalise = async (indice: number) => {
-    if (!seleccionado?.caso_id_analise) return
-    try {
-      await api.post(
-        `/casos/${seleccionado.caso_id_analise}/analises/${indice}/descartar`,
-        { motivo: motivoEscolhido })
-      setARemover(null)
-      carregarAnalises(seleccionado.caso_id_analise)
-    } catch (e) { setErro(tratarErroAPI(e)) }
-  }
-
-  const descartarTodas = async () => {
-    if (!seleccionado?.caso_id_analise) return
-    if (!window.confirm(
-      `Descartar as ${analises.length} análises deste processo?\n\n` +
-      'Saem da vista principal mas ficam arquivadas no caso, com a data e o ' +
-      'motivo. O processo e a ficha de factos mantêm-se.'
-    )) return
-    if (!window.confirm('Confirma o descarte de todas as análises?')) return
-    try {
-      await api.post(
-        `/casos/${seleccionado.caso_id_analise}/analises/descartar-todas`,
-        { motivo: motivoEscolhido })
-      carregarAnalises(seleccionado.caso_id_analise)
-    } catch (e) { setErro(tratarErroAPI(e)) }
   }
 
   const avancar = async (pid: string) => {
@@ -283,7 +239,14 @@ export default function PaginaProcessos() {
         {seleccionado && (
           <div style={{ background: 'var(--color-background-primary)', border: '0.5px solid var(--color-border-tertiary)', borderRadius: 'var(--border-radius-lg)', overflow: 'hidden' }}>
             <div style={{ padding: '10px 14px', borderBottom: '0.5px solid var(--color-border-tertiary)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-text-secondary)', flex: 1, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{
+                fontSize: 11, fontWeight: 500, textTransform: 'uppercase',
+                letterSpacing: '0.07em', color: 'var(--color-text-secondary)',
+                flex: 1, display: 'flex', alignItems: 'center',
+                // gap generoso e quebra de linha: com vários botões, uma linha
+                // única empurrava os últimos para fora do ecrã.
+                gap: '8px 10px', flexWrap: 'wrap', minWidth: 0,
+              }}>
                 <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{seleccionado.numero}</span>
                 {seleccionado.tem_numero_oficial
                   ? <span style={{ fontSize: 10, padding: '1px 7px', borderRadius: 10, background: 'var(--color-background-success)', color: 'var(--color-text-success)', textTransform: 'none', letterSpacing: 0 }}>número oficial (Citius)</span>
@@ -342,26 +305,10 @@ export default function PaginaProcessos() {
               >
                 ↩ Anular último avanço
               </button>
-              <button
-                onClick={() => navigate('/cenarios', {
-                  state: {
-                    texto: seleccionado.descricao,
-                    // Sem o caso_id a análise não era guardada: cada regresso
-                    // ao processo obrigava a repeti-la, e um processo em
-                    // carteira ficava eternamente «por ler». Com ele, a
-                    // análise anexa-se ao caso e fica consultável.
-                    caso_id: seleccionado.caso_id_analise ?? null,
-                    processo_id: seleccionado.id,
-                  },
-                })}
-                style={{
-                  padding: '7px 12px', background: 'transparent',
-                  border: '0.5px solid #0a2342', borderRadius: 'var(--border-radius-md)',
-                  fontSize: 12, color: '#0a2342', cursor: 'pointer', fontFamily: 'inherit',
-                }}
-              >
-                ⚖ Analisar cenários deste caso
-              </button>
+              {/* Janela do processo: descrição, análises, arquivo e geração de
+                  novas leituras. Substitui os botões que aqui estavam —
+                  «analisar cenários» e «abrir caso» —, que dispersavam o
+                  mesmo trabalho por três sítios diferentes. */}
               <button
                 onClick={() => navigate(`/processos/${seleccionado.id}`)}
                 title="Abrir a janela do processo: descrição, análises e arquivo"
@@ -372,24 +319,12 @@ export default function PaginaProcessos() {
                 }}
               >
                 📂 Abrir processo
+                {analises.length > 0 && (
+                  <span style={{ marginLeft: 6, opacity: 0.75 }}>
+                    · {analises.length} análise{analises.length > 1 ? 's' : ''}
+                  </span>
+                )}
               </button>
-              {analises.length > 0 && (
-                <button
-                  onClick={() => navigate('/casos', {
-                    state: { abrir_caso_id: seleccionado.caso_id_analise },
-                  })}
-                  title="Abrir o caso completo, com a ficha de factos e todas as análises"
-                  style={{
-                    padding: '7px 12px', background: 'transparent',
-                    border: '0.5px solid var(--color-border-secondary)',
-                    borderRadius: 'var(--border-radius-md)', fontSize: 12,
-                    color: 'var(--color-text-secondary)', cursor: 'pointer',
-                    fontFamily: 'inherit',
-                  }}
-                >
-                  📁 Abrir caso completo
-                </button>
-              )}
               {seleccionado.proximo_estado && (
                 <button
                   onClick={() => {
@@ -457,110 +392,10 @@ export default function PaginaProcessos() {
                 </div>
               </div>
 
-              {/* Análises feitas a este processo */}
-              {analises.length > 0 && (
-                <div>
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6,
-                  }}>
-                    <span style={{
-                      fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em',
-                      color: 'var(--color-text-tertiary)', fontWeight: 500,
-                    }}>
-                      Análises deste processo ({analises.length})
-                    </span>
-                    <button
-                      onClick={descartarTodas}
-                      title="Descartar todas as análises — ficam arquivadas no caso"
-                      style={{
-                        marginLeft: 'auto', background: 'none', border: 'none',
-                        color: 'var(--color-text-tertiary)', fontSize: 11,
-                        cursor: 'pointer', fontFamily: 'inherit',
-                        textDecoration: 'underline',
-                      }}>
-                      descartar todas
-                    </button>
-                  </div>
-                  {analises.map((an, i) => (
-                    <div key={i} style={{
-                      border: '0.5px solid var(--color-border-tertiary)',
-                      borderRadius: 'var(--border-radius-md)',
-                      padding: '8px 10px', marginBottom: 6, fontSize: 12.5,
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        <span style={{ fontWeight: 600 }}>
-                          {new Date(an.analisado_em).toLocaleString('pt-PT', {
-                            day: '2-digit', month: '2-digit', year: 'numeric',
-                            hour: '2-digit', minute: '2-digit',
-                          })}
-                        </span>
-                        {an.perspetiva === 'contraparte' && (
-                          <span style={{
-                            background: '#f7ead9', color: '#7a3b0a',
-                            padding: '1px 7px', borderRadius: 999, fontSize: 11,
-                          }}>⇄ Contraditório</span>
-                        )}
-                        <span style={{ fontSize: 11.5, color: 'var(--color-text-tertiary)' }}>
-                          {an.convergencia ? 'lentes convergentes' : 'leituras em confronto'}
-                          {' · '}{an.cenarios?.length ?? 0} cenário(s)
-                        </span>
-                        {aRemover === i ? (
-                          <span style={{ marginLeft: 'auto', display: 'flex', gap: 6, alignItems: 'center' }}>
-                            <select
-                              value={motivoEscolhido}
-                              onChange={e => setMotivoEscolhido(e.target.value)}
-                              style={{
-                                fontSize: 11, fontFamily: 'inherit', padding: '2px 4px',
-                                border: '0.5px solid var(--color-border-secondary)',
-                                borderRadius: 'var(--border-radius-md)',
-                              }}>
-                              {Object.entries(motivos).map(([k, v]) => (
-                                <option key={k} value={k}>{v}</option>
-                              ))}
-                            </select>
-                            <button
-                              onClick={() => descartarAnalise(i)}
-                              style={{
-                                background: '#7a3b0a', color: '#fff', border: 'none',
-                                borderRadius: 'var(--border-radius-md)', padding: '2px 9px',
-                                fontSize: 11, cursor: 'pointer', fontFamily: 'inherit',
-                              }}>
-                              descartar
-                            </button>
-                            <button
-                              onClick={() => setARemover(null)}
-                              style={{
-                                background: 'none', border: 'none', fontSize: 11,
-                                color: 'var(--color-text-tertiary)', cursor: 'pointer',
-                                fontFamily: 'inherit',
-                              }}>
-                              cancelar
-                            </button>
-                          </span>
-                        ) : (
-                          <button
-                            onClick={() => setARemover(i)}
-                            title="Descartar esta análise — fica arquivada no caso"
-                            style={{
-                              marginLeft: 'auto', background: 'none', border: 'none',
-                              color: 'var(--color-text-tertiary)', fontSize: 13,
-                              cursor: 'pointer', fontFamily: 'inherit',
-                            }}>
-                            ×
-                          </button>
-                        )}
-                      </div>
-                      {an.cenarios?.length > 0 && (
-                        <div style={{
-                          marginTop: 4, color: 'var(--color-text-secondary)', lineHeight: 1.5,
-                        }}>
-                          {an.cenarios.map(c => c.titulo).join(' · ')}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+              {/* As análises passaram para a janela do processo (📂 Abrir
+                  processo): geri-las em dois sítios diferentes duplicava o
+                  código e dispersava o trabalho. Aqui fica só a contagem, no
+                  próprio botão. */}
 
               {/* Prazos */}
               {seleccionado.prazos.length > 0 && (

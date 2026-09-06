@@ -254,8 +254,9 @@ export default function ProcessoDetalhe() {
               </span>
             ) : (
               <button onClick={() => setADescartar(i)}
+                title="Descartar apenas esta análise — fica no arquivo, com data e motivo"
                 style={{ ...botaoTexto, marginLeft: 'auto' }}>
-                descartar
+                descartar esta análise
               </button>
             )}
           </>
