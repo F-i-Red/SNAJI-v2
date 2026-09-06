@@ -251,7 +251,9 @@ export default function PaginaProcessos() {
               </thead>
               <tbody>
                 {listaFiltrada.map(p => (
-                  <tr key={p.id} style={{ cursor: 'pointer', background: seleccionado?.id === p.id ? 'var(--color-background-secondary)' : 'transparent' }} onClick={() => verDetalhe(p.id)}>
+                  <tr key={p.id} style={{ cursor: 'pointer', background: seleccionado?.id === p.id ? 'var(--color-background-secondary)' : 'transparent' }} onClick={() => verDetalhe(p.id)}
+                    onDoubleClick={() => navigate(`/processos/${p.id}`)}
+                    title="Duplo clique para abrir a janela completa do processo">
                     <td style={{ padding: '9px 10px', fontFamily: 'monospace', fontSize: 11 }}>{p.numero}</td>
                     <td style={{ padding: '9px 10px' }}>
                       <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, fontWeight: 500, background: `${CORES[p.tipo]}15`, color: CORES[p.tipo] ?? 'var(--color-text-secondary)' }}>
@@ -359,6 +361,17 @@ export default function PaginaProcessos() {
                 }}
               >
                 ⚖ Analisar cenários deste caso
+              </button>
+              <button
+                onClick={() => navigate(`/processos/${seleccionado.id}`)}
+                title="Abrir a janela do processo: descrição, análises e arquivo"
+                style={{
+                  padding: '7px 12px', background: '#0a2342', color: '#fff',
+                  border: 'none', borderRadius: 'var(--border-radius-md)',
+                  fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                📂 Abrir processo
               </button>
               {analises.length > 0 && (
                 <button
