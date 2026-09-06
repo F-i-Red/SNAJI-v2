@@ -15,7 +15,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 from typing import Optional
-from uuid import uuid4
+from uuid import uuid4, uuid5, NAMESPACE_URL
 
 from app.security.rbac import Role
 from app.security.passwords import criar_hash, verificar_password
@@ -55,13 +55,27 @@ class RepositorioUtilizadores:
             ("cidadao@snaji.gov.pt",    "Ana Costa",           Role.CIDADAO,    "Cidad2024!"),
         ]
         for email, nome, role, password in demo:
-            self.criar(email=email, nome=nome, role=role, password=password)
+            self.criar(email=email, nome=nome, role=role, password=password,
+                       id_estavel=True)
 
-    def criar(self, email: str, nome: str, role: Role, password: str) -> Utilizador:
-        """Cria um novo utilizador. Lança ValueError se o email já existir."""
+    def criar(self, email: str, nome: str, role: Role, password: str,
+              id_estavel: bool = False) -> Utilizador:
+        """
+        Cria um novo utilizador. Lança ValueError se o email já existir.
+
+        `id_estavel` deriva o identificador do email, em vez de o sortear.
+
+        Porquê: as contas de demonstração são recriadas a cada arranque, e com
+        identificador sorteado recebiam uma identidade nova de cada vez. Como
+        os casos e as análises são guardados por identificador de utilizador,
+        reiniciar o servidor equivalia a perder tudo o que estava guardado —
+        o processo mantinha a referência à análise, mas a análise deixava de
+        ser encontrada.
+        """
         if email in self._por_email:
             raise ValueError(f"Email já registado: {email}")
-        uid = str(uuid4())
+        uid = (str(uuid5(NAMESPACE_URL, f"snaji:utilizador:{email}"))
+               if id_estavel else str(uuid4()))
         u = Utilizador(
             id=uid,
             email=email,

@@ -91,9 +91,36 @@ def listar_casos(user_id: str) -> list[dict]:
     return sorted(resumo, key=lambda c: c["criado_em"], reverse=True)
 
 
-def obter_caso(user_id: str, caso_id: str) -> Optional[dict]:
-    """Devolve o caso completo — apenas se pertencer ao utilizador."""
-    return _carregar().get(str(user_id), {}).get(caso_id)
+def obter_caso(user_id: str, caso_id: str,
+               partilhado: bool = False) -> Optional[dict]:
+    """
+    Devolve o caso completo.
+
+    Por omissão, apenas se pertencer ao utilizador: os casos que um cidadão
+    guarda são pessoais e assim se mantêm.
+
+    Com `partilhado`, procura em todos os utilizadores. Serve os casos
+    ligados a processos: um processo em carteira não é pessoal — é do
+    serviço, e as análises pertencem ao processo, não a quem as gerou. Num
+    processo judicial as peças estão no processo, não na gaveta de quem as
+    escreveu.
+    """
+    todos = _carregar()
+    proprio = todos.get(str(user_id), {}).get(caso_id)
+    if proprio is not None or not partilhado:
+        return proprio
+    for uid, casos in todos.items():
+        if caso_id in casos:
+            return casos[caso_id]
+    return None
+
+
+def dono_do_caso(caso_id: str) -> Optional[str]:
+    """Identificador do utilizador a quem o caso pertence."""
+    for uid, casos in _carregar().items():
+        if caso_id in casos:
+            return uid
+    return None
 
 
 def _essencia(d: dict) -> str:
@@ -149,6 +176,44 @@ MOTIVOS_DESCARTE = {
 }
 
 
+def definir_definitiva(user_id: str, caso_id: str, indice: int,
+                       campo: str = "analises_cenarios") -> bool:
+    """
+    Fixa uma análise como a apreciação definitiva do processo.
+
+    A partir daqui não pode ser descartada. É o equivalente a proferir: uma
+    decisão que entra no processo não se retira — anula-se ou recorre-se dela,
+    mas o registo permanece. Quem fixa assume a leitura; as restantes
+    continuam disponíveis para consulta e comparação.
+
+    Só uma análise pode ser definitiva, e passa a ser também a activa.
+    """
+    with _lock:
+        todos = _carregar()
+        caso = todos.get(str(user_id), {}).get(caso_id) or _procurar(todos, caso_id)
+        if not caso:
+            return False
+        lista = caso.get(campo, [])
+        if not (0 <= indice < len(lista)):
+            return False
+        for i, a in enumerate(lista):
+            a["definitiva"] = (i == indice)
+            a["activa"] = (i == indice)
+        lista[indice]["definitiva_em"] = datetime.now(timezone.utc).isoformat()
+        lista[indice]["definitiva_por"] = str(user_id)
+        _gravar(todos)
+    logger.info("caso.analise_definitiva", caso_id=caso_id, indice=indice)
+    return True
+
+
+def _procurar(todos: dict, caso_id: str) -> Optional[dict]:
+    """Localiza um caso em qualquer utilizador (casos de processo)."""
+    for casos in todos.values():
+        if caso_id in casos:
+            return casos[caso_id]
+    return None
+
+
 def descartar_analise(user_id: str, caso_id: str, indice: int,
                       motivo: str = "outro", nota: str = "",
                       campo: str = "analises_cenarios") -> bool:
@@ -168,6 +233,10 @@ def descartar_analise(user_id: str, caso_id: str, indice: int,
             return False
         lista = caso.get(campo, [])
         if not (0 <= indice < len(lista)):
+            return False
+        if lista[indice].get("definitiva"):
+            logger.info("caso.descarte_recusado_definitiva",
+                        caso_id=caso_id, indice=indice)
             return False
         analise = lista.pop(indice)
         analise["descartada_em"] = datetime.now(timezone.utc).isoformat()
@@ -190,6 +259,9 @@ def descartar_todas(user_id: str, caso_id: str, motivo: str = "outro",
         if not caso:
             return 0
         lista = caso.get(campo, [])
+        # A definitiva não é descartada: fica no processo.
+        manter = [a for a in lista if a.get("definitiva")]
+        lista = [a for a in lista if not a.get("definitiva")]
         n = len(lista)
         agora = datetime.now(timezone.utc).isoformat()
         for a in lista:
@@ -198,7 +270,7 @@ def descartar_todas(user_id: str, caso_id: str, motivo: str = "outro",
             if nota:
                 a["descarte_nota"] = nota[:400]
         caso.setdefault(f"{campo}_descartadas", []).extend(lista)
-        caso[campo] = []
+        caso[campo] = manter
         _gravar(todos)
     logger.info("caso.analises_descartadas",
                 caso_id=caso_id, descartadas=n, motivo=motivo, campo=campo)
