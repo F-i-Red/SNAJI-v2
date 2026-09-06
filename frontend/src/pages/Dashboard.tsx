@@ -22,6 +22,7 @@ interface ProcessoResumo {
   numero: string
   tipo: string
   descricao: string
+  assunto?: string
   estado: string
   prazos_urgentes: number
   atualizado_em: string
@@ -172,8 +173,12 @@ export default function PaginaDashboard() {
                   background: CORES_TIPO[p.tipo] ?? 'var(--color-text-tertiary)',
                 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 13, color: 'var(--color-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {p.descricao}
+                  <div
+                    title={p.descricao}
+                    style={{ fontSize: 13, color: 'var(--color-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {/* Assunto, não o relato: numa lista, o início de um
+                        relato («No dia 26 de julho de…») não identifica nada. */}
+                    {p.assunto || p.descricao}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginTop: 1 }}>
                     {p.numero} · {p.estado}

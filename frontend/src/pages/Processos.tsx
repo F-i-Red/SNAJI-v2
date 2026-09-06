@@ -128,14 +128,13 @@ export default function PaginaProcessos() {
     setCriando(true)
     try {
       await api.post('/processos', {
-        assunto: formNovo.assunto,
         ...formNovo,
         areas: areasSel,
         numero_citius: numeroCitius.trim() || null,
         tipo: areasSel.includes('penal') ? 'penal' : (areasSel[0] ?? 'civil'),
       })
       setMostrarFormNovo(false)
-      setFormNovo({ tipo: 'laboral', descricao: '', nome_autor: '', nome_reu: '', comarca: 'Lisboa' })
+      setFormNovo({ assunto: '', descricao: '', nome_autor: '', nome_reu: '', comarca: 'Lisboa' })
       carregar()
     } catch (e) { setErro(tratarErroAPI(e)) }
     finally { setCriando(false) }
