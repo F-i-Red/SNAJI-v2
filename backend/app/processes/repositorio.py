@@ -513,7 +513,8 @@ class RepositorioProcessos:
         return p
 
     def editar_dados(self, processo_id: str, utilizador_id: str,
-                     descricao: str | None = None, comarca: str | None = None) -> "Processo":
+                     descricao: str | None = None, comarca: str | None = None,
+                     tipo: str | None = None, assunto: str | None = None) -> "Processo":
         """Corrige dados do processo (descrição, comarca) com registo auditável.
         Os valores anteriores ficam na descrição do evento — nada se apaga."""
         p = self.por_id(processo_id)
@@ -526,6 +527,20 @@ class RepositorioProcessos:
         if comarca is not None and comarca.strip() and comarca.strip() != p.comarca:
             mudancas.append(f"comarca: «{p.comarca}» → «{comarca.strip()}»")
             p.comarca = comarca.strip()
+        if assunto is not None and assunto.strip() and assunto.strip() != p.assunto:
+            mudancas.append(f"assunto: «{p.assunto}» → «{assunto.strip()}»")
+            p.assunto = " ".join(assunto.split())[:160]
+        # O enquadramento pode estar mal classificado na entrada e o magistrado
+        # é quem tem elementos para o corrigir. A mudança fica no registo de
+        # eventos, como as restantes: nada se altera sem rasto.
+        if tipo is not None and tipo.strip():
+            try:
+                novo_tipo = TipoProcesso(tipo.strip().lower())
+            except ValueError:
+                raise ValueError(f"Tipo de processo desconhecido: {tipo}")
+            if novo_tipo != p.tipo:
+                mudancas.append(f"enquadramento: «{p.tipo.value}» → «{novo_tipo.value}»")
+                p.tipo = novo_tipo
         if not mudancas:
             return p
         p.atualizado_em = datetime.now(timezone.utc)
