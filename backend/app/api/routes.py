@@ -474,6 +474,10 @@ async def adotar_numero_citius(
 class EditarProcessoRequest(BaseModel):
     descricao: Optional[str] = None
     comarca: Optional[str] = None
+    # O enquadramento pode estar mal classificado na entrada; quem gere o
+    # processo é quem tem elementos para o corrigir. Fica registado no evento.
+    tipo: Optional[str] = None
+    assunto: Optional[str] = None
 
 
 @router.post("/processos/{pid}/editar", tags=["Processos"])
@@ -481,11 +485,17 @@ async def editar_processo(
     pid: str, dados: EditarProcessoRequest,
     utilizador: Utilizador = Depends(requer_permissao(Permissao.GERIR_PROCESSOS)),
 ):
-    """Corrige dados do processo (descrição, comarca), com registo auditável."""
+    """
+    Corrige dados do processo — descrição, comarca, enquadramento e assunto —
+    com registo auditável. Os valores anteriores ficam no registo de eventos.
+    """
     try:
         p = repositorio_processos.editar_dados(pid, str(utilizador.id),
+                                               tipo=dados.tipo, assunto=dados.assunto,
                                                descricao=dados.descricao, comarca=dados.comarca)
-        return {"id": p.id, "descricao": p.descricao, "comarca": p.comarca, "mensagem": "Dados corrigidos"}
+        return {"id": p.id, "descricao": p.descricao, "comarca": p.comarca,
+                "tipo": p.tipo.value, "assunto": p.assunto,
+                "mensagem": "Dados corrigidos"}
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
