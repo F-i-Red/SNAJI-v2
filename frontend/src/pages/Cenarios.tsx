@@ -646,7 +646,28 @@ export default function PaginaCenarios() {
               return (
                 <button
                   key={String(contra)}
-                  onClick={() => gerar(texto, contra)}
+                  onClick={() => {
+                    // O contraditório argumenta contra uma tese: sem análise
+                    // própria não há tese nenhuma a contrariar.
+                    const temPropria = analises.propria || (!emContraditorio && resultado)
+                    if (contra && !pronta && !temPropria) {
+                      setErro('Gere primeiro a análise do seu lado: o contraditório '
+                        + 'argumenta contra uma tese, e ainda não há nenhuma.')
+                      return
+                    }
+                    // Mudar de lado nunca gera em silêncio: se a análise desse
+                    // lado ainda não existe, pergunta-se primeiro. Antes, um
+                    // clique inocente para «ver o outro lado» disparava uma
+                    // geração de minutos, e paga.
+                    if (!pronta && !window.confirm(
+                      contra
+                        ? 'Ainda não há análise do lado contrário para este caso.\n\n'
+                          + 'Gerar agora? Demora alguns minutos.'
+                        : 'Ainda não há análise do seu lado para este caso.\n\n'
+                          + 'Gerar agora? Demora alguns minutos.'
+                    )) return
+                    gerar(texto, contra)
+                  }}
                   disabled={carregando || activo}
                   title={contra
                     ? 'Os mesmos factos, argumentados por quem se opõe — para preparar a resposta que virá'
@@ -663,6 +684,10 @@ export default function PaginaCenarios() {
                   {contra ? '⇄ Pelo lado contrário' : 'O seu lado'}
                   {pronta && !activo && (
                     <span style={{ marginLeft: 6, fontSize: 11 }} title="já analisado">✓</span>
+                  )}
+                  {!pronta && !activo && (
+                    <span style={{ marginLeft: 6, fontSize: 11, opacity: 0.7 }}
+                      title="ainda não analisado">+</span>
                   )}
                 </button>
               )
