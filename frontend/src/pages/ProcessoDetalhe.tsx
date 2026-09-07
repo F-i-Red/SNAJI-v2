@@ -77,6 +77,7 @@ export default function ProcessoDetalhe() {
   const [processo, setProcesso] = useState<Processo | null>(null)
   const [analises, setAnalises] = useState<Analise[]>([])
   const [arquivo, setArquivo] = useState<Analise[]>([])
+  const [textoAnalisado, setTextoAnalisado] = useState('')
   const [motivos, setMotivos] = useState<Record<string, string>>({})
   const [motivo, setMotivo] = useState('falhada')
   const [aDescartar, setADescartar] = useState<number | null>(null)
@@ -95,6 +96,11 @@ export default function ProcessoDetalhe() {
         const c = (await api.get(`/casos/${p.caso_id_analise}`)).data
         setAnalises(c.analises_cenarios ?? [])
         setArquivo(c.analises_cenarios_descartadas ?? [])
+        // Texto que foi efectivamente analisado. É o do caso — instruído,
+        // completo — e não a descrição do processo, que é apenas o relato de
+        // entrada. Sem isto, abrir uma análise levava o texto errado e uma
+        // nova geração partiria de uma base mais pobre do que a original.
+        setTextoAnalisado(c.texto_para_analise || c.relato || p.descricao)
       } else {
         setAnalises([]); setArquivo([])
       }
@@ -159,7 +165,7 @@ export default function ProcessoDetalhe() {
       j !== i && (x.perspetiva === 'contraparte') !== daContraparte)
     navigate('/cenarios', {
       state: {
-        texto: processo?.descricao,
+        texto: textoAnalisado || processo?.descricao,
         caso_id: processo?.caso_id_analise ?? null,
         processo_id: processo?.id,
         analise_guardada: daContraparte ? par : escolhida,
@@ -191,7 +197,7 @@ export default function ProcessoDetalhe() {
   const analisar = (contraditorio = false) =>
     navigate('/cenarios', {
       state: {
-        texto: processo?.descricao,
+        texto: textoAnalisado || processo?.descricao,
         caso_id: processo?.caso_id_analise ?? null,
         processo_id: processo?.id,
         contraditorio,
@@ -478,6 +484,24 @@ export default function ProcessoDetalhe() {
           borderRadius: 'var(--border-radius-md)',
           padding: '12px 14px',
         }}>{processo.descricao}</div>
+
+        {/* Quando o caso foi instruído, o texto analisado é mais completo do
+            que o relato de entrada — e é esse que alimenta as análises. */}
+        {textoAnalisado && textoAnalisado.trim() !== processo.descricao.trim() && (
+          <>
+            <div style={{
+              fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em',
+              color: 'var(--color-text-tertiary)', marginTop: 14, marginBottom: 5,
+            }}>Caso instruído — texto efectivamente analisado</div>
+            <div style={{
+              fontSize: 13.5, lineHeight: 1.7, whiteSpace: 'pre-wrap',
+              maxHeight: '45vh', overflowY: 'auto',
+              background: '#f6f8fa',
+              border: '0.5px solid var(--color-border-tertiary)',
+              borderRadius: 'var(--border-radius-md)', padding: '12px 14px',
+            }}>{textoAnalisado}</div>
+          </>
+        )}
       </div>
 
       {/* Análises */}

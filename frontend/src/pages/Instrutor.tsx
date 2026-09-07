@@ -298,6 +298,39 @@ export default function PaginaInstrutor() {
     </div>
   )
 
+  /** Documento imprimível da análise jurídica. */
+  const docAnaliseJuridica = (): DocumentoImprimivel | null => {
+    if (!analise) return null
+    return {
+      titulo: 'Análise jurídica',
+      subtitulo: analise.qualificacao_juridica,
+      meta: [
+        `Gerado pelo SNAJI em ${new Date().toLocaleDateString('pt-PT')}`,
+        ficha?.caso_id ? `Caso ${String(ficha.caso_id).slice(0, 8)}` : '',
+      ].filter(Boolean) as string[],
+      seccoes: [
+        ...(ficha?.texto_para_analise || ficha?.resumo
+          ? [{ titulo: 'Caso analisado',
+               paragrafos: [String(ficha.texto_para_analise ?? ficha.resumo)] }]
+          : []),
+        { titulo: 'Qualificação jurídica', paragrafos: [analise.qualificacao_juridica] },
+        { titulo: 'Análise', paragrafos: [analise.analise] },
+        ...(analise.vias_processuais?.length
+          ? [{ titulo: 'Vias processuais típicas',
+               paragrafos: analise.vias_processuais }]
+          : []),
+        { titulo: 'Conclusão', paragrafos: [analise.conclusao] },
+        ...(analise.normas_aplicaveis?.length
+          ? [{ titulo: 'Normas aplicáveis',
+               paragrafos: [analise.normas_aplicaveis
+                 .map((n: string) => n.replace('-', ' art. ')).join('; ')] }]
+          : []),
+      ],
+      rodape: 'Esta informação é geral e não substitui consulta jurídica por advogado '
+        + '(Lei n.º 49/2004).',
+    }
+  }
+
   const renderPergunta = (p: PerguntaAPI) => {
     if (carregando) return <AguardeSNAJI />
 
@@ -672,11 +705,19 @@ export default function PaginaInstrutor() {
 
           {analise && (
             <div style={{ ...cartao, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{
-                fontSize: 11, fontWeight: 500, textTransform: 'uppercase',
-                letterSpacing: '0.07em', color: 'var(--color-text-tertiary)',
-              }}>
-                Análise jurídica
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{
+                  fontSize: 11, fontWeight: 500, textTransform: 'uppercase',
+                  letterSpacing: '0.07em', color: 'var(--color-text-tertiary)',
+                }}>
+                  Análise jurídica
+                </span>
+                {/* A análise jurídica podia ser lida mas não levada: sem
+                    impressão, não há como a juntar a um processo nem entregar
+                    a quem não tem acesso ao sistema. */}
+                <div style={{ marginLeft: 'auto' }}>
+                  <BotoesImprimir doc={docAnaliseJuridica()!} />
+                </div>
               </div>
               <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-primary)' }}>
                 {analise.qualificacao_juridica}
