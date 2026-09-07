@@ -23,6 +23,13 @@ interface CenarioResumo {
   titulo: string
   solidez: string
   sentido?: string
+  lente?: string
+  lente_descricao_tecnica?: string
+  lente_descricao_cidada?: string
+  solucao_tecnica?: string
+  solucao_cidada?: string
+  riscos?: string
+  riscos_cidadao?: string
   fundamentacao_normas: string[]
 }
 
@@ -36,6 +43,8 @@ interface Analise {
   sintese_tecnica?: string
   sintese_cidada?: string
   cenarios: CenarioResumo[]
+  cenarios_convergentes?: CenarioResumo[]
+  lentes_omitidas?: { lente: string; motivo: string }[]
   descartada_em?: string
   descarte_motivo?: string
 }
@@ -73,6 +82,10 @@ export default function ProcessoDetalhe() {
   const [aDescartar, setADescartar] = useState<number | null>(null)
   const [verArquivo, setVerArquivo] = useState(false)
   const [comparar, setComparar] = useState<number[]>([])
+  // Análise aberta por extenso, e em que registo. A análise completa está
+  // guardada — faltava apenas poder lê-la sem gerar outra.
+  const [aberta, setAberta] = useState<number | null>(null)
+  const [tecnico, setTecnico] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(false)
 
@@ -256,6 +269,85 @@ export default function ProcessoDetalhe() {
         ))}
       </div>
 
+      {/* Análise por extenso. Estava guardada por inteiro mas só se viam os
+          títulos — obrigando a gerar outra para ler o que já existia. */}
+      {!arquivada && aberta === i && (
+        <div style={{
+          marginTop: 12, paddingTop: 12,
+          borderTop: '0.5px solid var(--color-border-tertiary)',
+        }}>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+            {([true, false] as const).map(t => (
+              <button key={String(t)} onClick={() => setTecnico(t)}
+                style={{
+                  ...botaoLeve, fontSize: 11.5, padding: '4px 10px',
+                  background: tecnico === t ? '#0a2342' : 'transparent',
+                  color: tecnico === t ? '#fff' : '#0a2342',
+                }}>
+                {t ? 'Registo técnico' : 'Linguagem clara'}
+              </button>
+            ))}
+          </div>
+
+          {[...a.cenarios, ...(a.cenarios_convergentes ?? [])].map((c, j) => (
+            <div key={j} style={{ marginBottom: 16 }}>
+              <div style={{
+                fontSize: 13, fontWeight: 600, color: COR_SOLIDEZ[c.solidez] ?? '#0a2342',
+              }}>
+                {c.lente ? `Lente ${c.lente.charAt(0).toUpperCase()}${c.lente.slice(1)} — ` : ''}
+                solidez {NOME_SOLIDEZ[c.solidez] ?? c.solidez}
+              </div>
+              <div style={{
+                fontSize: 11.5, color: 'var(--color-text-tertiary)', marginBottom: 5,
+              }}>
+                {tecnico ? c.lente_descricao_tecnica : c.lente_descricao_cidada}
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
+                {c.titulo}{c.sentido ? ` — ${c.sentido}` : ''}
+              </div>
+              <div style={{ fontSize: 13, lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
+                {tecnico ? c.solucao_tecnica : c.solucao_cidada}
+              </div>
+              {(tecnico ? c.riscos : c.riscos_cidadao) && (
+                <div style={{
+                  fontSize: 12.5, lineHeight: 1.6, marginTop: 6,
+                  color: 'var(--color-text-secondary)',
+                }}>
+                  <strong>{tecnico ? 'Riscos e contra-argumentos: ' : 'O que pode correr de outra forma: '}</strong>
+                  {tecnico ? c.riscos : c.riscos_cidadao}
+                </div>
+              )}
+              {c.fundamentacao_normas?.length > 0 && (
+                <div style={{
+                  fontSize: 11.5, marginTop: 5, color: 'var(--color-text-tertiary)',
+                }}>
+                  {tecnico ? 'Normas validadas no corpus: ' : 'Artigos de lei verificados: '}
+                  {c.fundamentacao_normas.map(n => n.replace('-', ' art. ')).join('; ')}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {(a.lentes_omitidas?.length ?? 0) > 0 && (
+            <div style={{
+              fontSize: 12, color: 'var(--color-text-tertiary)',
+              borderTop: '0.5px dashed var(--color-border-tertiary)', paddingTop: 8,
+            }}>
+              <strong>Abordagens sem solução sustentável:</strong>{' '}
+              {a.lentes_omitidas!.map(o => `${o.lente} — ${o.motivo}`).join(' · ')}
+            </div>
+          )}
+
+          <div style={{
+            marginTop: 10, paddingTop: 10, fontSize: 13, lineHeight: 1.65,
+            borderTop: '0.5px solid var(--color-border-tertiary)',
+          }}>
+            <strong>Síntese: </strong>
+            {tecnico ? a.sintese_tecnica : a.sintese_cidada}
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
         {arquivada ? (
           <button onClick={() => restaurar(i)} style={botaoLeve}>
@@ -263,6 +355,10 @@ export default function ProcessoDetalhe() {
           </button>
         ) : (
           <>
+            <button onClick={() => setAberta(aberta === i ? null : i)}
+              style={{ ...botaoLeve, fontWeight: 600 }}>
+              {aberta === i ? '▾ Fechar análise' : '▸ Ler análise completa'}
+            </button>
             {!a.activa && !a.definitiva && (
               <button onClick={() => activar(i)} style={botaoLeve}>
                 ✓ Tornar apreciação corrente
@@ -294,7 +390,13 @@ export default function ProcessoDetalhe() {
                 integra o processo — não pode ser descartada
               </span>
             ) : aDescartar === i ? (
-              <span style={{ display: 'flex', gap: 6, alignItems: 'center', marginLeft: 'auto' }}>
+              <span style={{
+                display: 'flex', gap: 6, alignItems: 'center', marginLeft: 'auto',
+                flexWrap: 'wrap',
+              }}>
+                <span style={{ fontSize: 11.5, color: 'var(--color-text-tertiary)' }}>
+                  Motivo:
+                </span>
                 <select value={motivo} onChange={e => setMotivo(e.target.value)}
                   style={{ fontSize: 11, fontFamily: 'inherit', padding: '2px 4px' }}>
                   {Object.entries(motivos).map(([k, v]) => (
@@ -303,7 +405,7 @@ export default function ProcessoDetalhe() {
                 </select>
                 <button onClick={() => descartar(i)} style={{
                   ...botaoLeve, background: '#7a3b0a', color: '#fff', border: 'none',
-                }}>descartar</button>
+                }}>confirmar descarte</button>
                 <button onClick={() => setADescartar(null)} style={botaoTexto}>cancelar</button>
               </span>
             ) : (
@@ -397,11 +499,40 @@ export default function ProcessoDetalhe() {
           }}>{processo.assunto}</div>
         )}
         <div style={{
-          fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em',
-          color: 'var(--color-text-tertiary)', marginTop: 12, marginBottom: 4,
-        }}>Relato dos factos — é este texto que alimenta a análise</div>
+          display: 'flex', alignItems: 'center', gap: 8,
+          marginTop: 14, marginBottom: 5,
+        }}>
+          <span style={{
+            fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.07em',
+            color: 'var(--color-text-tertiary)',
+          }}>Relato dos factos — é este texto que alimenta a análise</span>
+          <button
+            onClick={async () => {
+              const novo = window.prompt(
+                'Relato dos factos.\n\n' +
+                'É este texto que alimenta a análise: quanto mais completo, mais ' +
+                'fundamentada será a leitura. O assunto, que identifica o processo ' +
+                'na carteira, altera-se à parte.',
+                processo.descricao)
+              if (novo === null || !novo.trim()) return
+              try {
+                await api.post(`/processos/${processo.id}/editar`, { descricao: novo })
+                carregar()
+              } catch (e) { setErro(tratarErroAPI(e)) }
+            }}
+            title="Completar ou corrigir o relato — a alteração fica registada"
+            style={botaoTexto}>
+            ✎ editar relato
+          </button>
+        </div>
+        {/* Área generosa: um relato processual não se lê em três linhas. */}
         <div style={{
-          fontSize: 13.5, lineHeight: 1.65, whiteSpace: 'pre-wrap',
+          fontSize: 13.5, lineHeight: 1.7, whiteSpace: 'pre-wrap',
+          maxHeight: '45vh', overflowY: 'auto',
+          background: 'var(--color-background-secondary)',
+          border: '0.5px solid var(--color-border-tertiary)',
+          borderRadius: 'var(--border-radius-md)',
+          padding: '12px 14px',
         }}>{processo.descricao}</div>
       </div>
 
