@@ -19,11 +19,15 @@ const NAV_POR_ROLE = {
     { path: '/dossie', icon: 'ti-folders', label: 'Compilar dossiê' },
     { path: '/observatorio', icon: 'ti-chart-dots', label: 'Observatório' },
     { path: '/jurisprudencia', icon: 'ti-gavel', label: 'Jurisprudência' },
-    { path: '/casos', icon: 'ti-folder', label: 'Os meus casos' },
+    // «Casos em estudo» e «Processos em tribunal»: nomes que dizem a
+    // diferença. Um advogado analisa dezenas de situações por cada uma que dá
+    // entrada em tribunal — e é aí que o sistema mais ajuda, a decidir se
+    // vale a pena avançar.
+    { path: '/casos', icon: 'ti-folder', label: 'Casos em estudo' },
     { path: '/consulta', icon: 'ti-message-question', label: 'Consulta jurídica' },
     { path: '/instrutor', icon: 'ti-list-search', label: 'Instrução do caso' },
     { path: '/cenarios', icon: 'ti-scale', label: 'Cenários de resolução' },
-    { path: '/processos', icon: 'ti-briefcase', label: 'Carteira de processos' },
+    { path: '/processos', icon: 'ti-briefcase', label: 'Processos em tribunal' },
     { path: '/audiencias', icon: 'ti-gavel', label: 'Audiências' },
     { path: '/documentos', icon: 'ti-file-invoice', label: 'Geração de peças' },
     { path: '/auditoria', icon: 'ti-shield-check', label: 'Auditoria' },
