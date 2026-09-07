@@ -305,9 +305,11 @@ export default function ProcessoDetalhe() {
         ) : (
           <>
             <button onClick={() => abrirAnalise(i)}
-              title="Abrir a análise completa — três lentes, síntese e contraditório"
+              title={a.perspetiva === 'contraparte'
+                ? 'Abrir esta análise do lado contrário — pode alternar para o seu lado'
+                : 'Abrir esta análise — pode alternar para o lado contrário'}
               style={{ ...botaoLeve, fontWeight: 600 }}>
-              ↗ Abrir análise
+              ↗ Abrir {a.perspetiva === 'contraparte' ? 'contraditório' : 'análise'}
             </button>
             {!a.activa && !a.definitiva && (
               <button onClick={() => activar(i)} style={botaoLeve}>

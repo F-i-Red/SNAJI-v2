@@ -195,7 +195,12 @@ export default function PaginaCenarios() {
     const modo = contra ?? location.state?.contraditorio ?? false
 
     // Já existe para este texto: mostra sem repetir a chamada.
-    const guardada = analises.texto === corpo ? analises[chave(modo)] : undefined
+    // Comparação tolerante a espaços e quebras de linha: o mesmo texto vindo de
+    // sítios diferentes podia diferir em pormenores invisíveis, e isso levava
+    // o sistema a gerar de novo uma análise que já tinha.
+    const mesmoTexto = (a?: string, b?: string) =>
+      (a ?? '').replace(/\s+/g, ' ').trim() === (b ?? '').replace(/\s+/g, ' ').trim()
+    const guardada = mesmoTexto(analises.texto, corpo) ? analises[chave(modo)] : undefined
     if (guardada && !forcar) {
       setResultado(guardada)
       setEmContraditorio(modo)
@@ -211,7 +216,7 @@ export default function PaginaCenarios() {
       setEmContraditorio(modo)
       setAnalises(a => ({
         // Texto diferente do guardado: recomeça, para não misturar casos.
-        ...(a.texto === corpo ? a : {}),
+        ...(mesmoTexto(a.texto, corpo) ? a : {}),
         texto: corpo,
         [chave(modo)]: res.data,
       }))
@@ -234,8 +239,10 @@ export default function PaginaCenarios() {
       const inicial = guardada ?? contraGuardada!
       setResultado(inicial)
       setEmContraditorio(!guardada)
-      // O texto tem de coincidir com o do campo, senão o selector dos dois
-      // lados não reconhece as análises como sendo deste caso.
+      // O texto guardado tem de coincidir com o do campo para o selector
+      // reconhecer as análises como sendo deste caso. Guarda-se o mesmo valor
+      // que ficou no campo — e não o da navegação —, porque diferenças de
+      // espaços faziam o sistema julgar tratar-se de outro caso e regerar.
       setAnalises({
         texto: (location.state?.texto ?? '').trim(),
         propria: guardada,
@@ -634,7 +641,8 @@ export default function PaginaCenarios() {
             </span>
             {([false, true] as const).map(contra => {
               const activo = emContraditorio === contra
-              const pronta = analises.texto === texto.trim() && analises[chave(contra)]
+              const pronta = (analises.texto ?? '').replace(/\s+/g, ' ').trim()
+                === texto.replace(/\s+/g, ' ').trim() && analises[chave(contra)]
               return (
                 <button
                   key={String(contra)}
