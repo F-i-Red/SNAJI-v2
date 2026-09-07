@@ -82,10 +82,6 @@ export default function ProcessoDetalhe() {
   const [aDescartar, setADescartar] = useState<number | null>(null)
   const [verArquivo, setVerArquivo] = useState(false)
   const [comparar, setComparar] = useState<number[]>([])
-  // Análise aberta por extenso, e em que registo. A análise completa está
-  // guardada — faltava apenas poder lê-la sem gerar outra.
-  const [aberta, setAberta] = useState<number | null>(null)
-  const [tecnico, setTecnico] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(false)
 
@@ -144,6 +140,32 @@ export default function ProcessoDetalhe() {
       await api.post(`/processos/${processo.id}/editar`, { tipo })
       carregar()
     } catch (e) { setErro(tratarErroAPI(e)) }
+  }
+
+  /**
+   * Abre a análise guardada na página de Cenários.
+   *
+   * É essa página que sabe apresentar três lentes, síntese, impressão e a
+   * alternância entre os dois lados do caso. Reproduzir isso aqui seria
+   * duplicar o ecrã — passa-se-lhe a análise já feita e ela apresenta-a
+   * exactamente como apresenta as que gera, sem repetir a chamada.
+   */
+  const abrirAnalise = (i: number) => {
+    const escolhida = analises[i]
+    if (!escolhida) return
+    const daContraparte = escolhida.perspetiva === 'contraparte'
+    // Par correspondente: a análise do outro lado do mesmo caso, se existir.
+    const par = analises.find((x, j) =>
+      j !== i && (x.perspetiva === 'contraparte') !== daContraparte)
+    navigate('/cenarios', {
+      state: {
+        texto: processo?.descricao,
+        caso_id: processo?.caso_id_analise ?? null,
+        processo_id: processo?.id,
+        analise_guardada: daContraparte ? par : escolhida,
+        contraditorio_guardado: daContraparte ? escolhida : par,
+      },
+    })
   }
 
   const activar = async (i: number) => {
@@ -269,85 +291,6 @@ export default function ProcessoDetalhe() {
         ))}
       </div>
 
-      {/* Análise por extenso. Estava guardada por inteiro mas só se viam os
-          títulos — obrigando a gerar outra para ler o que já existia. */}
-      {!arquivada && aberta === i && (
-        <div style={{
-          marginTop: 12, paddingTop: 12,
-          borderTop: '0.5px solid var(--color-border-tertiary)',
-        }}>
-          <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-            {([true, false] as const).map(t => (
-              <button key={String(t)} onClick={() => setTecnico(t)}
-                style={{
-                  ...botaoLeve, fontSize: 11.5, padding: '4px 10px',
-                  background: tecnico === t ? '#0a2342' : 'transparent',
-                  color: tecnico === t ? '#fff' : '#0a2342',
-                }}>
-                {t ? 'Registo técnico' : 'Linguagem clara'}
-              </button>
-            ))}
-          </div>
-
-          {[...a.cenarios, ...(a.cenarios_convergentes ?? [])].map((c, j) => (
-            <div key={j} style={{ marginBottom: 16 }}>
-              <div style={{
-                fontSize: 13, fontWeight: 600, color: COR_SOLIDEZ[c.solidez] ?? '#0a2342',
-              }}>
-                {c.lente ? `Lente ${c.lente.charAt(0).toUpperCase()}${c.lente.slice(1)} — ` : ''}
-                solidez {NOME_SOLIDEZ[c.solidez] ?? c.solidez}
-              </div>
-              <div style={{
-                fontSize: 11.5, color: 'var(--color-text-tertiary)', marginBottom: 5,
-              }}>
-                {tecnico ? c.lente_descricao_tecnica : c.lente_descricao_cidada}
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
-                {c.titulo}{c.sentido ? ` — ${c.sentido}` : ''}
-              </div>
-              <div style={{ fontSize: 13, lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
-                {tecnico ? c.solucao_tecnica : c.solucao_cidada}
-              </div>
-              {(tecnico ? c.riscos : c.riscos_cidadao) && (
-                <div style={{
-                  fontSize: 12.5, lineHeight: 1.6, marginTop: 6,
-                  color: 'var(--color-text-secondary)',
-                }}>
-                  <strong>{tecnico ? 'Riscos e contra-argumentos: ' : 'O que pode correr de outra forma: '}</strong>
-                  {tecnico ? c.riscos : c.riscos_cidadao}
-                </div>
-              )}
-              {c.fundamentacao_normas?.length > 0 && (
-                <div style={{
-                  fontSize: 11.5, marginTop: 5, color: 'var(--color-text-tertiary)',
-                }}>
-                  {tecnico ? 'Normas validadas no corpus: ' : 'Artigos de lei verificados: '}
-                  {c.fundamentacao_normas.map(n => n.replace('-', ' art. ')).join('; ')}
-                </div>
-              )}
-            </div>
-          ))}
-
-          {(a.lentes_omitidas?.length ?? 0) > 0 && (
-            <div style={{
-              fontSize: 12, color: 'var(--color-text-tertiary)',
-              borderTop: '0.5px dashed var(--color-border-tertiary)', paddingTop: 8,
-            }}>
-              <strong>Abordagens sem solução sustentável:</strong>{' '}
-              {a.lentes_omitidas!.map(o => `${o.lente} — ${o.motivo}`).join(' · ')}
-            </div>
-          )}
-
-          <div style={{
-            marginTop: 10, paddingTop: 10, fontSize: 13, lineHeight: 1.65,
-            borderTop: '0.5px solid var(--color-border-tertiary)',
-          }}>
-            <strong>Síntese: </strong>
-            {tecnico ? a.sintese_tecnica : a.sintese_cidada}
-          </div>
-        </div>
-      )}
-
       <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
         {arquivada ? (
           <button onClick={() => restaurar(i)} style={botaoLeve}>
@@ -355,9 +298,10 @@ export default function ProcessoDetalhe() {
           </button>
         ) : (
           <>
-            <button onClick={() => setAberta(aberta === i ? null : i)}
+            <button onClick={() => abrirAnalise(i)}
+              title="Abrir a análise completa — três lentes, síntese e contraditório"
               style={{ ...botaoLeve, fontWeight: 600 }}>
-              {aberta === i ? '▾ Fechar análise' : '▸ Ler análise completa'}
+              ↗ Abrir análise
             </button>
             {!a.activa && !a.definitiva && (
               <button onClick={() => activar(i)} style={botaoLeve}>

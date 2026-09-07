@@ -115,7 +115,13 @@ const NOME_ETAPA: Record<string, string> = {
 export default function PaginaCenarios() {
   const { utilizador } = useAuthStore()
   const ehProfissional = utilizador?.role === 'advogado' || utilizador?.role === 'magistrado'
-  const location = useLocation() as { state?: { texto?: string; caso_id?: string; processo_id?: string; contraditorio?: boolean } }
+  const location = useLocation() as { state?: {
+    texto?: string; caso_id?: string; processo_id?: string; contraditorio?: boolean
+    // Análises já guardadas, vindas da janela do processo: a página apresenta-as
+    // tal como apresenta as que gera, sem repetir a chamada nem duplicar o ecrã.
+    analise_guardada?: CenariosAPI
+    contraditorio_guardado?: CenariosAPI
+  } }
   const navigate = useNavigate()
 
   const [texto, setTexto] = useState(location.state?.texto ?? '')
@@ -222,6 +228,21 @@ export default function PaginaCenarios() {
   useEffect(() => {
     if (jaArrancou.current) return
     jaArrancou.current = true
+    const guardada = location.state?.analise_guardada
+    const contraGuardada = location.state?.contraditorio_guardado
+    if (guardada || contraGuardada) {
+      const inicial = guardada ?? contraGuardada!
+      setResultado(inicial)
+      setEmContraditorio(!guardada)
+      // O texto tem de coincidir com o do campo, senão o selector dos dois
+      // lados não reconhece as análises como sendo deste caso.
+      setAnalises({
+        texto: (location.state?.texto ?? '').trim(),
+        propria: guardada,
+        contraditorio: contraGuardada,
+      })
+      return
+    }
     if (location.state?.texto) gerar(location.state.texto)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
