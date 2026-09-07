@@ -118,6 +118,21 @@ export default function ProcessoDetalhe() {
     catch (e) { setErro(tratarErroAPI(e)) }
   }
 
+  /**
+   * Corrigir o enquadramento.
+   *
+   * Um processo pode entrar mal classificado, e é quem o gere que tem
+   * elementos para o corrigir. A mudança fica no registo de eventos, com o
+   * valor anterior — nada se altera sem rasto.
+   */
+  const mudarTipo = async (tipo: string) => {
+    if (!processo || tipo === processo.tipo) return
+    try {
+      await api.post(`/processos/${processo.id}/editar`, { tipo })
+      carregar()
+    } catch (e) { setErro(tratarErroAPI(e)) }
+  }
+
   const activar = async (i: number) => {
     if (!caso) return
     try { await api.post(`/casos/${caso}/analises/${i}/activar`); carregar() }
@@ -344,10 +359,27 @@ export default function ProcessoDetalhe() {
             style={botaoTexto}>
             ✎ assunto
           </button>
+          <select
+            value={processo.tipo}
+            onChange={e => mudarTipo(e.target.value)}
+            title="Corrigir o enquadramento — a alteração fica registada nos eventos"
+            style={{
+              fontSize: 11.5, fontFamily: 'inherit', padding: '2px 6px',
+              textTransform: 'uppercase', letterSpacing: '0.06em',
+              color: 'var(--color-text-secondary)',
+              border: '0.5px solid var(--color-border-secondary)',
+              borderRadius: 'var(--border-radius-md)', background: 'transparent',
+            }}>
+            {/* Tipos declarados em TipoProcesso, no backend. */}
+            {['laboral', 'penal', 'civil', 'administrativo',
+              'familia', 'consumo', 'dados_pessoais'].map(t => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
           <span style={{
             fontSize: 11.5, color: 'var(--color-text-tertiary)',
             textTransform: 'uppercase', letterSpacing: '0.06em',
-          }}>{processo.tipo} · {processo.estado}</span>
+          }}>{processo.estado}</span>
           {docImprimivel() && (
             <div style={{ marginLeft: 'auto' }}>
               <BotoesImprimir doc={docImprimivel()!} />

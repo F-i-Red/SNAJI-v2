@@ -124,7 +124,19 @@ export default function PaginaProcessos() {
   }
 
   const criarProcesso = async () => {
-    if (!formNovo.descricao || !formNovo.nome_autor || !formNovo.nome_reu) return
+    // Antes o botão limitava-se a não reagir quando faltava um campo, sem
+    // explicar porquê — e com o campo «Assunto» no topo é fácil preenchê-lo
+    // julgando ser a descrição. Agora diz o que falta.
+    const emFalta = [
+      !formNovo.descricao && 'Relato dos factos',
+      !formNovo.nome_autor && 'Nome do autor',
+      !formNovo.nome_reu && 'Nome do réu / arguido',
+    ].filter(Boolean)
+    if (emFalta.length) {
+      setErro(`Preencha ${emFalta.length > 1 ? 'os campos' : 'o campo'}: ${emFalta.join(', ')}.`)
+      return
+    }
+    setErro(null)
     setCriando(true)
     try {
       await api.post('/processos', {
@@ -466,10 +478,10 @@ export default function PaginaProcessos() {
               {[
                 { label: 'Assunto', field: 'assunto', type: 'text',
                   ph: 'Uma linha que identifique o processo (opcional)' },
-                { label: 'Relato dos factos', field: 'descricao', type: 'text',
+                { label: 'Relato dos factos *', field: 'descricao', type: 'text',
                   ph: 'Descrição completa — é este texto que alimenta a análise' },
-                { label: 'Nome do autor', field: 'nome_autor', type: 'text', ph: 'Nome completo ou entidade' },
-                { label: 'Nome do réu / arguido', field: 'nome_reu', type: 'text', ph: 'Nome completo ou entidade' },
+                { label: 'Nome do autor *', field: 'nome_autor', type: 'text', ph: 'Nome completo ou entidade' },
+                { label: 'Nome do réu / arguido *', field: 'nome_reu', type: 'text', ph: 'Nome completo ou entidade' },
                 { label: 'Comarca', field: 'comarca', type: 'text', ph: 'Lisboa' },
               ].map(f => (
                 <div key={f.field}>
