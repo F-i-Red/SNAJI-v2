@@ -15,7 +15,7 @@ import os
 from typing import Optional
 
 import structlog
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.db.utilizadores import Utilizador
@@ -115,6 +115,27 @@ async def gerar_cenarios(
     Só cenários juridicamente viáveis são devolvidos (1 a 3); em caso de
     convergência das lentes, devolve-se uma única solução assinalada.
     """
+    # O contraditório argumenta contra uma tese. Sem análise própria não há
+    # tese nenhuma a contrariar — e um processo ficaria com a leitura da parte
+    # contrária sem a sua, o que é o inverso do que se pretende.
+    if request.contraditorio and (request.caso_id or request.processo_id):
+        caso_ref = request.caso_id
+        if not caso_ref and request.processo_id:
+            from app.processes.repositorio import repositorio_processos
+            proc = repositorio_processos.por_id(request.processo_id)
+            caso_ref = proc.caso_id_analise if proc else None
+        caso = (casos_repo.obter_caso(str(utilizador.id), caso_ref, partilhado=True)
+                if caso_ref else None)
+        propria = [a for a in (caso or {}).get("analises_cenarios", [])
+                   if a.get("perspetiva") != "contraparte"]
+        # Sem caso ligado, o processo nunca foi analisado — e a ausência de
+        # caso é, ela própria, prova de que não há tese a contrariar.
+        if not propria:
+            raise HTTPException(
+                status_code=409,
+                detail="Gere primeiro a análise do caso: o contraditório "
+                       "argumenta contra uma tese, e ainda não há nenhuma.")
+
     resultado = motor.gerar(
         request.texto,
         top_k_normas=request.top_k_normas,
