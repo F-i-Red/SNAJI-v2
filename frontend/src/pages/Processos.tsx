@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { imprimirDocumento, descarregarTxt, DocumentoImprimivel } from '../utils/imprimir'
 import { api, tratarErroAPI } from '../services/api'
 import { useAuthStore } from '../auth/session'
@@ -52,7 +52,12 @@ export default function PaginaProcessos() {
   const [erro, setErro] = useState<string | null>(null)
   const [filtroTipo, setFiltroTipo] = useState<string>('todos')
   const [mostrarFormNovo, setMostrarFormNovo] = useState(false)
+  const location = useLocation() as { state?: { novo_de_caso?: {
+    caso_id: string; descricao: string; assunto: string } } }
   const [formNovo, setFormNovo] = useState({ assunto: '', descricao: '', nome_autor: '', nome_reu: '', comarca: 'Lisboa' })
+  // Caso de origem, quando o processo nasce de um estudo prévio: o relato e as
+  // análises seguem com ele, em vez de se recomeçar do zero.
+  const [casoOrigem, setCasoOrigem] = useState<string | null>(null)
   const [areasSel, setAreasSel] = useState<string[]>(['civil'])
   const [numeroCitius, setNumeroCitius] = useState('')
   const [criando, setCriando] = useState(false)
@@ -65,6 +70,18 @@ export default function PaginaProcessos() {
   }
 
   useEffect(() => { carregar() }, [])
+
+  const jaPreencheu = useRef(false)
+  useEffect(() => {
+    if (jaPreencheu.current) return
+    jaPreencheu.current = true
+    const origem = location.state?.novo_de_caso
+    if (!origem) return
+    setFormNovo(f => ({ ...f, descricao: origem.descricao, assunto: origem.assunto }))
+    setCasoOrigem(origem.caso_id)
+    setMostrarFormNovo(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const verDetalhe = async (id: string) => {
     try {
@@ -141,6 +158,7 @@ export default function PaginaProcessos() {
     try {
       await api.post('/processos', {
         ...formNovo,
+        caso_id_analise: casoOrigem,
         areas: areasSel,
         numero_citius: numeroCitius.trim() || null,
         tipo: areasSel.includes('penal') ? 'penal' : (areasSel[0] ?? 'civil'),
@@ -475,6 +493,16 @@ export default function PaginaProcessos() {
                   </div>
                 )}
               </div>
+              {casoOrigem && (
+                <div style={{
+                  background: '#e7f6ec', border: '0.5px solid #1a7f3744',
+                  borderRadius: 'var(--border-radius-md)', padding: '8px 12px',
+                  fontSize: 12.5, color: '#1a7f37', marginBottom: 10,
+                }}>
+                  Este processo nasce de um caso em estudo — o relato e as análises
+                  já feitas seguem com ele.
+                </div>
+              )}
               {[
                 { label: 'Assunto', field: 'assunto', type: 'text',
                   ph: 'Uma linha que identifique o processo (opcional)' },

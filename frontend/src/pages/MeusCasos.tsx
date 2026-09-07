@@ -211,6 +211,29 @@ export default function PaginaMeusCasos() {
           >
             ⇄ Analisar pelo lado contrário
           </button>
+          {/* Do estudo para o tribunal. Um caso que avança não deve ser
+              redigitado: o processo nasce com o relato e as análises já
+              feitas, e o estudo prévio fica ligado ao processo. */}
+          <button
+            onClick={() => navigate('/processos', {
+              state: {
+                novo_de_caso: {
+                  caso_id: caso.caso_id,
+                  descricao: caso.texto_para_analise || caso.relato,
+                  assunto: caso.titulo,
+                },
+              },
+            })}
+            title="Criar um processo em tribunal a partir deste caso, mantendo as análises"
+            style={{
+              padding: '7px 14px', background: '#0a2342', color: '#fff',
+              border: 'none', borderRadius: 'var(--border-radius-md)',
+              fontSize: 12.5, fontWeight: 500, cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            ⚖ Avançar para processo
+          </button>
         </div>
 
         {caso.analises_cenarios.length === 0 && (
